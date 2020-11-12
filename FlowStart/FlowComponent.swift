@@ -58,7 +58,7 @@ public protocol FlowComponent: AnyFlowComponent {
 	func update(content: Content, data: Value?)
 }
 
-extension FlowComponent {
+extension AnyFlowComponent where Self: FlowComponent {
 	
 	public var contentType: Any.Type { Content.self }
 	
@@ -67,7 +67,7 @@ extension FlowComponent {
 	}
 	
 	public func updateAny(content: Any, data: Any?) {
-		guard let view = content as? Content, let data = data as? Value else { return }
+		guard let view = content as? Content, let data = data as? Value? else { return }
 		update(content: view, data: data)
 	}
 	

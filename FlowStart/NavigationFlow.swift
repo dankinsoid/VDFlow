@@ -28,12 +28,16 @@ public struct NavigationFlow: ArrayFlowProtocol {
 		createController()
 	}
 	
+	public func willUpdate(content: UINavigationController, data: FlowStep?) {
+		
+	}
+	
 }
 
 extension UINavigationController {
 	
 	public func set(viewControllers: [UIViewController], animated: Bool, completion: @escaping () -> Void = {}) {
-		if animated {
+		if animated, view?.window != nil {
 			CATransaction.begin()
 			CATransaction.setCompletionBlock(completion)
 			setViewControllers(viewControllers, animated: true)
@@ -48,8 +52,8 @@ extension UINavigationController {
 
 extension NavigationFlow {
 	
-	public init(create: @escaping @autoclosure () -> UINavigationController = UINavigationController(), @FlowBuilder _ buldier: () -> FlowArrayConvertable) {
-		self = NavigationFlow(create: create(), components: buldier().asFlowArray())
+	public init(create: @escaping @autoclosure () -> UINavigationController = UINavigationController(), @FlowBuilder _ builder: () -> FlowArrayConvertable) {
+		self = NavigationFlow(create: create(), components: builder().asFlowArray())
 	}
 	
 }

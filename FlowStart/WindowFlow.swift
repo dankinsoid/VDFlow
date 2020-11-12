@@ -32,7 +32,7 @@ public struct WindowFlow: BaseFlow {
 	
 	public func navigate(to step: FlowStep, content: UIWindow, completion: @escaping ((AnyFlowComponent, Any)?) -> Void) {
 		let vc = controller(content: content)
-		guard let point = step.point else {
+		guard step.point != nil else {
 			if let flow = root.asFlow {
 				flow.navigate(to: step, contentAny: vc, completion: completion)
 			} else {
@@ -40,7 +40,7 @@ public struct WindowFlow: BaseFlow {
 			}
 			return
 		}
-		root.updateAny(content: vc, point: point, prepare: { c in
+		root.updateAny(content: vc, step: step, prepare: { c in
 			self.set(content: content, rootViewController: vc, animated: step.animated, completion: c)
 		}, completion: completion)
 	}

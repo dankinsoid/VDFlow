@@ -33,7 +33,7 @@ public struct TabFlow: ArrayFlowProtocol {
 extension UITabBarController {
 	
 	public func set(viewControllers: [UIViewController], animated: Bool, completion: @escaping () -> Void = {}) {
-		if animated {
+		if animated, view?.window != nil {
 			CATransaction.begin()
 			CATransaction.setCompletionBlock(completion)
 			setViewControllers(viewControllers, animated: true)

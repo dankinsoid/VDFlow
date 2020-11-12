@@ -46,8 +46,8 @@ public struct PresentFlow<Root: FlowComponent>: BaseFlow {
 
 extension PresentFlow {
 	
-	public init(root: Root, @FlowBuilder _ buldier: () -> FlowArrayConvertable) {
-		self = PresentFlow(root: root, components: buldier().asFlowArray())
+	public init(root: Root, @FlowBuilder _ builder: () -> FlowArrayConvertable) {
+		self = PresentFlow(root: root, components: builder().asFlowArray())
 	}
 	
 }

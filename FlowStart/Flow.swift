@@ -72,11 +72,13 @@ public protocol AnyBaseFlow: AnyFlowComponent {
 	func ifNavigate(to point: FlowPoint) -> AnyFlowComponent?
 	func current(contentAny: Any) -> (AnyFlowComponent, Any)?
 	func navigate(to step: FlowStep, contentAny: Any, completion: @escaping ((AnyFlowComponent, Any)?) -> Void)
+	func canUpdateAny(content: Any) -> Bool
 }
 
 public protocol BaseFlow: AnyBaseFlow, FlowComponent where Value == FlowStep {
 	func current(content: Content) -> (AnyFlowComponent, Any)?
 	func navigate(to step: FlowStep, content: Content, completion: @escaping ((AnyFlowComponent, Any)?) -> Void)
+	func canUpdate(content: Content) -> Bool
 }
 
 extension BaseFlow {
