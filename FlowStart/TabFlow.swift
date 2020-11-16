@@ -33,16 +33,9 @@ public struct TabFlow: ArrayFlowProtocol {
 extension UITabBarController {
 	
 	public func set(viewControllers: [UIViewController], current: Int, animated: Bool, completion: @escaping () -> Void = {}) {
-		if animated, view?.window != nil {
-			CATransaction.begin()
-			CATransaction.setCompletionBlock(completion)
-			setViewControllers(viewControllers, animated: true)
-			selectedIndex = current
-			CATransaction.commit()
-		} else {
-			setViewControllers(viewControllers, animated: false)
-			completion()
-		}
+		setViewControllers(viewControllers, animated: false)
+		selectedIndex = current
+		completion()
 	}
 	
 }
