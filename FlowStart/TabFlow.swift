@@ -32,11 +32,12 @@ public struct TabFlow: ArrayFlowProtocol {
 
 extension UITabBarController {
 	
-	public func set(viewControllers: [UIViewController], animated: Bool, completion: @escaping () -> Void = {}) {
+	public func set(viewControllers: [UIViewController], current: Int, animated: Bool, completion: @escaping () -> Void = {}) {
 		if animated, view?.window != nil {
 			CATransaction.begin()
 			CATransaction.setCompletionBlock(completion)
 			setViewControllers(viewControllers, animated: true)
+			selectedIndex = current
 			CATransaction.commit()
 		} else {
 			setViewControllers(viewControllers, animated: false)
@@ -57,6 +58,7 @@ extension TabFlow {
 extension UITabBarController {
 	
 	public struct ArrayDelegate: ArrayFlowDelegateProtocol {
+		public var alwaysFullStack: Bool { true }
 		
 		public func children(for parent: UITabBarController) -> [UIViewController] {
 			parent.viewControllers ?? []
@@ -66,8 +68,8 @@ extension UITabBarController {
 			parent.selectedViewController
 		}
 		
-		public func set(children: [UIViewController], to parent: UITabBarController, animated: Bool, completion: OnReadyCompletion<Void>) {
-			parent.set(viewControllers: children, animated: animated) { completion.complete(()) }
+		public func set(children: [UIViewController], current: Int, to parent: UITabBarController, animated: Bool, completion: OnReadyCompletion<Void>) {
+			parent.set(viewControllers: children, current: current, animated: animated) { completion.complete(()) }
 		}
 		
 	}

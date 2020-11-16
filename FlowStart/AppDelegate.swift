@@ -19,13 +19,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 		self.window = w
 		let coordinator = FlowCoordinator(AppFlow(window: w))
 		flow = coordinator
-		coordinator.navigate(to: TestStep.start.with(.blue))
+		coordinator.navigate(to: TestStep.start)
 		DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-//			coordinator.navigate(to: TestStep.sec.with(.green))
-			coordinator.navigate(to: FlowMove.next())
-			DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-				coordinator.navigate(to: TestStep.end.with(.red))
-			}
+			coordinator.navigate(to: TestStep.end)
 		}
 		return true
 	}

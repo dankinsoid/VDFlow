@@ -11,12 +11,14 @@ import UIKit
 public struct PresentFlow<Root: FlowComponent>: BaseFlow {
 	
 	private let delegate: ArrayFlow<PresentFlowDelegate>
-	public var root: Root { delegate.components[0] as! Root }
+	public let root: Root
+	public var rootComponent: AnyFlowComponent? { root }
 	
 	public init(root: Root, components: [AnyFlowComponent]) {
+		self.root = root
 		self.delegate = ArrayFlow(
 			delegate: .init(),
-			components: [root] + components.filter { $0.contentType is UIViewController.Type }
+			components: components.filter { $0.contentType is UIViewController.Type }
 		)
 	}
 	
@@ -157,7 +159,7 @@ extension UIViewController {
 			return
 		}
 		guard animated else {
-			dismiss(animated: false, completion: completion)
+			dismiss(animated: animated, completion: completion)
 			return
 		}
 		vcForPresent.dismiss(animated: animated) {
@@ -196,21 +198,20 @@ extension Array where Element: Equatable {
 }
 
 public struct PresentFlowDelegate: ArrayFlowDelegateProtocol {
+	public var alwaysFullStack: Bool { false }
 	
 	public func children(for parent: UIViewController) -> [UIViewController] {
-		[parent] + parent.allPresented
+		parent.allPresented
 	}
 	
 	public func currentChild(for parent: UIViewController) -> UIViewController? {
 		parent.allPresented.last ?? parent
 	}
 	
-	public func set(children: [UIViewController], to parent: UIViewController, animated: Bool, completion: OnReadyCompletion<Void>) {
+	public func set(children: [UIViewController], current: Int, to parent: UIViewController, animated: Bool, completion: OnReadyCompletion<Void>) {
 		completion.onReady { completion in
-			parent.dismissPresented(animated: animated) {
-				parent.present(children.filter { $0 !== parent }, animated: animated) {
-					completion(())
-				}
+			parent.present(children.prefix(current + 1).filter { $0 !== parent }, animated: animated) {
+				completion(())
 			}
 		}
 	}

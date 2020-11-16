@@ -59,6 +59,10 @@ public final class FlowCoordinator {
 		navigate(to: FlowPath([point]), completion: completion)
 	}
 	
+	public func navigate(to point: FlowID<Void>, completion: @escaping () -> Void = {}) {
+		navigate(to: point.with(()), completion: completion)
+	}
+	
 	public func navigate(to move: FlowMove, completion: @escaping () -> Void = {}) {
 		let content = root.createAny()
 		let (flow, view) = root.currentFlow(content: content)

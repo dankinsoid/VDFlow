@@ -41,16 +41,17 @@ public struct ArrayFlow<Delegate: ArrayFlowDelegateProtocol> {
 	public func navigate(to step: FlowStep, parent: Delegate.Parent, completion: FlowCompletion) {
 		guard let i =
 						moveIndex(step.move, parent: parent) ??
-						components.firstIndex(where: { $0.canGo(to: step.point) }) else {
+						components.firstIndex(where: { $0.canGo(to: step.point) }),
+						i < components.count,
+						let component = i > -1 ? components[i] : delegate.rootComponent else {
 			completion.complete(nil)
 			return
 		}
-		let component = components[i]
-		let vcs = children(parent: parent, maxCount: i + 1)
+		let vcs = children(parent: parent, maxCount: delegate.alwaysFullStack ? components.count : max(0, i + 1))
 		let componentPending = completion.pending()
-		component.updateAny(content: vcs[i], step: step, completion: componentPending.completion)
+		component.updateAny(content: i > -1 ? vcs[i] : parent, step: step, completion: componentPending.completion)
 		let pending = OnReadyCompletion<Void>.pending(componentPending.ready)
-		delegate.set(children: vcs, to: parent, animated: step.animated, completion: pending.completion)
+		delegate.set(children: vcs, current: i, to: parent, animated: step.animated, completion: pending.completion)
 		completion.onReady { _ in
 			pending.ready()
 		}
@@ -107,11 +108,17 @@ public struct ArrayFlow<Delegate: ArrayFlowDelegateProtocol> {
 public protocol ArrayFlowDelegateProtocol {
 	associatedtype Parent
 	associatedtype Child
+	var rootComponent: AnyFlowComponent? { get }
+	var alwaysFullStack: Bool { get }
 	func children(for parent: Parent) -> [Child]
 	func set(id: String, child: Child)
 	func getId(for child: Child) -> String?
 	func currentChild(for parent: Parent) -> Child?
-	func set(children: [Child], to parent: Parent, animated: Bool, completion: OnReadyCompletion<Void>)
+	func set(children: [Child], current: Int, to parent: Parent, animated: Bool, completion: OnReadyCompletion<Void>)
+}
+
+extension ArrayFlowDelegateProtocol {
+	public var rootComponent: AnyFlowComponent? { nil }
 }
 
 extension ArrayFlowDelegateProtocol where Child: UIView {

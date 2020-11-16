@@ -9,9 +9,10 @@ import Foundation
 import UIKit
 
 public enum TestStep {
-	public static let start = FlowID<UIColor>()
-	public static let sec = FlowID<UIColor>()
-	public static let end = FlowID<UIColor>()
+	public static let start = FlowID<Void>()
+	public static let sec = FlowID<Void>()
+	public static let third = FlowID<Void>()
+	public static let end = FlowID<Void>()
 }
 
 public enum Hmm {
@@ -33,17 +34,21 @@ class FlowTest: Flow {
 	
 	let hmm = Hmm.one
 	
-	var root: NavigationFlow {
-		NavigationFlow {
-			Component()
+	var root: TabFlow {
+		TabFlow {
+			Component(.white)
 				.present {
-					Component()
+					Component(.red)
 						.identified(by: TestStep.start)
-					Component()
-						.identified(by: TestStep.sec)
-					Component()
+					Component(.green)
+					NavigationFlow {
+						Component(.yellow)
+					 		.identified(by: TestStep.sec)
+						Component(.cyan)
+						 .identified(by: TestStep.third)
+					}
 				}
-			Component()
+			Component(.blue)
 				.identified(by: TestStep.end)
 		}
 	}
@@ -54,15 +59,21 @@ class FlowTest: Flow {
 	
 	struct Component: FlowComponent {
 		
+		let color: UIColor
+		
+		init(_ color: UIColor) {
+			self.color = color
+		}
+		
 		public func create() -> UIViewController {
 			let result = UIViewController()
 			result.loadViewIfNeeded()
-			result.view.backgroundColor = .white
+			result.view.backgroundColor = color
+			result.tabBarItem = .init(title: "tab", image: nil, tag: 0)
 			return result
 		}
 		
-		public func update(content: UIViewController, data: UIColor?) {
-			content.view?.backgroundColor = data
+		public func update(content: UIViewController, data: Void?) {
 		}
 		
 	}

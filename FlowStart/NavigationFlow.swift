@@ -63,6 +63,8 @@ extension UINavigationController {
 	
 	public struct ArrayDelegate: ArrayFlowDelegateProtocol {
 		
+		public var alwaysFullStack: Bool { false }
+		
 		public func children(for parent: UINavigationController) -> [UIViewController] {
 			parent.viewControllers
 		}
@@ -71,7 +73,7 @@ extension UINavigationController {
 			parent.topViewController
 		}
 		
-		public func set(children: [UIViewController], to parent: UINavigationController, animated: Bool, completion: OnReadyCompletion<Void>) {
+		public func set(children: [UIViewController], current: Int, to parent: UINavigationController, animated: Bool, completion: OnReadyCompletion<Void>) {
 			if parent.presentedViewController != nil {
 				completion.onReady { completion in
 					parent.dismissPresented(animated: animated) {
@@ -81,7 +83,7 @@ extension UINavigationController {
 					}
 				}
 			} else {
-				parent.set(viewControllers: children, animated: animated) {
+				parent.set(viewControllers: Array(children.prefix(current + 1)), animated: animated) {
 					completion.complete(())
 				}
 			}
