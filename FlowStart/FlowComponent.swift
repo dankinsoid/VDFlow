@@ -34,18 +34,14 @@ extension AnyFlowComponent {
 		rootComponent as? AnyBaseFlow
 	}
 	
-	func updateAny(content: Any, step: FlowStep, prepare: @escaping (@escaping () -> Void) -> Void, completion: @escaping ((AnyFlowComponent, Any)?) -> Void) {
+	func updateAny(content: Any, step: FlowStep, completion: FlowCompletion) {
 		if let point = step.point, isPoint(point) {
 			updateAny(content: content, data: point.data)
-			prepare { completion((self, content)) }
+			completion.complete((self, content))
 		} else if let flow = asFlow {
-			prepare {
-				flow.navigate(to: step, contentAny: content, completion: completion)
-			}
+			flow.navigate(to: step, contentAny: content, completion: completion)
 		} else {
-			prepare {
-				completion(nil)
-			}
+			completion.complete(nil)
 		}
 	}
 	

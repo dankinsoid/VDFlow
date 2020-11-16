@@ -15,7 +15,7 @@ public protocol ArrayFlowProtocol: BaseFlow where Delegate.Parent == Content {
 
 extension ArrayFlowProtocol {
 	
-	public func navigate(to step: FlowStep, content: Content, completion: @escaping ((AnyFlowComponent, Any)?) -> Void) {
+	public func navigate(to step: FlowStep, content: Content, completion: FlowCompletion) {
 		delegate.navigate(to: step, parent: content, completion: completion)
 	}
 	
@@ -38,20 +38,22 @@ public struct ArrayFlow<Delegate: ArrayFlowDelegateProtocol> {
 		self.delegate = delegate
 	}
 	
-	public func navigate(to step: FlowStep, parent: Delegate.Parent, completion: @escaping ((AnyFlowComponent, Any)?) -> Void) {
+	public func navigate(to step: FlowStep, parent: Delegate.Parent, completion: FlowCompletion) {
 		guard let i =
 						moveIndex(step.move, parent: parent) ??
 						components.firstIndex(where: { $0.canGo(to: step.point) }) else {
-			completion(nil)
+			completion.complete(nil)
 			return
 		}
 		let component = components[i]
 		let vcs = children(parent: parent, maxCount: i + 1)
-		component.updateAny(content: vcs[i], step: step, prepare: { c in
-			self.delegate.prepareForNavigate(parent: parent, animated: step.animated) {
-				self.delegate.set(children: vcs, to: parent, animated: step.animated, completion: c)
-			}
-		}, completion: completion)
+		let componentPending = completion.pending()
+		component.updateAny(content: vcs[i], step: step, completion: componentPending.completion)
+		let pending = OnReadyCompletion<Void>.pending(componentPending.ready)
+		delegate.set(children: vcs, to: parent, animated: step.animated, completion: pending.completion)
+		completion.onReady { _ in
+			pending.ready()
+		}
 	}
 	
 	private func moveIndex(_ move: Int?, parent: Delegate.Parent) -> Int? {
@@ -109,8 +111,7 @@ public protocol ArrayFlowDelegateProtocol {
 	func set(id: String, child: Child)
 	func getId(for child: Child) -> String?
 	func currentChild(for parent: Parent) -> Child?
-	func set(children: [Child], to parent: Parent, animated: Bool, completion: (() -> Void)?)
-	func prepareForNavigate(parent: Parent, animated: Bool, completion: @escaping () -> Void)
+	func set(children: [Child], to parent: Parent, animated: Bool, completion: OnReadyCompletion<Void>)
 }
 
 extension ArrayFlowDelegateProtocol where Child: UIView {
@@ -134,7 +135,11 @@ extension ArrayFlowDelegateProtocol where Child: UIViewController {
 
 extension ArrayFlowDelegateProtocol where Parent: UIViewController, Child: UIViewController {
 	
-	public func prepareForNavigate(parent: Parent, animated: Bool, completion: @escaping () -> Void) {
+	func before(_ completion: @escaping () -> Void) {
+		
+	}
+	
+	public func dismissPresented(parent: Parent, animated: Bool, completion: @escaping () -> Void) {
 		if parent.presentedViewController != nil {
 			parent.dismissPresented(animated: animated, completion: completion)
 		} else if let current = currentChild(for: parent), current.presentedViewController != nil {

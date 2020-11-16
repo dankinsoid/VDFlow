@@ -17,10 +17,10 @@ public struct OpenURLFlow: BaseFlow {
 	public typealias Content = Void
 	public typealias Value = FlowStep
 	
-	public func navigate(to step: FlowStep, content: Void, completion: @escaping ((AnyFlowComponent, Any)?) -> Void) {
+	public func navigate(to step: FlowStep, content: Void, completion: FlowCompletion) {
 		if step.point?.id == SharedSteps.url.id, let url = step.point?.data as? URL, UIApplication.shared.canOpenURL(url) {
 			UIApplication.shared.open(url) { _ in
-				completion(nil)
+				completion.complete(nil)
 			}
 		}
 	}

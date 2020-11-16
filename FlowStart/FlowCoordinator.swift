@@ -43,7 +43,7 @@ public final class FlowCoordinator {
 		}
 		let point = path.points[0]
 		let newPath = path.dropFirst()
-		flow.navigate(to: .point(point), contentAny: content) { maybe in
+		let flowCompletion = FlowCompletion { maybe in
 			guard let pare = maybe else {
 				completion()
 				return
@@ -52,6 +52,7 @@ public final class FlowCoordinator {
 				self.navigate(to: newPath, flow: flow, content: pare.1, completion: completion)
 			}
 		}
+		flow.navigate(to: .point(point), contentAny: content, completion: flowCompletion)
 	}
 	
 	public func navigate(to point: FlowPoint, completion: @escaping () -> Void = {}) {
@@ -61,7 +62,10 @@ public final class FlowCoordinator {
 	public func navigate(to move: FlowMove, completion: @escaping () -> Void = {}) {
 		let content = root.createAny()
 		let (flow, view) = root.currentFlow(content: content)
-		flow.navigate(to: .move(move), contentAny: view, completion: {_ in completion() })
+		let flowCompletion = FlowCompletion { _ in
+			completion()
+		}
+		flow.navigate(to: .move(move), contentAny: view, completion: flowCompletion)
 	}
 	
 }

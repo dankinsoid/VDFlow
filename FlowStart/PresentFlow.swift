@@ -24,9 +24,10 @@ public struct PresentFlow<Root: FlowComponent>: BaseFlow {
 		root.create()
 	}
 	
-	public func navigate(to step: FlowStep, content: Root.Content, completion: @escaping ((AnyFlowComponent, Any)?) -> Void) {
+	public func navigate(to step: FlowStep, content: Root.Content, completion: FlowCompletion) {
 		guard let vc = content as? UIViewController else {
-			return completion(nil)
+			completion.complete(nil)
+			return
 		}
 		delegate.navigate(to: step, parent: vc, completion: completion)
 	}
@@ -204,12 +205,14 @@ public struct PresentFlowDelegate: ArrayFlowDelegateProtocol {
 		parent.allPresented.last ?? parent
 	}
 	
-	public func set(children: [UIViewController], to parent: UIViewController, animated: Bool, completion: (() -> Void)?) {
-		parent.present(children.filter { $0 !== parent }, animated: animated, completion: completion)
-	}
-	
-	public func prepareForNavigate(parent: UIViewController, animated: Bool, completion: @escaping () -> Void) {
-		completion()
+	public func set(children: [UIViewController], to parent: UIViewController, animated: Bool, completion: OnReadyCompletion<Void>) {
+		completion.onReady { completion in
+			parent.dismissPresented(animated: animated) {
+				parent.present(children.filter { $0 !== parent }, animated: animated) {
+					completion(())
+				}
+			}
+		}
 	}
 	
 }

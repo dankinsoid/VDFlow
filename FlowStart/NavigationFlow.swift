@@ -9,6 +9,7 @@ import Foundation
 import UIKit
 
 public struct NavigationFlow: ArrayFlowProtocol {
+	
 	private let createController: () -> UINavigationController
 	public let delegate: ArrayFlow<UINavigationController.ArrayDelegate>
 	
@@ -70,8 +71,20 @@ extension UINavigationController {
 			parent.topViewController
 		}
 		
-		public func set(children: [UIViewController], to parent: UINavigationController, animated: Bool, completion: (() -> Void)?) {
-			parent.set(viewControllers: children, animated: animated, completion: completion ?? {})
+		public func set(children: [UIViewController], to parent: UINavigationController, animated: Bool, completion: OnReadyCompletion<Void>) {
+			if parent.presentedViewController != nil {
+				completion.onReady { completion in
+					parent.dismissPresented(animated: animated) {
+						parent.set(viewControllers: children, animated: animated) {
+							completion(())
+						}
+					}
+				}
+			} else {
+				parent.set(viewControllers: children, animated: animated) {
+					completion.complete(())
+				}
+			}
 		}
 		
 	}

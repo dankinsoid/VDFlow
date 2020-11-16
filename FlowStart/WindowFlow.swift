@@ -30,19 +30,21 @@ public struct WindowFlow: BaseFlow {
 		return content
 	}
 	
-	public func navigate(to step: FlowStep, content: UIWindow, completion: @escaping ((AnyFlowComponent, Any)?) -> Void) {
+	public func navigate(to step: FlowStep, content: UIWindow, completion: FlowCompletion) {
 		let vc = controller(content: content)
 		guard step.point != nil else {
 			if let flow = root.asFlow {
 				flow.navigate(to: step, contentAny: vc, completion: completion)
 			} else {
-				completion((self, content))
+				completion.complete((self, content))
 			}
 			return
 		}
-		root.updateAny(content: vc, step: step, prepare: { c in
-			self.set(content: content, rootViewController: vc, animated: step.animated, completion: c)
-		}, completion: completion)
+		let pending = completion.pending()
+		root.updateAny(content: vc, step: step, completion: pending.completion)
+		set(content: content, rootViewController: vc, animated: step.animated) {
+			pending.ready()
+		}
 	}
 	
 	private func controller(content: UIWindow) -> UIViewController {

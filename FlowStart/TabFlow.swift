@@ -66,8 +66,8 @@ extension UITabBarController {
 			parent.selectedViewController
 		}
 		
-		public func set(children: [UIViewController], to parent: UITabBarController, animated: Bool, completion: (() -> Void)?) {
-			parent.set(viewControllers: children, animated: animated, completion: completion ?? {})
+		public func set(children: [UIViewController], to parent: UITabBarController, animated: Bool, completion: OnReadyCompletion<Void>) {
+			parent.set(viewControllers: children, animated: animated) { completion.complete(()) }
 		}
 		
 	}
