@@ -80,7 +80,7 @@ public struct ArrayFlow<Delegate: ArrayFlowDelegateProtocol> {
 				return
 			}
 			guard let vc = components[pare.offset].createAny() as? Delegate.Child else { return }
-			delegate.set(id: pare.element, child: vc)
+			delegate.update(id: pare.element, child: vc)
 			result.0.append(vc)
 			if pare.offset == current {
 				 result.1 = vc
@@ -146,7 +146,7 @@ public protocol ArrayFlowDelegateProtocol {
 	associatedtype Child
 	var setType: ArrayFlowSetType { get }
 	func children(for parent: Parent) -> [Child]
-	func set(id: String, child: Child)
+	func update(id: String, child: Child)
 	func getId(for child: Child) -> String?
 	func currentChild(for parent: Parent) -> Child?
 	func set(children: [Child], current: Int, to parent: Parent, animated: Bool, completion: OnReadyCompletion<Void>)
@@ -165,7 +165,7 @@ extension ArrayFlowDelegateProtocol where Child: UIViewController {
 	public func getId(for child: Child) -> String? {
 		child.view?.accessibilityIdentifier
 	}
-	public func set(id: String, child: Child) {
+	public func update(id: String, child: Child) {
 		child.loadViewIfNeeded()
 		child.view?.accessibilityIdentifier = id
 	}

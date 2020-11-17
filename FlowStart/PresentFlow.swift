@@ -13,10 +13,13 @@ public struct PresentFlow<Root: FlowComponent>: BaseFlow {
 	private let delegate: ArrayFlow<PresentFlowDelegate>
 	public let root: Root
 	
-	public init(root: Root, components: [AnyFlowComponent]) {
+	public init(root: Root, presentationStyle: UIModalPresentationStyle? = nil, transitionStyle: UIModalTransitionStyle? = nil, components: [AnyFlowComponent]) {
 		self.root = root
 		self.delegate = ArrayFlow(
-			delegate: .init(),
+			delegate: .init(
+				presentationStyle: presentationStyle,
+				transitionStyle: transitionStyle
+			),
 			root: root,
 			components: components.filter { $0.contentType is UIViewController.Type }
 		)
@@ -49,8 +52,8 @@ public struct PresentFlow<Root: FlowComponent>: BaseFlow {
 
 extension PresentFlow {
 	
-	public init(root: Root, @FlowBuilder _ builder: () -> FlowArrayConvertable) {
-		self = PresentFlow(root: root, components: builder().asFlowArray())
+	public init(root: Root, presentationStyle: UIModalPresentationStyle? = nil, transitionStyle: UIModalTransitionStyle? = nil, @FlowBuilder _ builder: () -> FlowArrayConvertable) {
+		self = PresentFlow(root: root, presentationStyle: presentationStyle, transitionStyle: transitionStyle, components: builder().asFlowArray())
 	}
 	
 }
@@ -148,7 +151,9 @@ extension Array where Element: Equatable {
 
 public struct PresentFlowDelegate: ArrayFlowDelegateProtocol {
 	
-	public var setType: ArrayFlowSetType { .upTo }
+	public let setType = ArrayFlowSetType.upTo
+	public let presentationStyle: UIModalPresentationStyle?
+	public let transitionStyle: UIModalTransitionStyle?
 	
 	public func children(for parent: UIViewController) -> [UIViewController] {
 		parent.allPresented
@@ -156,6 +161,17 @@ public struct PresentFlowDelegate: ArrayFlowDelegateProtocol {
 	
 	public func currentChild(for parent: UIViewController) -> UIViewController? {
 		parent.allPresented.last ?? parent
+	}
+	
+	public func update(id: String, child: Child) {
+		child.loadViewIfNeeded()
+		child.view?.accessibilityIdentifier = id
+		if let style = presentationStyle {
+			child.modalPresentationStyle = style
+		}
+		if let style = transitionStyle {
+			child.modalTransitionStyle = style
+		}
 	}
 	
 	public func set(children: [UIViewController], current: Int, to parent: UIViewController, animated: Bool, completion: OnReadyCompletion<Void>) {

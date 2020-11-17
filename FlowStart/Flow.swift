@@ -51,8 +51,7 @@ class FlowTest: Flow {
 		}
 	}
 	
-	private func component() -> Component? {
-		nil
+	private func component() {
 	}
 	
 	struct Component: FlowComponent {

@@ -14,9 +14,12 @@ public protocol WrapperAnyComponentProtocol: AnyFlowComponent {
 
 public protocol WrapperComponentProtocol: WrapperAnyComponentProtocol, FlowComponent {
 	associatedtype Base: FlowComponent
-	associatedtype Content = Base.Content
-	associatedtype Value = Base.Value
 	var base: Base { get }
+}
+
+extension WrapperComponentProtocol {
+	public typealias Content = Base.Content
+	public typealias Value = Base.Value
 }
 
 extension WrapperComponentProtocol {
