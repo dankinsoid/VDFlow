@@ -76,41 +76,6 @@ extension UIViewController {
 		} else {
 			present(vcs: toPresent, animated: animated, completion: completion)
 		}
-//		return;
-//
-//		guard !viewControllers.isEmpty else {
-//			dismissPresented(animated: animated, completion: completion)
-//			return
-//		}
-//		if viewControllers.count - presented.count == 1, Array(viewControllers.dropLast()) == presented {
-//			vcForPresent.present(viewControllers.last!, animated: animated, completion: completion)
-//			return
-//		} else if presented.count > viewControllers.count,
-//				Array(presented.prefix(viewControllers.count)) == viewControllers {
-//			viewControllers.last!.dismissPresented(animated: animated, completion: completion)
-//			return
-//		}
-//		guard animated else {
-//			set(controllers: viewControllers, completion: completion)
-//			return
-//		}
-//		guard let current = presented.last else {
-//			present(viewControllers.last!, animated: animated) {
-//				self.set(controllers: viewControllers, completion: completion)
-//			}
-//			return
-//		}
-//		if let j = viewControllers.firstIndex(of: current) {
-//			set(controllers: Array(viewControllers.prefix(j + 1))) {
-//				current.present(viewControllers.last!, animated: true) {
-//					self.set(controllers: viewControllers, completion: completion)
-//				}
-//			}
-//		} else {
-//			set(controllers: viewControllers + [current]) {
-//				current.dismissPresented(animated: animated, completion: completion)
-//			}
-//		}
 	}
 	
 	private func present(vcs: [UIViewController], animated: Bool, completion: (() -> Void)?) {
@@ -166,22 +131,6 @@ extension UIViewController {
 			self.dismissPresented(animated: animated, completion: completion)
 		}
 	}
-	
-//	public func _dismissPresented(animated: Bool, completion: (() -> Void)?) {
-//		guard presentedViewController != nil else {
-//			completion?()
-//			return
-//		}
-//		guard animated, let last = allPresented.last else {
-//			dismiss(animated: false, completion: completion)
-//			return
-//		}
-//		dismiss(animated: false) {
-//			self.present(last, animated: false) {
-//				self.dismiss(animated: animated, completion: completion)
-//			}
-//		}
-//	}
 	
 }
 

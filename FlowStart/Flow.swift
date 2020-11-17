@@ -71,9 +71,6 @@ class FlowTest: Flow {
 			return result
 		}
 		
-		public func update(content: UIViewController, data: Void?) {
-		}
-		
 	}
 	
 }

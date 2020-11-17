@@ -49,9 +49,13 @@ extension AnyFlowComponent {
 
 public protocol FlowComponent: AnyFlowComponent {
 	associatedtype Content
-	associatedtype Value
+	associatedtype Value = Void
 	func create() -> Content
 	func update(content: Content, data: Value?)
+}
+
+extension FlowComponent where Value == Void {
+	public func update(content: Content, data: Value?) {}
 }
 
 extension AnyFlowComponent where Self: FlowComponent {
@@ -63,7 +67,7 @@ extension AnyFlowComponent where Self: FlowComponent {
 	}
 	
 	public func updateAny(content: Any, data: Any?) {
-		guard let view = content as? Content, let data = data as? Value? else { return }
+		guard let view = content as? Content, let data = data.flatMap({ $0 as? Value }) else { return }
 		update(content: view, data: data)
 	}
 	

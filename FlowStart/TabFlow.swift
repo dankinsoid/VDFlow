@@ -54,12 +54,8 @@ extension UITabBarController {
 
 extension TabFlow {
 	
-	public init(create: @escaping @autoclosure () -> UITabBarController, @FlowBuilder _ builder: () -> FlowArrayConvertable) {
+	public init(create: @escaping @autoclosure () -> UITabBarController = FlowTabBarController(), @FlowBuilder _ builder: () -> FlowArrayConvertable) {
 		self = TabFlow(create: create, components: builder().asFlowArray())
-	}
-	
-	public init(@FlowBuilder _ builder: () -> FlowArrayConvertable) {
-		self = TabFlow(create: TabBarController.init, components: builder().asFlowArray())
 	}
 	
 }
@@ -96,29 +92,28 @@ extension UITabBarController {
 				}
 			}
 		}
-		
 	}
 	
 }
 
-fileprivate final class TabBarController: UITabBarController, UITabBarControllerDelegate {
+open class FlowTabBarController: UITabBarController, UITabBarControllerDelegate {
 	
-	required init?(coder: NSCoder) {
+	required public init?(coder: NSCoder) {
 		super.init(coder: coder)
 		delegate = self
 	}
 	
-	override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
+	override public init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
 		super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
 		delegate = self
 	}
 	
-	init() {
+	public init() {
 		super.init(nibName: nil, bundle: nil)
 		delegate = self
 	}
 	
-	func tabBarController(_ tabBarController: UITabBarController, animationControllerForTransitionFrom fromVC: UIViewController, to toVC: UIViewController) -> UIViewControllerAnimatedTransitioning? {
+	open func tabBarController(_ tabBarController: UITabBarController, animationControllerForTransitionFrom fromVC: UIViewController, to toVC: UIViewController) -> UIViewControllerAnimatedTransitioning? {
 		TabBarTransitioning(tabBarController: tabBarController, from: fromVC, to: toVC)
 	}
 	
@@ -188,8 +183,6 @@ fileprivate final class TabBarContextTransitioning: NSObject, UIViewControllerCo
 		self.from = from
 		self.to = to
 		defaultFrame = from.view.frame
-//		containerView.frame = from.view.frame
-//		from.view.superview?.addSubview(containerView)
 	}
 	
 	func updateInteractiveTransition(_ percentComplete: CGFloat) {}
