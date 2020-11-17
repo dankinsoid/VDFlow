@@ -13,7 +13,7 @@ public struct NavigationFlow: ArrayFlowProtocol {
 	private let createController: () -> UINavigationController
 	public let delegate: ArrayFlow<UINavigationController.ArrayDelegate>
 	
-	public init(create: @escaping @autoclosure () -> UINavigationController, components: [AnyFlowComponent]) {
+	public init(create: @escaping () -> UINavigationController, components: [AnyFlowComponent]) {
 		createController = create
 		self.delegate = ArrayFlow(
 			delegate: .init(),
@@ -50,7 +50,7 @@ extension UINavigationController {
 extension NavigationFlow {
 	
 	public init(create: @escaping @autoclosure () -> UINavigationController = UINavigationController(), @FlowBuilder _ builder: () -> FlowArrayConvertable) {
-		self = NavigationFlow(create: create(), components: builder().asFlowArray())
+		self = NavigationFlow(create: create, components: builder().asFlowArray())
 	}
 	
 }

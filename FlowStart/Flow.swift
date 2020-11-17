@@ -36,10 +36,11 @@ class FlowTest: Flow {
 	
 	var root: TabFlow {
 		TabFlow {
+			Component(.green)
+				.identified(by: TestStep.start)
 			Component(.white)
 				.present {
 					Component(.red)
-						.identified(by: TestStep.start)
 				}
 				.present {
 					Component(.yellow)
