@@ -144,7 +144,11 @@ extension AnyFlowComponent {
 	
 	func canGo(to point: FlowPoint?) -> Bool {
 		guard let point = point else { return false }
-		return isPoint(point) || asFlow?.ifNavigate(to: point) != nil
+		return _ifNavigate(to: point) != nil
+	}
+	
+	func _ifNavigate(to point: FlowPoint) -> AnyFlowComponent? {
+		return isPoint(point) ? self : asFlow?.ifNavigate(to: point)
 	}
 	
 	func isPoint(_ point: FlowPoint) -> Bool {

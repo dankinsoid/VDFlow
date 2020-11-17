@@ -20,8 +20,10 @@ public struct OpenURLFlow: BaseFlow {
 	public func navigate(to step: FlowStep, content: Void, completion: FlowCompletion) {
 		if step.point?.id == SharedSteps.url.id, let url = step.point?.data as? URL, UIApplication.shared.canOpenURL(url) {
 			UIApplication.shared.open(url) { _ in
-				completion.complete(nil)
+				completion.complete((EmptyComponent(), content))
 			}
+		} else {
+			completion.complete(nil)
 		}
 	}
 	
@@ -34,7 +36,10 @@ public struct OpenURLFlow: BaseFlow {
 	}
 	
 	public func ifNavigate(to point: FlowPoint) -> AnyFlowComponent? {
-		nil
+		if point.id == SharedSteps.url.id {
+			return EmptyComponent()
+		}
+		return nil
 	}
 	
 }

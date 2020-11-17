@@ -15,8 +15,8 @@ public struct FlowGroup: FlowArrayConvertable {
 		self.flows = flows
 	}
 	
-	public init(@FlowBuilder _ buldier: () -> FlowArrayConvertable) {
-		flows = buldier().asFlowArray()
+	public init(@FlowBuilder _ builder: () -> FlowArrayConvertable) {
+		flows = builder().asFlowArray()
 	}
 	
 	public func asFlowArray() -> [AnyFlowComponent] {

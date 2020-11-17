@@ -9,8 +9,8 @@ import UIKit
 
 extension FlowComponent {
 	
-	public func present(@FlowBuilder _ buldier: () -> FlowArrayConvertable) -> PresentFlow<Self> {
-		PresentFlow(root: self, components: buldier().asFlowArray())
+	public func present(@FlowBuilder _ builder: () -> FlowArrayConvertable) -> PresentFlow<Self> {
+		PresentFlow(root: self, components: builder().asFlowArray())
 	}
 	
 	public func presentationStyle(_ style: UIModalPresentationStyle) -> PresentationStyleFlow<Self> {

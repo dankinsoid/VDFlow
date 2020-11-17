@@ -8,21 +8,18 @@
 import Foundation
 import UIKit
 
-public struct WindowFlow: BaseFlow {
-	
+public struct WindowFlow: ArrayFlowProtocol {
 	public typealias Content = UIWindow
 	public typealias Value = FlowStep
+	public var delegate: ArrayFlow<Delegate>
 	private let content: UIWindow
-	private let root: AnyFlowComponent
 	
-	public init(_ window: UIWindow, root: AnyFlowComponent) {
+	public init(_ window: UIWindow, transition: UIView.AnimationOptions = .transitionCrossDissolve, components: [AnyFlowComponent]) {
 		self.content = window
-		self.root = root
-	}
-	
-	public init(_ window: UIWindow, root: () -> AnyFlowComponent) {
-		self.content = window
-		self.root = root()
+		self.delegate = ArrayFlow(
+			delegate: Delegate(transition: transition),
+			components: components
+		)
 	}
 	
 	public func create() -> UIWindow {
@@ -30,61 +27,57 @@ public struct WindowFlow: BaseFlow {
 		return content
 	}
 	
-	public func navigate(to step: FlowStep, content: UIWindow, completion: FlowCompletion) {
-		let vc = controller(content: content)
-		guard step.point != nil else {
-			if let flow = root.asFlow {
-				flow.navigate(to: step, contentAny: vc, completion: completion)
-			} else {
-				completion.complete((self, content))
+	public struct Delegate: ArrayFlowDelegateProtocol {
+		public let setType = ArrayFlowSetType.one
+		public var transition: UIView.AnimationOptions = .transitionCrossDissolve
+		
+		public func children(for parent: UIWindow) -> [UIViewController] {
+			parent.rootViewController.map { [$0] } ?? []
+		}
+		
+		public func currentChild(for parent: UIWindow) -> UIViewController? {
+			parent.rootViewController
+		}
+		
+		public func set(children: [UIViewController], current: Int, to parent: UIWindow, animated: Bool, completion: OnReadyCompletion<Void>) {
+			guard current >= 0 && current < children.count else {
+				completion.complete(())
+				return
 			}
-			return
+			let vc = children[current]
+			set(content: parent, rootViewController: vc, animated: animated) {
+				completion.complete(())
+			}
 		}
-		let pending = completion.pending()
-		root.updateAny(content: vc, step: step, completion: pending.completion)
-		set(content: content, rootViewController: vc, animated: step.animated) {
-			pending.ready()
-		}
+		
+		private func set(content: UIWindow, rootViewController: UIViewController, animated: Bool, completion: (() -> Void)? = nil) {
+		 guard rootViewController !== content.rootViewController else {
+			 completion?()
+			 return
+		 }
+		 if animated && content.rootViewController != nil {
+			 UIView.transition(with: content, duration: 0.5, options: transition, animations: {
+				 let oldState: Bool = UIView.areAnimationsEnabled
+				 UIView.setAnimationsEnabled(false)
+				 content.rootViewController = rootViewController
+				 UIView.setAnimationsEnabled(oldState)
+			 }, completion: { _ in
+				 completion?()
+			 })
+		 } else {
+			 content.rootViewController = rootViewController
+			 completion?()
+		 }
+	 }
+		
 	}
 	
-	private func controller(content: UIWindow) -> UIViewController {
-		if let vc = content.rootViewController, let id = vc.view?.accessibilityIdentifier,
-			 id == root.id {
-			return vc
-		}
-		let vc = (root.createAny() as? UIViewController) ?? UIViewController()
-		vc.loadViewIfNeeded()
-		vc.view.accessibilityIdentifier = root.id
-		return vc
-	}
+}
+
+extension WindowFlow {
 	
-	public func current(content: UIWindow) -> (AnyFlowComponent, Any)? {
-		guard let vc = content.rootViewController else { return nil }
-		return (root, vc)
-	}
-	
-	public func ifNavigate(to point: FlowPoint) -> AnyFlowComponent? {
-		root.asFlow?.ifNavigate(to: point)
-	}
-	
-	private func set(content: UIWindow, rootViewController: UIViewController, animated: Bool, completion: (() -> Void)? = nil) {
-		guard rootViewController !== content.rootViewController else {
-			completion?()
-			return
-		}
-		if animated && content.rootViewController != nil {
-			UIView.transition(with: content, duration: 0.5, options: .transitionCrossDissolve, animations: {
-				let oldState: Bool = UIView.areAnimationsEnabled
-				UIView.setAnimationsEnabled(false)
-				content.rootViewController = rootViewController
-				UIView.setAnimationsEnabled(oldState)
-			}, completion: { _ in
-				completion?()
-			})
-		} else {
-			content.rootViewController = rootViewController
-			completion?()
-		}
+	public init(_ window: UIWindow, transition: UIView.AnimationOptions = .transitionCrossDissolve, @FlowBuilder _ builder: () -> FlowArrayConvertable) {
+		self = WindowFlow(window, transition: transition, components: builder().asFlowArray())
 	}
 	
 }

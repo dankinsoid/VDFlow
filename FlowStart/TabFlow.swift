@@ -42,8 +42,8 @@ extension UITabBarController {
 
 extension TabFlow {
 	
-	public init(create: @escaping @autoclosure () -> UITabBarController = UITabBarController(), @FlowBuilder _ buldier: () -> FlowArrayConvertable) {
-		self = TabFlow(create: create(), components: buldier().asFlowArray())
+	public init(create: @escaping @autoclosure () -> UITabBarController = UITabBarController(), @FlowBuilder _ builder: () -> FlowArrayConvertable) {
+		self = TabFlow(create: create(), components: builder().asFlowArray())
 	}
 	
 }
@@ -51,7 +51,8 @@ extension TabFlow {
 extension UITabBarController {
 	
 	public struct ArrayDelegate: ArrayFlowDelegateProtocol {
-		public var alwaysFullStack: Bool { true }
+		
+		public var setType: ArrayFlowSetType { .all }
 		
 		public func children(for parent: UITabBarController) -> [UIViewController] {
 			parent.viewControllers ?? []
@@ -62,7 +63,22 @@ extension UITabBarController {
 		}
 		
 		public func set(children: [UIViewController], current: Int, to parent: UITabBarController, animated: Bool, completion: OnReadyCompletion<Void>) {
-			parent.set(viewControllers: children, current: current, animated: animated) { completion.complete(()) }
+			if parent.presentedViewController != nil {
+				completion.onReady { completion in
+					multiCompletion(
+						[
+							{ parent.set(viewControllers: children, current: current, animated: animated, completion: $0) },
+							{ parent.dismissPresented(animated: animated, completion: $0) }
+						]
+					) {
+						completion(())
+					}
+				}
+			} else {
+				parent.set(viewControllers: children, current: current, animated: animated) {
+					completion.complete(())
+				}
+			}
 		}
 		
 	}

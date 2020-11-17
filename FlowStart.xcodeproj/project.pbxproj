@@ -12,6 +12,8 @@
 		837366812558393600A76C5C /* SafariComponent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 837366802558393600A76C5C /* SafariComponent.swift */; };
 		8373668E2558721300A76C5C /* TabFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8373668D2558721300A76C5C /* TabFlow.swift */; };
 		83736693255873B200A76C5C /* ArrayFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83736692255873B200A76C5C /* ArrayFlow.swift */; };
+		83C12AA62563128700678FD4 /* multicompletion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83C12AA52563128700678FD4 /* multicompletion.swift */; };
+		83C12AAB2563170900678FD4 /* EmptyComponent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83C12AAA2563170900678FD4 /* EmptyComponent.swift */; };
 		83C3F39B25500C1A0053BC3C /* NavigationFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83C3F39A25500C1A0053BC3C /* NavigationFlow.swift */; };
 		83C3F3A025500C310053BC3C /* FlowPoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83C3F39F25500C310053BC3C /* FlowPoint.swift */; };
 		83C3F3A525500E7C0053BC3C /* WrapperComponent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83C3F3A425500E7C0053BC3C /* WrapperComponent.swift */; };
@@ -58,6 +60,8 @@
 		837366802558393600A76C5C /* SafariComponent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafariComponent.swift; sourceTree = "<group>"; };
 		8373668D2558721300A76C5C /* TabFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabFlow.swift; sourceTree = "<group>"; };
 		83736692255873B200A76C5C /* ArrayFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArrayFlow.swift; sourceTree = "<group>"; };
+		83C12AA52563128700678FD4 /* multicompletion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = multicompletion.swift; sourceTree = "<group>"; };
+		83C12AAA2563170900678FD4 /* EmptyComponent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyComponent.swift; sourceTree = "<group>"; };
 		83C3F39A25500C1A0053BC3C /* NavigationFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationFlow.swift; sourceTree = "<group>"; };
 		83C3F39F25500C310053BC3C /* FlowPoint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlowPoint.swift; sourceTree = "<group>"; };
 		83C3F3A425500E7C0053BC3C /* WrapperComponent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WrapperComponent.swift; sourceTree = "<group>"; };
@@ -160,6 +164,8 @@
 				837366802558393600A76C5C /* SafariComponent.swift */,
 				83736692255873B200A76C5C /* ArrayFlow.swift */,
 				835F268925627D4B00C1CC6D /* FlowCompletion.swift */,
+				83C12AA52563128700678FD4 /* multicompletion.swift */,
+				83C12AAA2563170900678FD4 /* EmptyComponent.swift */,
 			);
 			path = FlowStart;
 			sourceTree = "<group>";
@@ -315,6 +321,7 @@
 				83D210B92547820000951B12 /* ViewController.swift in Sources */,
 				83C3F3C2255457AB0053BC3C /* FlowCoordinator.swift in Sources */,
 				83C3F3A025500C310053BC3C /* FlowPoint.swift in Sources */,
+				83C12AA62563128700678FD4 /* multicompletion.swift in Sources */,
 				83D210ED254832BB00951B12 /* Operators.swift in Sources */,
 				83C3F3DE255464640053BC3C /* FlowComponent.swift in Sources */,
 				83C3F3B8255414E00053BC3C /* FlowGroup.swift in Sources */,
@@ -324,6 +331,7 @@
 				83C3F3C7255457C10053BC3C /* AlertFlow.swift in Sources */,
 				83736693255873B200A76C5C /* ArrayFlow.swift in Sources */,
 				83C3F3BD255426160053BC3C /* PresentFlow.swift in Sources */,
+				83C12AAB2563170900678FD4 /* EmptyComponent.swift in Sources */,
 				83C3F3D1255464370053BC3C /* FlowID.swift in Sources */,
 				83C3F3CC255457E20053BC3C /* WindowFlow.swift in Sources */,
 				83C3F39B25500C1A0053BC3C /* NavigationFlow.swift in Sources */,

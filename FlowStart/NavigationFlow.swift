@@ -29,10 +29,6 @@ public struct NavigationFlow: ArrayFlowProtocol {
 		createController()
 	}
 	
-	public func willUpdate(content: UINavigationController, data: FlowStep?) {
-		
-	}
-	
 }
 
 extension UINavigationController {
@@ -62,8 +58,7 @@ extension NavigationFlow {
 extension UINavigationController {
 	
 	public struct ArrayDelegate: ArrayFlowDelegateProtocol {
-		
-		public var alwaysFullStack: Bool { false }
+		public var setType: ArrayFlowSetType { .upTo }
 		
 		public func children(for parent: UINavigationController) -> [UIViewController] {
 			parent.viewControllers

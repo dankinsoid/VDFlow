@@ -12,12 +12,12 @@ public struct PresentFlow<Root: FlowComponent>: BaseFlow {
 	
 	private let delegate: ArrayFlow<PresentFlowDelegate>
 	public let root: Root
-	public var rootComponent: AnyFlowComponent? { root }
 	
 	public init(root: Root, components: [AnyFlowComponent]) {
 		self.root = root
 		self.delegate = ArrayFlow(
 			delegate: .init(),
+			root: root,
 			components: components.filter { $0.contentType is UIViewController.Type }
 		)
 	}
@@ -198,7 +198,8 @@ extension Array where Element: Equatable {
 }
 
 public struct PresentFlowDelegate: ArrayFlowDelegateProtocol {
-	public var alwaysFullStack: Bool { false }
+	
+	public var setType: ArrayFlowSetType { .upTo }
 	
 	public func children(for parent: UIViewController) -> [UIViewController] {
 		parent.allPresented

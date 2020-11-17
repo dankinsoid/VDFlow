@@ -32,10 +32,12 @@ extension ArrayFlowProtocol {
 public struct ArrayFlow<Delegate: ArrayFlowDelegateProtocol> {
 	public let components: [AnyFlowComponent]
 	private let delegate: Delegate
+	private let rootComponent: AnyFlowComponent?
 	
-	public init(delegate: Delegate, components: [AnyFlowComponent]) {
+	public init(delegate: Delegate, root: AnyFlowComponent? = nil, components: [AnyFlowComponent]) {
 		self.components = components
 		self.delegate = delegate
+		self.rootComponent = root
 	}
 	
 	public func navigate(to step: FlowStep, parent: Delegate.Parent, completion: FlowCompletion) {
@@ -43,13 +45,17 @@ public struct ArrayFlow<Delegate: ArrayFlowDelegateProtocol> {
 						moveIndex(step.move, parent: parent) ??
 						components.firstIndex(where: { $0.canGo(to: step.point) }),
 						i < components.count,
-						let component = i > -1 ? components[i] : delegate.rootComponent else {
+						let component = i > -1 ? components[i] : rootComponent else {
 			completion.complete(nil)
 			return
 		}
-		let vcs = children(parent: parent, maxCount: delegate.alwaysFullStack ? components.count : max(0, i + 1))
+		let (vcs, vc) = children(parent: parent, current: i)
+		guard vc != nil || i < 0 else {
+			completion.complete(nil)
+			return
+		}
 		let componentPending = completion.pending()
-		component.updateAny(content: i > -1 ? vcs[i] : parent, step: step, completion: componentPending.completion)
+		component.updateAny(content: i > -1 ? vc! : parent, step: step, completion: componentPending.completion)
 		let pending = OnReadyCompletion<Void>.pending(componentPending.ready)
 		delegate.set(children: vcs, current: i, to: parent, animated: step.animated, completion: pending.completion)
 		completion.onReady { _ in
@@ -62,15 +68,25 @@ public struct ArrayFlow<Delegate: ArrayFlowDelegateProtocol> {
 		return min(components.count, max(0, i + offset))
 	}
 	
-	private func children(parent: Delegate.Parent, maxCount: Int) -> [Delegate.Child] {
-		ids().prefix(maxCount).enumerated().compactMap { pare in
+	private func children(parent: Delegate.Parent, current: Int) -> ([Delegate.Child], Delegate.Child?) {
+		guard current >= 0 else { return ([], nil) }
+		var result: ([Delegate.Child], Delegate.Child?) = ([], nil)
+		delegate.setType.componentsToSet(from: Array(ids().enumerated()), current: current).forEach { pare in
 			if let vc = delegate.children(for: parent).first(where: { delegate.getId(for: $0) == pare.element }) {
-				return vc
+				result.0.append(vc)
+				if pare.offset == current {
+					result.1 = vc
+				}
+				return
 			}
-			guard let vc = components[pare.offset].createAny() as? Delegate.Child else { return nil }
+			guard let vc = components[pare.offset].createAny() as? Delegate.Child else { return }
 			delegate.set(id: pare.element, child: vc)
-			return vc
+			result.0.append(vc)
+			if pare.offset == current {
+				 result.1 = vc
+			 }
 		}
+		return result
 	}
 	
 	private func ids() -> [String] {
@@ -85,9 +101,15 @@ public struct ArrayFlow<Delegate: ArrayFlowDelegateProtocol> {
 	}
 	
 	public func ifNavigate(to point: FlowPoint) -> AnyFlowComponent? {
-		components.first {
-			$0.canGo(to: point)
+		if let result = rootComponent?._ifNavigate(to: point) {
+			return result
 		}
+		for component in components {
+			if let result = component._ifNavigate(to: point) {
+				return result
+			}
+		}
+		return nil
 	}
 	
 	public func current(parent: Delegate.Parent) -> (AnyFlowComponent, Any)? {
@@ -105,20 +127,29 @@ public struct ArrayFlow<Delegate: ArrayFlowDelegateProtocol> {
 	
 }
 
+public enum ArrayFlowSetType {
+	case all, upTo, from, one, custom((_ count: Int, _ current: Int) -> [ClosedRange<Int>])
+	
+	public func componentsToSet<T>(from all: [T], current index: Int) -> [T] {
+		switch self {
+		case .all:								return all
+		case .upTo:								return Array(all.prefix(upTo: index + 1))
+		case .from:								return Array(all.suffix(from: index))
+		case .one:								return [all[index]]
+		case .custom(let block):	return Array(block(all.count, index).map { all[$0] }.joined())
+		}
+	}
+}
+
 public protocol ArrayFlowDelegateProtocol {
 	associatedtype Parent
 	associatedtype Child
-	var rootComponent: AnyFlowComponent? { get }
-	var alwaysFullStack: Bool { get }
+	var setType: ArrayFlowSetType { get }
 	func children(for parent: Parent) -> [Child]
 	func set(id: String, child: Child)
 	func getId(for child: Child) -> String?
 	func currentChild(for parent: Parent) -> Child?
 	func set(children: [Child], current: Int, to parent: Parent, animated: Bool, completion: OnReadyCompletion<Void>)
-}
-
-extension ArrayFlowDelegateProtocol {
-	public var rootComponent: AnyFlowComponent? { nil }
 }
 
 extension ArrayFlowDelegateProtocol where Child: UIView {
@@ -138,22 +169,4 @@ extension ArrayFlowDelegateProtocol where Child: UIViewController {
 		child.loadViewIfNeeded()
 		child.view?.accessibilityIdentifier = id
 	}
-}
-
-extension ArrayFlowDelegateProtocol where Parent: UIViewController, Child: UIViewController {
-	
-	func before(_ completion: @escaping () -> Void) {
-		
-	}
-	
-	public func dismissPresented(parent: Parent, animated: Bool, completion: @escaping () -> Void) {
-		if parent.presentedViewController != nil {
-			parent.dismissPresented(animated: animated, completion: completion)
-		} else if let current = currentChild(for: parent), current.presentedViewController != nil {
-			current.dismissPresented(animated: animated, completion: completion)
-		} else {
-			completion()
-		}
-	}
-	
 }

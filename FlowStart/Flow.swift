@@ -24,7 +24,7 @@ struct AppFlow: Flow {
 	
 	var root: WindowFlow {
 		WindowFlow(window) {
-			FlowTest().root
+			FlowTest()
 		}
 	}
 	
@@ -40,13 +40,10 @@ class FlowTest: Flow {
 				.present {
 					Component(.red)
 						.identified(by: TestStep.start)
-					Component(.green)
-					NavigationFlow {
-						Component(.yellow)
-					 		.identified(by: TestStep.sec)
-						Component(.cyan)
-						 .identified(by: TestStep.third)
-					}
+				}
+				.present {
+					Component(.yellow)
+						.identified(by: TestStep.sec)
 				}
 			Component(.blue)
 				.identified(by: TestStep.end)
