@@ -22,26 +22,20 @@ extension WrapperComponentProtocol {
 	public typealias Value = Base.Value
 }
 
-extension WrapperComponentProtocol {
+extension WrapperAnyComponentProtocol where Self: WrapperComponentProtocol {
 	public static var baseType: AnyFlowComponent.Type { Base.self }
-	
 	public var baseAny: AnyFlowComponent { base }
+}
+
+extension AnyFlowComponent where Self: WrapperComponentProtocol {
 	
 	public var id: String {
 		base.id
 	}
-	
-	public func createAny() -> Any {
-		base.createAny()
-	}
-	
-	public func updateAny(content: Any, data: Any?) {
-		base.updateAny(content: content, data: data)
-	}
-	
+
 }
 
-extension WrapperComponentProtocol where Content == Base.Content {
+extension FlowComponent where Self: WrapperComponentProtocol {
 	
 	public func create() -> Content {
 		base.create()
@@ -49,7 +43,7 @@ extension WrapperComponentProtocol where Content == Base.Content {
 	
 }
 
-extension WrapperComponentProtocol where Content == Base.Content, Value == Base.Value {
+extension FlowComponent where Self: WrapperComponentProtocol {
 	
 	public func update(content: Content, data: Value?) {
 		base.update(content: content, data: data)

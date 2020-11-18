@@ -6,70 +6,10 @@
 //
 
 import Foundation
-import UIKit
-
-public enum TestStep {
-	public static let start = FlowID<Void>()
-	public static let sec = FlowID<Void>()
-	public static let third = FlowID<Void>()
-	public static let end = FlowID<Void>()
-}
-
-public enum Hmm {
-	case one, two, wow(Int)
-}
-
-struct AppFlow: Flow {
-	let window: UIWindow
-	
-	var root: WindowFlow {
-		WindowFlow(window) {
-			FlowTest()
-		}
-	}
-	
-}
-
-class FlowTest: Flow {
-	
-	let hmm = Hmm.one
-	
-	var root: TabFlow {
-		TabFlow {
-			Component(.green)
-				.identified(by: TestStep.start)
-			Component(.white)
-				.actionSheet(id: TestStep.sec, title: "Alert", message: "message", actions: [.init(title: "Title", style: .default, handler: nil)])
-			Component(.blue)
-				.identified(by: TestStep.end)
-		}
-	}
-	
-	private func component() {
-	}
-	
-	struct Component: FlowComponent {
-		
-		let color: UIColor
-		
-		init(_ color: UIColor) {
-			self.color = color
-		}
-		
-		public func create() -> UIViewController {
-			let result = UIViewController()
-			result.loadViewIfNeeded()
-			result.view.backgroundColor = color
-			result.tabBarItem = .init(title: "tab", image: nil, tag: 0)
-			return result
-		}
-		
-	}
-	
-}
 
 public protocol AnyBaseFlow: AnyFlowComponent {
-	func ifNavigate(to point: FlowPoint) -> AnyFlowComponent?
+	func canNavigate(to point: FlowPoint) -> Bool
+	func flow(with point: FlowPoint) -> AnyBaseFlow?
 	func current(contentAny: Any) -> (AnyFlowComponent, Any)?
 	func navigate(to step: FlowStep, contentAny: Any, completion: FlowCompletion)
 }

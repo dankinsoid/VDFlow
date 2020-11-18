@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import UIKit
 
 public final class FlowCoordinator {
 	
@@ -49,9 +48,7 @@ public final class FlowCoordinator {
 				completion()
 				return
 			}
-			if let flow = pare.0.asFlow {
-				self.navigate(to: newPath, flow: flow, content: pare.1, completion: completion)
-			}
+			self.navigate(to: newPath, flow: pare.0, content: pare.1, completion: completion)
 		}
 		flow.navigate(to: .point(point), contentAny: content, completion: flowCompletion)
 	}
@@ -96,7 +93,7 @@ extension AnyBaseFlow {
 		if path.points.count == 1 {
 			return canGo(to: path.points[0])
 		}
-		return asFlow?.ifNavigate(to: path.points[0])?.asFlow?.canNavigate(path: path.dropFirst()) ?? false
+		return asFlow?.flow(with: path.points[0])?.canNavigate(path: path.dropFirst()) ?? false
 	}
 	
 }

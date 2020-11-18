@@ -37,7 +37,7 @@ extension AnyFlowComponent {
 	func updateAny(content: Any, step: FlowStep, completion: FlowCompletion) {
 		if let point = step.point, isPoint(point) {
 			updateAny(content: content, data: point.data)
-			completion.complete((self, content))
+			completion.complete(asFlow.map { ($0, content) })
 		} else if let flow = asFlow {
 			flow.navigate(to: step, contentAny: content, completion: completion)
 		} else {

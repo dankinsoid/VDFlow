@@ -16,11 +16,22 @@ public protocol ArrayFlowProtocol: BaseFlow where Delegate.Parent == Content {
 extension ArrayFlowProtocol {
 	
 	public func navigate(to step: FlowStep, content: Content, completion: FlowCompletion) {
-		delegate.navigate(to: step, parent: content, completion: completion)
+		delegate.navigate(to: step, flow: self, parent: content, completion: completion)
 	}
 	
-	public func ifNavigate(to point: FlowPoint) -> AnyFlowComponent? {
-		delegate.ifNavigate(to: point)
+	public func flow(with point: FlowPoint) -> AnyBaseFlow? {
+		if delegate.rootComponent?.isPoint(point) == true {
+			return self
+		} else if let flow = delegate.flow(with: point) {
+			return flow
+		} else if canNavigate(to: point) {
+			return self
+		}
+		return nil
+	}
+	
+	public func canNavigate(to point: FlowPoint) -> Bool {
+		delegate.canNavigate(to: point)
 	}
 	
 	public func current(content: Content) -> (AnyFlowComponent, Any)? {
@@ -32,7 +43,7 @@ extension ArrayFlowProtocol {
 public struct ArrayFlow<Delegate: ArrayFlowDelegateProtocol> {
 	public let components: [AnyFlowComponent]
 	private let delegate: Delegate
-	private let rootComponent: AnyFlowComponent?
+	fileprivate let rootComponent: AnyFlowComponent?
 	
 	public init(delegate: Delegate, root: AnyFlowComponent? = nil, components: [AnyFlowComponent]) {
 		self.components = components
@@ -40,10 +51,11 @@ public struct ArrayFlow<Delegate: ArrayFlowDelegateProtocol> {
 		self.rootComponent = root
 	}
 	
-	public func navigate(to step: FlowStep, parent: Delegate.Parent, completion: FlowCompletion) {
+	public func navigate(to step: FlowStep, flow: AnyBaseFlow, parent: Delegate.Parent, completion: FlowCompletion) {
 		guard let i =
 						moveIndex(step.move, parent: parent) ??
-						components.firstIndex(where: { $0.canGo(to: step.point) }),
+						components.firstIndex(where: { $0.canGo(to: step.point) }) ??
+						(rootComponent?.canGo(to: step.point) == true ? -1 : nil),
 						i < components.count,
 						let component = i > -1 ? components[i] : rootComponent else {
 			completion.complete(nil)
@@ -54,7 +66,9 @@ public struct ArrayFlow<Delegate: ArrayFlowDelegateProtocol> {
 			completion.complete(nil)
 			return
 		}
-		let componentPending = completion.pending()
+		let componentPending = FlowCompletion.pending {
+			completion.complete($0 ?? (flow, parent))
+		}
 		component.updateAny(content: i > -1 ? vc! : parent, step: step, completion: componentPending.completion)
 		let pending = OnReadyCompletion<Void>.pending(componentPending.ready)
 		delegate.set(children: vcs, current: i, to: parent, animated: step.animated, completion: pending.completion)
@@ -100,12 +114,16 @@ public struct ArrayFlow<Delegate: ArrayFlowDelegateProtocol> {
 		return result
 	}
 	
-	public func ifNavigate(to point: FlowPoint) -> AnyFlowComponent? {
-		if let result = rootComponent?._ifNavigate(to: point) {
+	public func canNavigate(to point: FlowPoint) -> Bool {
+		rootComponent?.canGo(to: point) == true || components.contains(where: { $0.canGo(to: point) })
+	}
+	
+	public func flow(with point: FlowPoint) -> AnyBaseFlow? {
+		if let result = rootComponent?.asFlow?.flow(with: point) {
 			return result
 		}
 		for component in components {
-			if let result = component._ifNavigate(to: point) {
+			if let result = component.asFlow?.flow(with: point) {
 				return result
 			}
 		}

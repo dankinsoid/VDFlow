@@ -7,8 +7,8 @@
 
 import Foundation
 
-public typealias FlowCompletion = OnReadyCompletion<(AnyFlowComponent, Any)?>
-public typealias FlowCompletionPending = OnReadyCompletionPending<(AnyFlowComponent, Any)?>
+public typealias FlowCompletion = OnReadyCompletion<(AnyBaseFlow, Any)?>
+public typealias FlowCompletionPending = OnReadyCompletionPending<(AnyBaseFlow, Any)?>
 
 public final class OnReadyCompletion<Value> {
 	public typealias Completion = (Value) -> Void

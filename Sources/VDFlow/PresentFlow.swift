@@ -34,11 +34,22 @@ public struct PresentFlow<Root: FlowComponent>: BaseFlow {
 			completion.complete(nil)
 			return
 		}
-		delegate.navigate(to: step, parent: vc, completion: completion)
+		delegate.navigate(to: step, flow: self, parent: vc, completion: completion)
 	}
 	
-	public func ifNavigate(to point: FlowPoint) -> AnyFlowComponent? {
-		delegate.ifNavigate(to: point)
+	public func canNavigate(to point: FlowPoint) -> Bool {
+		delegate.canNavigate(to: point)
+	}
+	
+	public func flow(with point: FlowPoint) -> AnyBaseFlow? {
+		if root.asFlow == nil, root.isPoint(point) == true {
+			return self
+		} else if let flow = delegate.flow(with: point) {
+			return flow
+		} else if canNavigate(to: point) {
+			return self
+		}
+		return nil
 	}
 	
 	public func current(content: Root.Content) -> (AnyFlowComponent, Any)? {

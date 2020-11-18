@@ -41,7 +41,7 @@ extension UITabBarController {
 			completion()
 		}
 		let to = viewControllers[current]
-		if animated, view?.window != nil, let from = selectedViewController,
+		if animated, view?.window != nil, let from = selectedViewController, from !== to,
 			 let transition = delegate?.tabBarController?(self, animationControllerForTransitionFrom: from, to: to) {
 			let context = TabBarContextTransitioning(completion: action, from: from, to: to)
 			transition.animateTransition(using: context)
@@ -114,7 +114,8 @@ open class FlowTabBarController: UITabBarController, UITabBarControllerDelegate 
 	}
 	
 	open func tabBarController(_ tabBarController: UITabBarController, animationControllerForTransitionFrom fromVC: UIViewController, to toVC: UIViewController) -> UIViewControllerAnimatedTransitioning? {
-		TabBarTransitioning(tabBarController: tabBarController, from: fromVC, to: toVC)
+		guard fromVC !== toVC else { return nil }
+		return TabBarTransitioning(tabBarController: tabBarController, from: fromVC, to: toVC)
 	}
 	
 }

@@ -30,8 +30,8 @@ public struct CustomFlow<Root: FlowComponent, Element>: BaseFlow {
 		if step.point?.id == flowId.id {
 			completion.onReady { completion in
 				action(content, step.point?.data as? Element) {
-				 completion(nil)
-			 }
+					completion((self, content))
+			 	}
 			}
 			return
 		}
@@ -39,17 +39,24 @@ public struct CustomFlow<Root: FlowComponent, Element>: BaseFlow {
 			flow.navigate(to: step, contentAny: content, completion: completion)
 		} else if let point = step.point, root.isPoint(point) {
 			root.updateAny(content: content, data: point.data)
-			completion.complete((root, content))
+			completion.complete(root.asFlow.map { ($0, content) } ?? (self, content))
 		} else {
 			completion.complete(nil)
 		}
 	}
 	
-	public func ifNavigate(to point: FlowPoint) -> AnyFlowComponent? {
+	public func canNavigate(to point: FlowPoint) -> Bool {
+		if point.id == flowId.id {
+			return true
+		}
+		return root.canGo(to: point)
+	}
+	
+	public func flow(with point: FlowPoint) -> AnyBaseFlow? {
 		if point.id == flowId.id {
 			return self
 		}
-		return root._ifNavigate(to: point)
+		return root.asFlow?.flow(with: point)
 	}
 	
 }
