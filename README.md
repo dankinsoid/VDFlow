@@ -61,5 +61,5 @@ dankinsoid, voidilov@gmail.com
 
 ## License
 
-VDArch is available under the MIT license. See the LICENSE file for more info.
+VDFlow is available under the MIT license. See the LICENSE file for more info.
 
