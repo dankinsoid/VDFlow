@@ -69,16 +69,20 @@ extension UINavigationController {
 		}
 		
 		public func set(children: [UIViewController], current: Int, to parent: UINavigationController, animated: Bool, completion: OnReadyCompletion<Void>) {
+			var array = Array(children.prefix(current + 1))
+			if let i = array.lastIndex(where: { $0.isDisabledBack }) {
+				array.removeFirst(i)
+			}
 			if parent.presentedViewController != nil {
 				completion.onReady { completion in
 					parent.dismissPresented(animated: animated) {
-						parent.set(viewControllers: children, animated: animated) {
+						parent.set(viewControllers: array, animated: animated) {
 							completion(())
 						}
 					}
 				}
 			} else {
-				parent.set(viewControllers: Array(children.prefix(current + 1)), animated: animated) {
+				parent.set(viewControllers: array, animated: animated) {
 					completion.complete(())
 				}
 			}
@@ -87,3 +91,14 @@ extension UINavigationController {
 	}
 	
 }
+
+extension UIViewController {
+	
+	var isDisabledBack: Bool {
+		get { (objc_getAssociatedObject(self, &disableBackKey) as? Bool) ?? false }
+		set { objc_setAssociatedObject(self, &disableBackKey, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC) }
+	}
+	
+}
+
+fileprivate var disableBackKey = "disableBackKey"

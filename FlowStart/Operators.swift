@@ -69,6 +69,15 @@ extension FlowComponent where Content: UIViewController {
 		VCWrapperComponent(base: self) { $0.tabBarItem = item }
 	}
 	
+	public func disableBack() -> VCWrapperComponent<Self> {
+		VCWrapperComponent(base: self) {
+			if #available(iOS 13.0, *) {
+				$0.isModalInPresentation = false
+			}
+			$0.isDisabledBack = true
+		}
+	}
+	
 	public func tabItem(system: UITabBarItem.SystemItem, tag: Int) -> VCWrapperComponent<Self> {
 		tabItem(UITabBarItem(tabBarSystemItem: system, tag: tag))
 	}

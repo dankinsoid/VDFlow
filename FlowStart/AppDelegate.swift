@@ -21,10 +21,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 		flow = coordinator
 		coordinator.navigate(to: TestStep.start)
 		DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-			coordinator.navigate(to: TestStep.end)
-			DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-			 coordinator.navigate(to: TestStep.sec)
-		 }
+			coordinator.navigate(to: SharedSteps.url.with(URL(string: "https://polkascan.io/polkadot")!))
 		}
 		return true
 	}

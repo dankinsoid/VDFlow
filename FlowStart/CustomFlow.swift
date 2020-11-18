@@ -8,10 +8,8 @@
 import Foundation
 
 public struct CustomFlow<Root: FlowComponent, Element>: BaseFlow {
-	
 	public let root: Root
 	public let flowId: FlowID<Element>
-	public var id: String { flowId.id }
 	private let action: (Root.Content, Element?, @escaping () -> Void) -> Void
 	
 	public init(root: Root, id: FlowID<Element>, _ action: @escaping (Root.Content, Element?, @escaping () -> Void) -> Void) {

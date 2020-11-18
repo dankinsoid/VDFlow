@@ -34,22 +34,15 @@ class FlowTest: Flow {
 	
 	let hmm = Hmm.one
 	
-	var root: AnyBaseFlow {
+	var root: TabFlow {
 		TabFlow {
 			Component(.green)
 				.identified(by: TestStep.start)
 			Component(.white)
-				.present {
-					Component(.red)
-				}
-				.present {
-					Component(.yellow)
-						.identified(by: TestStep.sec)
-				}
+				.actionSheet(id: TestStep.sec, title: "Alert", message: "message", actions: [.init(title: "Title", style: .default, handler: nil)])
 			Component(.blue)
 				.identified(by: TestStep.end)
-		}.custom(id: TestStep.end) {
-			
+				.openURL()
 		}
 	}
 	
@@ -115,9 +108,17 @@ extension AnyBaseFlow where Self: BaseFlow {
 	
 }
 
-public protocol Flow: FlowArrayConvertable {
+public protocol AnyFlow: FlowArrayConvertable {
+	var rootAny: AnyBaseFlow { get }
+}
+
+public protocol Flow: AnyFlow {
 	associatedtype Root: BaseFlow
 	var root: Root { get }
+}
+
+extension AnyFlow where Self: Flow {
+	public var rootAny: AnyBaseFlow { root }
 }
 
 extension Flow {

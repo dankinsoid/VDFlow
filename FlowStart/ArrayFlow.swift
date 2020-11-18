@@ -156,7 +156,7 @@ extension ArrayFlowDelegateProtocol where Child: AnyObject {
 	public func getId(for child: Child) -> String? {
 		objc_getAssociatedObject(child, &flowIdKey) as? String
 	}
-	public func set(id: String, child: Child) {
+	public func update(id: String, child: Child) {
 		objc_setAssociatedObject(child, &flowIdKey, id, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
 	}
 }
