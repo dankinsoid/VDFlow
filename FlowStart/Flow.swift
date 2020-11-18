@@ -42,7 +42,6 @@ class FlowTest: Flow {
 				.actionSheet(id: TestStep.sec, title: "Alert", message: "message", actions: [.init(title: "Title", style: .default, handler: nil)])
 			Component(.blue)
 				.identified(by: TestStep.end)
-				.openURL()
 		}
 	}
 	

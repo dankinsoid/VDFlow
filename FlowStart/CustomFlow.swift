@@ -35,7 +35,14 @@ public struct CustomFlow<Root: FlowComponent, Element>: BaseFlow {
 			}
 			return
 		}
-		root.asFlow?.navigate(to: step, contentAny: content, completion: completion)
+		if let flow = root.asFlow {
+			flow.navigate(to: step, contentAny: content, completion: completion)
+		} else if let point = step.point, root.isPoint(point) {
+			root.updateAny(content: content, data: point.data)
+			completion.complete((root, content))
+		} else {
+			completion.complete(nil)
+		}
 	}
 	
 	public func ifNavigate(to point: FlowPoint) -> AnyFlowComponent? {
