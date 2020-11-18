@@ -164,8 +164,7 @@ public struct PresentFlowDelegate: ArrayFlowDelegateProtocol {
 	}
 	
 	public func update(id: String, child: Child) {
-		child.loadViewIfNeeded()
-		child.view?.accessibilityIdentifier = id
+		child.flowId = id
 		if let style = presentationStyle {
 			child.modalPresentationStyle = style
 		}

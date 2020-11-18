@@ -122,6 +122,14 @@ public struct FlowPoint {
 		FlowPoint(type: .id(id.id), animated: animated, data: ())
 	}
 	
+	public static func id(_ id: String, animated: Bool = true) -> FlowPoint {
+		FlowPoint.id(FlowID<Void>(id), animated: animated)
+	}
+	
+	public static func id<R: RawRepresentable>(_ id: R, animated: Bool = true) -> FlowPoint where R.RawValue == String {
+		FlowPoint.id(id.rawValue, animated: animated)
+	}
+	
 	public static func type<T: FlowComponent>(_ type: T.Type, data: T.Value, animated: Bool = true) -> FlowPoint {
 		FlowPoint(type: .type(type), animated: animated, data: data)
 	}

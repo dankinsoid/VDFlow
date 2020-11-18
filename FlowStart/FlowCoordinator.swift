@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import UIKit
 
 public final class FlowCoordinator {
 	
@@ -61,6 +62,13 @@ public final class FlowCoordinator {
 	
 	public func navigate(to point: FlowID<Void>, completion: @escaping () -> Void = {}) {
 		navigate(to: point.with(()), completion: completion)
+	}
+	
+	public func navigate<R: RawRepresentable>(to id: R, completion: @escaping () -> Void = {}) where R.RawValue == String {
+		navigate(to: id.rawValue, completion: completion)
+	}
+	public func navigate(to id: String, completion: @escaping () -> Void = {}) {
+		navigate(to: FlowID<Void>(id), completion: completion)
 	}
 	
 	public func navigate(to move: FlowMove, completion: @escaping () -> Void = {}) {

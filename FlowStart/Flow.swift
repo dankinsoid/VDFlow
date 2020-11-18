@@ -34,7 +34,7 @@ class FlowTest: Flow {
 	
 	let hmm = Hmm.one
 	
-	var root: TabFlow {
+	var root: AnyBaseFlow {
 		TabFlow {
 			Component(.green)
 				.identified(by: TestStep.start)
@@ -48,6 +48,8 @@ class FlowTest: Flow {
 				}
 			Component(.blue)
 				.identified(by: TestStep.end)
+		}.custom(id: TestStep.end) {
+			
 		}
 	}
 	

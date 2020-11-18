@@ -152,21 +152,29 @@ public protocol ArrayFlowDelegateProtocol {
 	func set(children: [Child], current: Int, to parent: Parent, animated: Bool, completion: OnReadyCompletion<Void>)
 }
 
-extension ArrayFlowDelegateProtocol where Child: UIView {
+extension ArrayFlowDelegateProtocol where Child: AnyObject {
 	public func getId(for child: Child) -> String? {
-		child.accessibilityIdentifier
+		objc_getAssociatedObject(child, &flowIdKey) as? String
 	}
 	public func set(id: String, child: Child) {
-		child.accessibilityIdentifier = id
+		objc_setAssociatedObject(child, &flowIdKey, id, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
 	}
 }
 
-extension ArrayFlowDelegateProtocol where Child: UIViewController {
-	public func getId(for child: Child) -> String? {
-		child.view?.accessibilityIdentifier
+extension UIView {
+	
+	public var flowId: String? {
+		get { objc_getAssociatedObject(self, &flowIdKey) as? String }
+		set { objc_setAssociatedObject(self, &flowIdKey, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC) }
 	}
-	public func update(id: String, child: Child) {
-		child.loadViewIfNeeded()
-		child.view?.accessibilityIdentifier = id
+	
+}
+
+extension UIViewController {
+	public var flowId: String? {
+		get { objc_getAssociatedObject(self, &flowIdKey) as? String }
+		set { objc_setAssociatedObject(self, &flowIdKey, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC) }
 	}
 }
+
+fileprivate var flowIdKey = "flowIdKey"
