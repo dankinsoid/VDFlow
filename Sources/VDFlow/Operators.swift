@@ -17,6 +17,14 @@ extension FlowComponent {
 		IdentifiedComponent(id: id.id, base: self)
 	}
 	
+	public func map<R>(value: @escaping (R) -> Value) -> MapFlowComponent<Self, R> {
+		MapFlowComponent<Self, R>(base: self, map: value)
+	}
+	
+	public func map<R>(value: KeyPath<R, Value>) -> MapFlowComponent<Self, R> {
+		MapFlowComponent<Self, R>(base: self, map: { $0[keyPath: value] })
+	}
+	
 	public func custom<E>(id: FlowID<E>, _ action: @escaping (Content, E?, @escaping () -> Void) -> Void) -> CustomFlow<Self, E> {
 		CustomFlow<Self, E>(root: self, id: id, action)
 	}
@@ -27,6 +35,14 @@ extension FlowComponent {
 	
 	public func custom<E>(id: FlowID<E>, _ action: @escaping (@escaping () -> Void) -> Void) -> CustomFlow<Self, E> {
 		CustomFlow<Self, E>(root: self, id: id) { _, _, completion in action(completion) }
+	}
+	
+	public func custom<R: RawRepresentable>(id: R, _ action: @escaping (Content, @escaping () -> Void) -> Void) -> CustomFlow<Self, Void> where R.RawValue == String {
+		CustomFlow<Self, Void>(root: self, id: FlowID(id.rawValue)) { content, _, completion in action(content, completion) }
+	}
+	
+	public func custom<R: RawRepresentable>(id: R, _ action: @escaping (@escaping () -> Void) -> Void) -> CustomFlow<Self, Void> where R.RawValue == String {
+		CustomFlow<Self, Void>(root: self, id: FlowID(id.rawValue)) { _, _, completion in action(completion) }
 	}
 	
 	public func openURL() -> CustomFlow<Self, URL> {
