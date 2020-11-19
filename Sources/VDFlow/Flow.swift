@@ -47,17 +47,9 @@ extension AnyBaseFlow where Self: BaseFlow {
 	
 }
 
-public protocol AnyFlow: FlowArrayConvertable {
-	var rootAny: AnyBaseFlow { get }
-}
-
-public protocol Flow: AnyFlow {
+public protocol Flow: FlowArrayConvertable {
 	associatedtype Root: BaseFlow
 	var root: Root { get }
-}
-
-extension AnyFlow where Self: Flow {
-	public var rootAny: AnyBaseFlow { root }
 }
 
 extension Flow {

@@ -11,7 +11,7 @@ import UIKit
 public struct WindowFlow: ArrayFlowProtocol {
 	public typealias Content = UIWindow
 	public typealias Value = FlowStep
-	public var delegate: ArrayFlow<Delegate>
+	public let delegate: ArrayFlow<Delegate>
 	private let content: UIWindow
 	
 	public init(_ window: UIWindow, transition: UIView.AnimationOptions = .transitionCrossDissolve, components: [AnyFlowComponent]) {
