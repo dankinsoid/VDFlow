@@ -8,9 +8,9 @@
 import Foundation
 import UIKit
 
-public struct PresentFlow<Root: FlowComponent>: BaseFlow {
+public struct PresentFlow<Root: FlowComponent>: ArrayFlowProtocol where Root.Content: UIViewController {
 	
-	private let delegate: ArrayFlow<PresentFlowDelegate>
+	public let delegate: ArrayFlow<PresentFlowDelegate<Root.Content>>
 	public let root: Root
 	
 	public init(root: Root, presentationStyle: UIModalPresentationStyle? = nil, transitionStyle: UIModalTransitionStyle? = nil, components: [AnyFlowComponent]) {
@@ -27,36 +27,6 @@ public struct PresentFlow<Root: FlowComponent>: BaseFlow {
 	
 	public func create() -> Root.Content {
 		root.create()
-	}
-	
-	public func navigate(to step: FlowStep, content: Root.Content, completion: FlowCompletion) {
-		guard let vc = content as? UIViewController else {
-			completion.complete(nil)
-			return
-		}
-		delegate.navigate(to: step, flow: self, parent: vc, completion: completion)
-	}
-	
-	public func canNavigate(to point: FlowPoint) -> Bool {
-		delegate.canNavigate(to: point)
-	}
-	
-	public func flow(with point: FlowPoint) -> AnyBaseFlow? {
-		if root.asFlow == nil, root.isPoint(point) == true {
-			return self
-		} else if let flow = delegate.flow(with: point) {
-			return flow
-		} else if canNavigate(to: point) {
-			return self
-		}
-		return nil
-	}
-	
-	public func current(content: Root.Content) -> (AnyFlowComponent, Any)? {
-		guard let vc = content as? UIViewController else {
-			return nil
-		}
-		return delegate.current(parent: vc)
 	}
 	
 }
@@ -160,21 +130,21 @@ extension Array where Element: Equatable {
 	
 }
 
-public struct PresentFlowDelegate: ArrayFlowDelegateProtocol {
+public struct PresentFlowDelegate<Parent: UIViewController>: ArrayFlowDelegateProtocol {
 	
 	public let setType = ArrayFlowSetType.upTo
 	public let presentationStyle: UIModalPresentationStyle?
 	public let transitionStyle: UIModalTransitionStyle?
 	
-	public func children(for parent: UIViewController) -> [UIViewController] {
+	public func children(for parent: Parent) -> [UIViewController] {
 		parent.allPresented
 	}
 	
-	public func currentChild(for parent: UIViewController) -> UIViewController? {
+	public func currentChild(for parent: Parent) -> UIViewController? {
 		parent.allPresented.last ?? parent
 	}
 	
-	public func update(id: String, child: Child) {
+	public func update(id: String, child: UIViewController) {
 		child.flowId = id
 		if let style = presentationStyle {
 			child.modalPresentationStyle = style
@@ -184,7 +154,7 @@ public struct PresentFlowDelegate: ArrayFlowDelegateProtocol {
 		}
 	}
 	
-	public func set(children: [UIViewController], current: Int, to parent: UIViewController, animated: Bool, completion: OnReadyCompletion<Void>) {
+	public func set(children: [UIViewController], current: Int, to parent: Parent, animated: Bool, completion: OnReadyCompletion<Void>) {
 		completion.onReady { completion in
 			parent.present(children.prefix(current + 1).filter { $0 !== parent }, animated: animated) {
 				completion(())

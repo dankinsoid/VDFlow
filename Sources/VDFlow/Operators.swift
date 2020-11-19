@@ -9,10 +9,6 @@ import UIKit
 
 extension FlowComponent {
 	
-	public func present(_ presentationStyle: UIModalPresentationStyle? = nil, transition: UIModalTransitionStyle? = nil, @FlowBuilder _ builder: () -> FlowArrayConvertable) -> PresentFlow<Self> {
-		PresentFlow(root: self, presentationStyle: presentationStyle, transitionStyle: transition, components: builder().asFlowArray())
-	}
-	
 	public func identified(by id: FlowID<Value>) -> IdentifiedComponent<Self> {
 		IdentifiedComponent(id: id.id, base: self)
 	}
@@ -72,6 +68,10 @@ extension FlowComponent where Value == Void {
 }
 
 extension FlowComponent where Content: UIViewController {
+	
+	public func present(_ presentationStyle: UIModalPresentationStyle? = nil, transition: UIModalTransitionStyle? = nil, @FlowBuilder _ builder: () -> FlowArrayConvertable) -> PresentFlow<Self> {
+		PresentFlow(root: self, presentationStyle: presentationStyle, transitionStyle: transition, components: builder().asFlowArray())
+	}
 	
 	public func presentationStyle(_ style: UIModalPresentationStyle) -> VCWrapperComponent<Self> {
 		VCWrapperComponent(base: self) { $0.modalPresentationStyle = style }
