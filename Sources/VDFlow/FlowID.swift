@@ -15,7 +15,7 @@ public struct FlowID<Value>: Hashable, Codable {
 	}
 	
 	public init<R: RawRepresentable>(_ value: R) where R.RawValue == String {
-		self.id = value.rawValue
+		self.id = String(reflecting: R.self) + "." + value.rawValue
 	}
 	
 	public func with(_ value: Value, animated: Bool = true) -> FlowPoint {

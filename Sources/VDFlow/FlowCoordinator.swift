@@ -67,7 +67,7 @@ public final class FlowCoordinator {
 	}
 	
 	public func navigate<R: RawRepresentable>(to id: R, completion: @escaping () -> Void = {}) where R.RawValue == String {
-		navigate(to: id.rawValue, completion: completion)
+		navigate(to: FlowID(id), completion: completion)
 	}
 	public func navigate(to id: String, completion: @escaping () -> Void = {}) {
 		navigate(to: FlowID<Void>(id), completion: completion)

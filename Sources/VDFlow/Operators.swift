@@ -34,11 +34,11 @@ extension FlowComponent {
 	}
 	
 	public func custom<R: RawRepresentable>(id: R, _ action: @escaping (Content, @escaping () -> Void) -> Void) -> CustomFlow<Self, Void> where R.RawValue == String {
-		CustomFlow<Self, Void>(root: self, id: FlowID(id.rawValue)) { content, _, completion in action(content, completion) }
+		CustomFlow<Self, Void>(root: self, id: FlowID(id)) { content, _, completion in action(content, completion) }
 	}
 	
 	public func custom<R: RawRepresentable>(id: R, _ action: @escaping (@escaping () -> Void) -> Void) -> CustomFlow<Self, Void> where R.RawValue == String {
-		CustomFlow<Self, Void>(root: self, id: FlowID(id.rawValue)) { _, _, completion in action(completion) }
+		CustomFlow<Self, Void>(root: self, id: FlowID(id)) { _, _, completion in action(completion) }
 	}
 	
 	public func openURL() -> CustomFlow<Self, URL> {
@@ -66,7 +66,7 @@ extension FlowComponent where Value == Void {
 	}
 	
 	public func identified<R: RawRepresentable>(by id: R) -> IdentifiedComponent<Self> where R.RawValue == String {
-		IdentifiedComponent(id: id.rawValue, base: self)
+		IdentifiedComponent(id: FlowID<Void>(id).id, base: self)
 	}
 	
 }

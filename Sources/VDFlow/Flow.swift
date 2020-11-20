@@ -14,18 +14,13 @@ public protocol AnyBaseFlow: AnyFlowComponent {
 	func navigate(to step: FlowStep, contentAny: Any, completion: FlowCompletion)
 }
 
-public protocol BaseFlow: AnyBaseFlow, FlowComponent where Value == FlowStep {
+public protocol BaseFlow: AnyBaseFlow, FlowComponent {
 	func current(content: Content) -> (AnyFlowComponent, Any)?
 	func navigate(to step: FlowStep, content: Content, completion: FlowCompletion)
 }
 
 extension BaseFlow {
-	
-	public func update(content: Content, data: Value?) {
-		guard let data = data else { return }
-		navigate(to: data, content: content, completion: .init {_ in })
-	}
-	
+	public func update(content: Content, data: Value?) {}
 }
 
 extension AnyBaseFlow where Self: BaseFlow {

@@ -38,6 +38,10 @@ public struct AnyFlow: BaseFlow {
 		base.flow(with: point)
 	}
 	
+	public func update(content: Any, data: Any?) {
+		base.updateAny(content: content, data: data)
+	}
+	
 }
 
 extension AnyBaseFlow {

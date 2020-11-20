@@ -31,7 +31,7 @@ extension ArrayFlowProtocol {
 	}
 	
 	public func canNavigate(to point: FlowPoint) -> Bool {
-		delegate.canNavigate(to: point)
+		delegate.canNavigate(to: point) || isPoint(point)
 	}
 	
 	public func current(content: Content) -> (AnyFlowComponent, Any)? {
@@ -55,7 +55,8 @@ public struct ArrayFlow<Delegate: ArrayFlowDelegateProtocol> {
 		guard let i =
 						moveIndex(step.move, parent: parent) ??
 						components.firstIndex(where: { $0.canGo(to: step.point) }) ??
-						(rootComponent?.canGo(to: step.point) == true ? -1 : nil),
+						(rootComponent?.canGo(to: step.point) == true ? -1 : nil) ??
+						(step.point.map(flow.isPoint) == true ? (rootComponent == nil ? 0 : -1) : nil),
 						i < components.count,
 						let component = i > -1 ? components[i] : rootComponent else {
 			completion.complete(nil)
@@ -65,6 +66,9 @@ public struct ArrayFlow<Delegate: ArrayFlowDelegateProtocol> {
 		guard vc != nil || i < 0 else {
 			completion.complete(nil)
 			return
+		}
+		if step.point.map(flow.isPoint) == true {
+			flow.updateAny(content: parent, data: step.point?.data)
 		}
 		let componentPending = FlowCompletion.pending {
 			completion.complete($0 ?? (flow, parent))
