@@ -12,9 +12,13 @@ public protocol AnyFlowComponent: FlowArrayConvertable {
 	var id: String { get }
 	func createAny() -> Any
 	func updateAny(content: Any, data: Any?)
+	func didNavigated()
 }
 
 extension AnyFlowComponent {
+	
+	public func didNavigated() {}
+	
 	public func asFlowArray() -> [AnyFlowComponent] {
 		[self]
 	}

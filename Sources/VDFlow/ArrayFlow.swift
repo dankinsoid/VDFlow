@@ -133,7 +133,7 @@ public struct ArrayFlow<Delegate: ArrayFlowDelegateProtocol> {
 	public func current(parent: Delegate.Parent) -> (AnyFlowComponent, Any)? {
 		guard let vc = delegate.currentChild(for: parent),
 					let i = currentIndex(parent: parent) else { return nil }
-		return (components[i], vc)
+		return components[i].asFlow?.current(contentAny: vc) ?? (components[i], vc)
 	}
 	
 	private func currentIndex(parent: Delegate.Parent) -> Int? {

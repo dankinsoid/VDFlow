@@ -53,6 +53,10 @@ extension FlowComponent {
 		}
 	}
 	
+	public func onNavigate(_ action: @escaping () -> Void) -> OnNavigateComponent<Self> {
+		OnNavigateComponent(base: self, onNavigate: action)
+	}
+	
 }
 
 extension FlowComponent where Value == Void {
@@ -168,4 +172,14 @@ public struct VCWrapperComponent<Base: FlowComponent>: WrapperComponentProtocol 
 		return result
 	}
 	
+}
+
+public struct OnNavigateComponent<Base: FlowComponent>: WrapperComponentProtocol {
+	public let base: Base
+	let onNavigate: () -> Void
+	
+	public func didNavigated() {
+		base.didNavigated()
+		onNavigate()
+	}
 }

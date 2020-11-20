@@ -12,6 +12,12 @@ public protocol WrapperAnyComponentProtocol: AnyFlowComponent {
 	var baseAny: AnyFlowComponent { get }
 }
 
+extension WrapperAnyComponentProtocol {
+	public func didNavigated() {
+		baseAny.didNavigated()
+	}
+}
+
 public protocol WrapperComponentProtocol: WrapperAnyComponentProtocol, FlowComponent {
 	associatedtype Base: FlowComponent
 	var base: Base { get }

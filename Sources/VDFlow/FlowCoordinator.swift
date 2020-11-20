@@ -36,8 +36,13 @@ public final class FlowCoordinator {
 		}
 	}
 	
+	public func current() -> AnyFlowComponent? {
+		root.current(contentAny: root.createAny())?.0
+	}
+	
 	private func navigate(to path: FlowPath, flow: AnyBaseFlow, content: Any, completion: @escaping () -> Void) {
 		guard !path.points.isEmpty else {
+			flow.current(contentAny: content)?.0.didNavigated()
 			completion()
 			return
 		}
