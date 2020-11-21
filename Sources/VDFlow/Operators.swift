@@ -68,6 +68,14 @@ extension FlowComponent where Value == Void {
 	public func identified<R: RawRepresentable>(by id: R) -> IdentifiedComponent<Self> where R.RawValue == String {
 		IdentifiedComponent(id: NodeID<Void>(id).id, base: self)
 	}
+	 
+}
+
+extension BaseFlow {
+	
+	public func identified<T>(by id: NodeID<T>) -> IdentifiedComponent<Self> {
+		IdentifiedComponent(id: id.id, base: self)
+	}
 	
 }
 
