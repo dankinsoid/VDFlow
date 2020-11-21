@@ -8,6 +8,6 @@
 import Foundation
 
 public enum SharedSteps {
-	public static let url = FlowID<URL>("openUrlFlowStep")
-	public static let alert = FlowID<AlertConfig>("openAlertFlowStep")
+	public static let url = NodeID<URL>("openUrlFlowStep")
+	public static let alert = NodeID<AlertConfig>("openAlertFlowStep")
 }

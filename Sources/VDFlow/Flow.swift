@@ -8,8 +8,8 @@
 import Foundation
 
 public protocol AnyBaseFlow: AnyFlowComponent {
-	func canNavigate(to point: FlowPoint) -> Bool
-	func flow(with point: FlowPoint) -> AnyBaseFlow?
+	func canNavigate(to step: FlowNode) -> Bool
+	func flow(for step: FlowNode) -> AnyBaseFlow?
 	func current(contentAny: Any) -> (AnyFlowComponent, Any)?
 	func navigate(to step: FlowStep, contentAny: Any, completion: FlowCompletion)
 }
@@ -24,7 +24,7 @@ extension BaseFlow {
 }
 
 extension AnyBaseFlow where Self: BaseFlow {
-
+	
 	public func current(contentAny: Any) -> (AnyFlowComponent, Any)? {
 		guard let content = contentAny as? Content else {
 			return nil

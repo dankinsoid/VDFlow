@@ -30,12 +30,12 @@ public struct AnyFlow: BaseFlow {
 		base.navigate(to: step, contentAny: content, completion: completion)
 	}
 	
-	public func canNavigate(to point: FlowPoint) -> Bool {
-		base.canNavigate(to: point)
+	public func canNavigate(to node: FlowNode) -> Bool {
+		base.canNavigate(to: node)
 	}
 	
-	public func flow(with point: FlowPoint) -> AnyBaseFlow? {
-		base.flow(with: point)
+	public func flow(for node: FlowNode) -> AnyBaseFlow? {
+		base.flow(for: node)
 	}
 	
 	public func update(content: Any, data: Any?) {

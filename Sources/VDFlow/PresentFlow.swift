@@ -145,7 +145,7 @@ public struct PresentFlowDelegate<Parent: UIViewController>: ArrayFlowDelegatePr
 	}
 	
 	public func update(id: String, child: UIViewController) {
-		child.flowId = id
+		child.nodeId = id
 		if let style = presentationStyle {
 			child.modalPresentationStyle = style
 		}

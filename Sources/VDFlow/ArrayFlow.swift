@@ -19,19 +19,19 @@ extension ArrayFlowProtocol {
 		delegate.navigate(to: step, flow: self, parent: content, completion: completion)
 	}
 	
-	public func flow(with point: FlowPoint) -> AnyBaseFlow? {
-		if delegate.rootComponent?.isPoint(point) == true {
+	public func flow(for node: FlowNode) -> AnyBaseFlow? {
+		if delegate.rootComponent?.isNode(node) == true {
 			return self
-		} else if let flow = delegate.flow(with: point) {
+		} else if let flow = delegate.flow(for: node) {
 			return flow
-		} else if canNavigate(to: point) {
+		} else if canNavigate(to: node) {
 			return self
 		}
 		return nil
 	}
 	
-	public func canNavigate(to point: FlowPoint) -> Bool {
-		delegate.canNavigate(to: point) || isPoint(point)
+	public func canNavigate(to node: FlowNode) -> Bool {
+		delegate.canNavigate(to: node) || isNode(node)
 	}
 	
 	public func current(content: Content) -> (AnyFlowComponent, Any)? {
@@ -53,10 +53,10 @@ public struct ArrayFlow<Delegate: ArrayFlowDelegateProtocol> {
 	
 	public func navigate(to step: FlowStep, flow: AnyBaseFlow, parent: Delegate.Parent, completion: FlowCompletion) {
 		guard let i =
-						moveIndex(step.move, parent: parent) ??
-						components.firstIndex(where: { $0.canGo(to: step.point) }) ??
-						(rootComponent?.canGo(to: step.point) == true ? -1 : nil) ??
-						(step.point.map(flow.isPoint) == true ? (rootComponent == nil ? 0 : -1) : nil),
+						moveIndex(step.offset, parent: parent) ??
+						components.firstIndex(where: { $0.canGo(to: step.node) }) ??
+						(rootComponent?.canGo(to: step.node) == true ? -1 : nil) ??
+						(step.node.map(flow.isNode) == true ? (rootComponent == nil ? 0 : -1) : nil),
 						i < components.count,
 						let component = i > -1 ? components[i] : rootComponent else {
 			completion.complete(nil)
@@ -67,8 +67,8 @@ public struct ArrayFlow<Delegate: ArrayFlowDelegateProtocol> {
 			completion.complete(nil)
 			return
 		}
-		if step.point.map(flow.isPoint) == true {
-			flow.updateAny(content: parent, data: step.point?.data)
+		if step.node.map(flow.isNode) == true {
+			flow.updateAny(content: parent, data: step.data)
 		}
 		let componentPending = FlowCompletion.pending {
 			completion.complete($0 ?? (flow, parent))
@@ -118,16 +118,16 @@ public struct ArrayFlow<Delegate: ArrayFlowDelegateProtocol> {
 		return result
 	}
 	
-	public func canNavigate(to point: FlowPoint) -> Bool {
-		rootComponent?.canGo(to: point) == true || components.contains(where: { $0.canGo(to: point) })
+	public func canNavigate(to node: FlowNode) -> Bool {
+		rootComponent?.canGo(to: node) == true || components.contains(where: { $0.canGo(to: node) })
 	}
 	
-	public func flow(with point: FlowPoint) -> AnyBaseFlow? {
-		if let result = rootComponent?.asFlow?.flow(with: point) {
+	public func flow(for node: FlowNode) -> AnyBaseFlow? {
+		if let result = rootComponent?.asFlow?.flow(for: node) {
 			return result
 		}
 		for component in components {
-			if let result = component.asFlow?.flow(with: point) {
+			if let result = component.asFlow?.flow(for: node) {
 				return result
 			}
 		}
@@ -185,7 +185,7 @@ extension ArrayFlowDelegateProtocol where Child: AnyObject {
 
 extension UIView {
 	
-	public var flowId: String? {
+	public var nodeId: String? {
 		get { objc_getAssociatedObject(self, &flowIdKey) as? String }
 		set { objc_setAssociatedObject(self, &flowIdKey, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC) }
 	}
@@ -193,7 +193,7 @@ extension UIView {
 }
 
 extension UIViewController {
-	public var flowId: String? {
+	public var nodeId: String? {
 		get { objc_getAssociatedObject(self, &flowIdKey) as? String }
 		set { objc_setAssociatedObject(self, &flowIdKey, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC) }
 	}

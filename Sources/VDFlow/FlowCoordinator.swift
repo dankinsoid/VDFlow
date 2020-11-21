@@ -13,25 +13,42 @@ public final class FlowCoordinator {
 	
 	public init(_ root: AnyBaseFlow) {
 		self.root = root
+		afterInit()
 	}
 	
 	public init<F: Flow>(_ root: F) {
 		self.root = root.root
+		afterInit()
+	}
+	
+	private func afterInit() {
+		FlowStorage.shared.observe(object: self) {[weak self] in
+			self?.navigate(to: $0)
+		}
 	}
 	
 	public func navigate(to path: FlowPath, completion: @escaping () -> Void = {}) {
-		guard !path.points.isEmpty else {
+		guard !path.steps.isEmpty else {
 			completion()
 			return
+		}
+		path.steps.forEach {
+			FlowStorage.shared.set(id: $0.id, value: path.steps[0])
+		}
+		let compl: () -> Void = {
+			completion()
+			path.steps.forEach {
+				FlowStorage.shared.remove(id: $0.id)
+			}
 		}
 		let content = root.createAny()
 		let (current, view) = root.currentFlow(content: content)
 		if current.canNavigate(path: path) {
-			navigate(to: path, flow: current, content: view, completion: completion)
+			navigate(to: path, flow: current, content: view, completion: compl)
 		} else if root.canNavigate(path: path) {
-			navigate(to: path, flow: root, content: content, completion: completion)
+			navigate(to: path, flow: root, content: content, completion: compl)
 		} else {
-			completion()
+			compl()
 			return
 		}
 	}
@@ -41,12 +58,12 @@ public final class FlowCoordinator {
 	}
 	
 	private func navigate(to path: FlowPath, flow: AnyBaseFlow, content: Any, completion: @escaping () -> Void) {
-		guard !path.points.isEmpty else {
+		guard !path.steps.isEmpty else {
 			flow.current(contentAny: content)?.0.didNavigated()
 			completion()
 			return
 		}
-		let point = path.points[0]
+		let step = path.steps[0]
 		let newPath = path.dropFirst()
 		let flowCompletion = FlowCompletion { maybe in
 			guard let pare = maybe else {
@@ -55,31 +72,31 @@ public final class FlowCoordinator {
 			}
 			self.navigate(to: newPath, flow: pare.0, content: pare.1, completion: completion)
 		}
-		flow.navigate(to: .point(point), contentAny: content, completion: flowCompletion)
+		flow.navigate(to: step, contentAny: content, completion: flowCompletion)
 	}
 	
-	public func navigate(to point: FlowPoint, completion: @escaping () -> Void = {}) {
-		navigate(to: FlowPath([point]), completion: completion)
+	public func navigate(to step: FlowStep, completion: @escaping () -> Void = {}) {
+		navigate(to: FlowPath([step]), completion: completion)
 	}
 	
-	public func navigate(to point: FlowID<Void>, completion: @escaping () -> Void = {}) {
-		navigate(to: point.with(()), completion: completion)
+	public func navigate(to node: FlowNode, completion: @escaping () -> Void = {}) {
+		navigate(to: FlowPath([.move(.node(node))]), completion: completion)
+	}
+	
+	public func navigate(to node: NodeID<Void>, completion: @escaping () -> Void = {}) {
+		navigate(to: node.with(()), completion: completion)
 	}
 	
 	public func navigate<R: RawRepresentable>(to id: R, completion: @escaping () -> Void = {}) where R.RawValue == String {
-		navigate(to: FlowID(id), completion: completion)
-	}
-	public func navigate(to id: String, completion: @escaping () -> Void = {}) {
-		navigate(to: FlowID<Void>(id), completion: completion)
+		navigate(to: NodeID(id), completion: completion)
 	}
 	
-	public func navigate(to move: FlowMove, completion: @escaping () -> Void = {}) {
-		let content = root.createAny()
-		let (flow, view) = root.currentFlow(content: content)
-		let flowCompletion = FlowCompletion { _ in
-			completion()
-		}
-		flow.navigate(to: .move(move), contentAny: view, completion: flowCompletion)
+	public func navigate(to id: String, completion: @escaping () -> Void = {}) {
+		navigate(to: NodeID<Void>(id), completion: completion)
+	}
+	
+	deinit {
+		FlowStorage.shared.remove(observer: self)
 	}
 	
 }
@@ -94,11 +111,14 @@ extension AnyBaseFlow {
 	}
 	
 	public func canNavigate(path: FlowPath) -> Bool {
-		guard !path.points.isEmpty else { return false }
-		if path.points.count == 1 {
-			return canGo(to: path.points[0])
+		guard !path.steps.isEmpty else { return false }
+		guard let node = path.steps[0].node else {
+			return asFlow != nil
 		}
-		return asFlow?.flow(with: path.points[0])?.canNavigate(path: path.dropFirst()) ?? false
+		if path.steps.count == 1 {
+			return canGo(to: node)
+		}
+		return asFlow?.flow(for: node)?.canNavigate(path: path.dropFirst()) ?? false
 	}
 	
 }

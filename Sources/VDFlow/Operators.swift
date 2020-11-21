@@ -9,7 +9,7 @@ import UIKit
 
 extension FlowComponent {
 	
-	public func identified(by id: FlowID<Value>) -> IdentifiedComponent<Self> {
+	public func identified(by id: NodeID<Value>) -> IdentifiedComponent<Self> {
 		IdentifiedComponent(id: id.id, base: self)
 	}
 	
@@ -21,24 +21,24 @@ extension FlowComponent {
 		MapFlowComponent<Self, R>(base: self, map: { $0[keyPath: value] })
 	}
 	
-	public func custom<E>(id: FlowID<E>, _ action: @escaping (Content, E?, @escaping () -> Void) -> Void) -> CustomFlow<Self, E> {
+	public func custom<E>(id: NodeID<E>, _ action: @escaping (Content, E?, @escaping () -> Void) -> Void) -> CustomFlow<Self, E> {
 		CustomFlow<Self, E>(root: self, id: id, action)
 	}
 	
-	public func custom<E>(id: FlowID<E>, _ action: @escaping (Content, @escaping () -> Void) -> Void) -> CustomFlow<Self, E> {
+	public func custom<E>(id: NodeID<E>, _ action: @escaping (Content, @escaping () -> Void) -> Void) -> CustomFlow<Self, E> {
 		CustomFlow<Self, E>(root: self, id: id) { content, _, completion in action(content, completion) }
 	}
 	
-	public func custom<E>(id: FlowID<E>, _ action: @escaping (@escaping () -> Void) -> Void) -> CustomFlow<Self, E> {
+	public func custom<E>(id: NodeID<E>, _ action: @escaping (@escaping () -> Void) -> Void) -> CustomFlow<Self, E> {
 		CustomFlow<Self, E>(root: self, id: id) { _, _, completion in action(completion) }
 	}
 	
 	public func custom<R: RawRepresentable>(id: R, _ action: @escaping (Content, @escaping () -> Void) -> Void) -> CustomFlow<Self, Void> where R.RawValue == String {
-		CustomFlow<Self, Void>(root: self, id: FlowID(id)) { content, _, completion in action(content, completion) }
+		CustomFlow<Self, Void>(root: self, id: NodeID(id)) { content, _, completion in action(content, completion) }
 	}
 	
 	public func custom<R: RawRepresentable>(id: R, _ action: @escaping (@escaping () -> Void) -> Void) -> CustomFlow<Self, Void> where R.RawValue == String {
-		CustomFlow<Self, Void>(root: self, id: FlowID(id)) { _, _, completion in action(completion) }
+		CustomFlow<Self, Void>(root: self, id: NodeID(id)) { _, _, completion in action(completion) }
 	}
 	
 	public func openURL() -> CustomFlow<Self, URL> {
@@ -66,7 +66,7 @@ extension FlowComponent where Value == Void {
 	}
 	
 	public func identified<R: RawRepresentable>(by id: R) -> IdentifiedComponent<Self> where R.RawValue == String {
-		IdentifiedComponent(id: FlowID<Void>(id).id, base: self)
+		IdentifiedComponent(id: NodeID<Void>(id).id, base: self)
 	}
 	
 }
@@ -114,7 +114,7 @@ extension FlowComponent where Content: UIViewController {
 		VCWrapperComponent(base: self) { $0.title = title }
 	}
 	
-	public func alert(id: FlowID<Void>, title: String?, message: String?, actions: [UIAlertAction]) -> CustomFlow<Self, Void> {
+	public func alert(id: NodeID<Void>, title: String?, message: String?, actions: [UIAlertAction]) -> CustomFlow<Self, Void> {
 		custom(id: id) { vc, completion in
 			let alertVC = UIAlertController(title: title, message: message, preferredStyle: .alert)
 			actions.forEach(alertVC.addAction)
@@ -122,7 +122,7 @@ extension FlowComponent where Content: UIViewController {
 		}
 	}
 	
-	public func actionSheet(id: FlowID<Void>, title: String?, message: String?, actions: [UIAlertAction]) -> CustomFlow<Self, Void> {
+	public func actionSheet(id: NodeID<Void>, title: String?, message: String?, actions: [UIAlertAction]) -> CustomFlow<Self, Void> {
 		custom(id: id) { vc, completion in
 			let alertVC = UIAlertController(title: title, message: message, preferredStyle: .actionSheet)
 			actions.forEach(alertVC.addAction)
@@ -130,7 +130,7 @@ extension FlowComponent where Content: UIViewController {
 		}
 	}
 	
-	public func alert(id: FlowID<AlertConfig>) -> CustomFlow<Self, AlertConfig> {
+	public func alert(id: NodeID<AlertConfig>) -> CustomFlow<Self, AlertConfig> {
 		custom(id: id) { vc, config, completion in
 			vc.presentAlert(config: config, completion: completion)
 		}
