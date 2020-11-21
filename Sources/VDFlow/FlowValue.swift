@@ -16,7 +16,7 @@ public struct FlowValue<T> {
 		get { FlowStorage.shared.steps[id.id]?.data as? T }
 		nonmutating set {
 			guard let value = newValue else { return }
-			FlowStorage.shared.setToNavigate(id: id.id, value: .id(id, data: value))
+			FlowStorage.shared.setToNavigate(.id(id, data: value))
 		}
 	}
 	
@@ -42,6 +42,7 @@ extension FlowValue {
 
 final class FlowStorage {
 	static let shared = FlowStorage()
+	var currentStep: FlowStep?
 	
 	private(set) var steps: [String: FlowStep] = [:]
 	private var needToCollect: Set<String> = []
@@ -51,19 +52,18 @@ final class FlowStorage {
 		needToCollect.insert(id)
 	}
 	
-	func remove(id: String?) {
-		if let id = id, !needToCollect.contains(id) {
+	func remove(id: String) {
+		if !needToCollect.contains(id) {
 			steps[id] = nil
 		}
 	}
 	
-	func set(id: String?, value: FlowStep) {
-		guard let id = id else { return }
-		steps[id] = value
+	func set(_ value: FlowStep) {
+		steps[value._id] = value
 	}
 	
-	func setToNavigate(id: String, value: FlowStep) {
-		steps[id] = value
+	func setToNavigate(_ value: FlowStep) {
+		steps[value._id] = value
 		DispatchQueue.main.async {
 			self.observers.forEach {
 				$0.value(value)

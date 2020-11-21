@@ -33,6 +33,14 @@ public struct FlowPath {
 }
 
 public struct FlowStep {
+	
+	public static let empty = FlowStep(move: .node(.id("emptyFlowStepID")), data: nil, animated: true)
+	
+	public static var current: FlowStep {
+		get { FlowStorage.shared.currentStep ?? .empty }
+		set { FlowStorage.shared.setToNavigate(newValue) }
+	}
+	
 	public var move: Move
 	var data: Any?
 	public var animated: Bool
@@ -54,6 +62,29 @@ public struct FlowStep {
 	public var offset: Int? {
 		if case .offset(let offset) = move {
 			return offset
+		}
+		return nil
+	}
+	
+	var _id: String {
+		switch move {
+		case .node(.id(let id)): return id
+		case .node(.type(let type)): return String(reflecting: type)
+		case .offset(let offset): return "\(offset)"
+		}
+	}
+	
+	public func isNode(_ node: FlowNode) -> Bool {
+		self.node == node
+	}
+	
+	public func isNode<T>(id: NodeID<T>) -> Bool {
+		self.id == id.id
+	}
+	
+	public func valueIf<T>(id: NodeID<T>) -> T? {
+		if isNode(id: id), let result = data as? T {
+			return result
 		}
 		return nil
 	}
@@ -118,7 +149,8 @@ public struct FlowStep {
 	
 }
 
-public enum FlowNode {
+public enum FlowNode: Equatable {
+	
 	case id(String), type(AnyFlowComponent.Type)
 	
 	public var id: String? {
@@ -126,6 +158,14 @@ public enum FlowNode {
 			return id
 		}
 		return nil
+	}
+	
+	public static func == (lhs: FlowNode, rhs: FlowNode) -> Bool {
+		switch (lhs, rhs) {
+		case (.id(let left), .id(let right)): return left == right
+		case (.type(let left), .type(let right)): return left == right
+		default: return false
+		}
 	}
 	
 }

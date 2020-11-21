@@ -10,6 +10,8 @@ import Foundation
 public final class FlowCoordinator {
 	
 	private var root: AnyBaseFlow
+	private var queue: [(FlowPath, () -> Void)] = []
+	private var isNavigating = false
 	
 	public init(_ root: AnyBaseFlow) {
 		self.root = root
@@ -32,13 +34,21 @@ public final class FlowCoordinator {
 			completion()
 			return
 		}
-		path.steps.forEach {
-			FlowStorage.shared.set(id: $0.id, value: path.steps[0])
+		guard !isNavigating else {
+			queue.append((path, completion))
+			return
 		}
-		let compl: () -> Void = {
+		isNavigating = true
+		FlowStorage.shared.currentStep = path.steps[0]
+		path.steps.forEach(FlowStorage.shared.set)
+		let compl: () -> Void = {[weak self] in
 			completion()
 			path.steps.forEach {
-				FlowStorage.shared.remove(id: $0.id)
+				FlowStorage.shared.remove(id: $0._id)
+			}
+			if let (path, cmpl) = self?.queue.first {
+				self?.queue.removeFirst()
+				self?.navigate(to: path, completion: cmpl)
 			}
 		}
 		let content = root.createAny()
@@ -64,8 +74,10 @@ public final class FlowCoordinator {
 			return
 		}
 		let step = path.steps[0]
+		FlowStorage.shared.currentStep = step
 		let newPath = path.dropFirst()
 		let flowCompletion = FlowCompletion { maybe in
+			FlowStorage.shared.currentStep = nil
 			guard let pare = maybe else {
 				completion()
 				return

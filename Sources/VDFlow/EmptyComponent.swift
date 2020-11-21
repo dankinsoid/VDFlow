@@ -10,4 +10,5 @@ import Foundation
 public struct EmptyComponent: FlowComponent {
 	public func create() -> Void { () }
 	public func update(content: Void, data: Void?) {}
+	public init() {}
 }
