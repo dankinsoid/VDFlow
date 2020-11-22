@@ -89,6 +89,13 @@ public struct FlowStep {
 		return nil
 	}
 	
+	public func valueIf<T: FlowComponent>(type: T.Type) -> T.Value? {
+		if isNode(.type(type)), let result = data as? T.Value {
+			return result
+		}
+		return nil
+	}
+	
 	public enum Move {
 		case node(FlowNode), offset(Int)
 	}

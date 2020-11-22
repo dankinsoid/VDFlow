@@ -44,6 +44,8 @@ public final class FlowCoordinator {
 		FlowStorage.shared.currentStep = path.steps.last!
 		let flow = root()
 		let compl: () -> Void = {[weak self] in
+			completion()
+			self?.previousFlow = flow
 			path.steps.forEach {
 				FlowStorage.shared.remove(id: $0._id)
 			}
@@ -51,8 +53,6 @@ public final class FlowCoordinator {
 				self?.queue.removeFirst()
 				self?.navigate(to: path, completion: cmpl)
 			}
-			self?.previousFlow = flow
-			completion()
 		}
 		let content = flow.createAny()
 		let (current, view) = flow.currentFlow(content: content)
