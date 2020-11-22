@@ -9,17 +9,18 @@ import Foundation
 
 public final class FlowCoordinator {
 	
-	private var root: AnyBaseFlow
+	private var root: () -> AnyBaseFlow
+	private lazy var previousFlow = root()
 	private var queue: [(FlowPath, () -> Void)] = []
 	private var isNavigating = false
 	
-	public init(_ root: AnyBaseFlow) {
+	public init(_ root: @escaping @autoclosure () -> AnyBaseFlow) {
 		self.root = root
 		afterInit()
 	}
 	
 	public init<F: Flow>(_ root: F) {
-		self.root = root.root
+		self.root = { root.root }
 		afterInit()
 	}
 	
@@ -39,10 +40,10 @@ public final class FlowCoordinator {
 			return
 		}
 		isNavigating = true
-		FlowStorage.shared.currentStep = path.steps[0]
 		path.steps.forEach(FlowStorage.shared.set)
+		FlowStorage.shared.currentStep = path.steps.last!
+		let flow = root()
 		let compl: () -> Void = {[weak self] in
-			completion()
 			path.steps.forEach {
 				FlowStorage.shared.remove(id: $0._id)
 			}
@@ -50,21 +51,23 @@ public final class FlowCoordinator {
 				self?.queue.removeFirst()
 				self?.navigate(to: path, completion: cmpl)
 			}
+			self?.previousFlow = flow
+			completion()
 		}
-		let content = root.createAny()
-		let (current, view) = root.currentFlow(content: content)
+		let content = flow.createAny()
+		let (current, view) = flow.currentFlow(content: content)
 		if current.canNavigate(path: path) {
 			navigate(to: path, flow: current, content: view, completion: compl)
-		} else if root.canNavigate(path: path) {
-			navigate(to: path, flow: root, content: content, completion: compl)
+		} else if flow.canNavigate(path: path) {
+			navigate(to: path, flow: flow, content: content, completion: compl)
 		} else {
 			compl()
 			return
 		}
 	}
 	
-	public func current() -> AnyFlowComponent? {
-		root.current(contentAny: root.createAny())?.0
+	public func current() -> (component: AnyFlowComponent, view: Any)? {
+		previousFlow.current(contentAny: previousFlow.createAny())
 	}
 	
 	private func navigate(to path: FlowPath, flow: AnyBaseFlow, content: Any, completion: @escaping () -> Void) {
@@ -74,7 +77,6 @@ public final class FlowCoordinator {
 			return
 		}
 		let step = path.steps[0]
-		FlowStorage.shared.currentStep = step
 		let newPath = path.dropFirst()
 		let flowCompletion = FlowCompletion { maybe in
 			FlowStorage.shared.currentStep = nil
