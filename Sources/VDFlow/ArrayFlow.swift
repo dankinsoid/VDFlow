@@ -63,19 +63,15 @@ public struct ArrayFlow<Delegate: ArrayFlowDelegateProtocol> {
 			return
 		}
 		let (vcs, vc) = children(parent: parent, current: i)
-		guard vc != nil || i < 0 else {
-			completion.complete(nil)
-			return
-		}
 		if step.node.map(flow.isNode) == true {
 			flow.updateAny(content: parent, data: step.data)
 		}
 		let componentPending = FlowCompletion.pending {
 			completion.complete($0 ?? (flow, parent))
 		}
-		component.updateAny(content: i > -1 ? vc! : parent, step: step, completion: componentPending.completion)
+		component.updateAny(content: i > -1 ? (vc ?? components[i].createAny()) : parent, step: step, completion: componentPending.completion)
 		let pending = OnReadyCompletion<Void>.pending(componentPending.ready)
-		delegate.set(children: vcs, current: i, to: parent, animated: step.animated, completion: pending.completion)
+		delegate.set(children: vcs, current: max(i, 0), to: parent, animated: step.animated, completion: pending.completion)
 		completion.onReady { _ in
 			pending.ready()
 		}

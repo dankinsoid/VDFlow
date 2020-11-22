@@ -21,7 +21,7 @@ public struct PresentFlow<Root: FlowComponent>: ArrayFlowProtocol where Root.Con
 				transitionStyle: transitionStyle
 			),
 			root: root,
-			components: components.filter { $0.contentType is UIViewController.Type }
+			components: components
 		)
 	}
 	

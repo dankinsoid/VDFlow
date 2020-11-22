@@ -17,11 +17,10 @@ public struct NavigationFlow: ArrayFlowProtocol {
 		createController = create
 		self.delegate = ArrayFlow(
 			delegate: .init(),
-			components: components.map {
+			components: Array(components.map {
 				($0.rootComponent as? NavigationFlow)?.delegate.components ?? [$0]
 			}
-			.joined()
-			.filter { $0.contentType is UIViewController.Type }
+			.joined())
 		)
 	}
 	

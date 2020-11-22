@@ -16,11 +16,10 @@ public struct TabFlow: ArrayFlowProtocol {
 		createController = create
 		self.delegate = ArrayFlow(
 			delegate: .init(),
-			components: components.map {
+			components: Array(components.map {
 				($0.rootComponent as? TabFlow)?.delegate.components ?? [$0]
 			}
-			.joined()
-			.filter { $0.contentType is UIViewController.Type }
+			.joined())
 		)
 	}
 	
@@ -39,6 +38,10 @@ extension UITabBarController {
 			 	self.selectedIndex = current
 			}
 			completion()
+		}
+		guard current >= 0, current < viewControllers.count else {
+			action()
+			return
 		}
 		let to = viewControllers[current]
 		if animated, view?.window != nil, let from = selectedViewController, from !== to,
