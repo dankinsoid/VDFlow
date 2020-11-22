@@ -82,9 +82,9 @@ public struct ArrayFlow<Delegate: ArrayFlowDelegateProtocol> {
 		return min(components.count, max(0, i + offset))
 	}
 	
-	private func children(parent: Delegate.Parent, current: Int) -> ([Delegate.Child], Delegate.Child?) {
+	private func children(parent: Delegate.Parent, current: Int) -> ([Delegate.Child], Any?) {
 		guard current >= 0 else { return ([], nil) }
-		var result: ([Delegate.Child], Delegate.Child?) = ([], nil)
+		var result: ([Delegate.Child], Any?) = ([], nil)
 		delegate.setType.componentsToSet(from: Array(ids().enumerated()), current: current).forEach { pare in
 			if let vc = delegate.children(for: parent).first(where: { delegate.getId(for: $0) == pare.element }) {
 				result.0.append(vc)
@@ -93,11 +93,13 @@ public struct ArrayFlow<Delegate: ArrayFlowDelegateProtocol> {
 				}
 				return
 			}
-			guard let vc = components[pare.offset].createAny() as? Delegate.Child else { return }
-			delegate.update(id: pare.element, child: vc)
-			result.0.append(vc)
+			let view = components[pare.offset].createAny()
+			if let vc = view as? Delegate.Child {
+				delegate.update(id: pare.element, child: vc)
+				result.0.append(vc)
+			}
 			if pare.offset == current {
-				 result.1 = vc
+				 result.1 = view
 			 }
 		}
 		return result
