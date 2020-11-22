@@ -44,7 +44,7 @@ import PackageDescription
 let package = Package(
   name: "SomeProject",
   dependencies: [
-    .package(url: "https://github.com/dankinsoid/VDFlow.git", from: "1.0.13")
+    .package(url: "https://github.com/dankinsoid/VDFlow.git", from: "1.0.14")
   ],
   targets: [
     .target(name: "SomeProject", dependencies: ["VDFlow"])
@@ -62,5 +62,3 @@ dankinsoid, voidilov@gmail.com
 ## License
 
 VDFlow is available under the MIT license. See the LICENSE file for more info.
-
-
