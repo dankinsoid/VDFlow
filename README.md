@@ -32,6 +32,7 @@ struct AppFlow: Flow {
 ```
 ## Usage
 //TODO
+
 ## Installation
 
 1. [Swift Package Manager](https://github.com/apple/swift-package-manager)
@@ -44,7 +45,7 @@ import PackageDescription
 let package = Package(
   name: "SomeProject",
   dependencies: [
-    .package(url: "https://github.com/dankinsoid/VDFlow.git", from: "1.0.14")
+    .package(url: "https://github.com/dankinsoid/VDFlow.git", from: "1.0.15")
   ],
   targets: [
     .target(name: "SomeProject", dependencies: ["VDFlow"])
