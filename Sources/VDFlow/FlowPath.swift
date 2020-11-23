@@ -96,7 +96,7 @@ public struct FlowStep {
 		return nil
 	}
 	
-	public enum Move {
+	public enum Move: Equatable {
 		case node(FlowNode), offset(Int)
 	}
 	
