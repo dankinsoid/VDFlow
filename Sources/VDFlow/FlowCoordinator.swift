@@ -45,6 +45,7 @@ public final class FlowCoordinator {
 		let flow = root()
 		let compl: () -> Void = {[weak self] in
 			completion()
+			self?.isNavigating = false
 			self?.previousFlow = flow
 			path.steps.forEach {
 				FlowStorage.shared.remove(id: $0._id)
