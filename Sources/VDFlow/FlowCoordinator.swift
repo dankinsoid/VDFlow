@@ -30,7 +30,7 @@ public final class FlowCoordinator {
 		}
 	}
 	
-	public func navigate(to path: FlowPath, completion: @escaping () -> Void = {}) {
+	private func navigateTo(path: FlowPath, completion: @escaping () -> Void = {}) {
 		guard !path.steps.isEmpty else {
 			completion()
 			return
@@ -89,20 +89,8 @@ public final class FlowCoordinator {
 		flow.navigate(to: step, contentAny: content, completion: flowCompletion)
 	}
 	
-	public func navigate(to step: FlowStep, completion: @escaping () -> Void = {}) {
-		navigate(to: FlowPath([step]), completion: completion)
-	}
-	
-	public func navigate(to node: FlowNode, completion: @escaping () -> Void = {}) {
-		navigate(to: FlowPath([.move(.node(node))]), completion: completion)
-	}
-	
-	public func navigate(to node: NodeID<Void>, completion: @escaping () -> Void = {}) {
-		navigate(to: node.with(()), completion: completion)
-	}
-	
-	public func navigate<R: RawRepresentable>(to id: R, completion: @escaping () -> Void = {}) where R.RawValue == String {
-		navigate(to: NodeID(id), completion: completion)
+	public func navigate(to step: FlowPathConvertable, completion: @escaping () -> Void = {}) {
+		navigateTo(path: step.asPath(), completion: completion)
 	}
 	
 	public func navigate(to id: String, completion: @escaping () -> Void = {}) {

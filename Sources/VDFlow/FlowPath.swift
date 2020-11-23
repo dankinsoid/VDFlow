@@ -204,3 +204,23 @@ extension AnyFlowComponent {
 	}
 	
 }
+
+public protocol FlowPathConvertable {
+	func asPath() -> FlowPath
+}
+
+extension FlowPath: FlowPathConvertable {
+	public func asPath() -> FlowPath { self }
+}
+
+extension FlowStep: FlowPathConvertable {
+	public func asPath() -> FlowPath { FlowPath([self]) }
+}
+
+extension NodeID: FlowPathConvertable {
+	public func asPath() -> FlowPath { FlowStep(move: .node(.id(id)), data: nil, animated: true).asPath() }
+}
+
+extension FlowPathConvertable where Self: RawRepresentable, RawValue == String {
+	public func asPath() -> FlowPath { NodeID<Void>(self).asPath() }
+}
