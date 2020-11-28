@@ -20,6 +20,15 @@ public struct WindowFlow: ArrayFlowProtocol {
 			delegate: Delegate(transition: transition),
 			components: components
 		)
+		afterInit()
+	}
+	
+	private func afterInit() {
+		if content.rootViewController == nil {
+			content.rootViewController = FakeVC()
+			content.rootViewController?.loadViewIfNeeded()
+			content.rootViewController?.view?.backgroundColor = .clear
+		}
 	}
 	
 	public func create() -> UIWindow {
@@ -55,7 +64,7 @@ public struct WindowFlow: ArrayFlowProtocol {
 			 completion?()
 			 return
 		 }
-		 if animated && content.rootViewController != nil {
+			if animated && content.rootViewController != nil && content.rootViewController as? FakeVC == nil {
 			 UIView.transition(with: content, duration: 0.5, options: transition, animations: {
 				 let oldState: Bool = UIView.areAnimationsEnabled
 				 UIView.setAnimationsEnabled(false)
@@ -81,3 +90,5 @@ extension WindowFlow {
 	}
 	
 }
+
+fileprivate final class FakeVC: UIViewController {}

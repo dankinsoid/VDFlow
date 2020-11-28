@@ -25,7 +25,11 @@ public struct NavigationFlow: ArrayFlowProtocol {
 	}
 	
 	public func create() -> UINavigationController {
-		createController()
+		let vc = createController()
+		if let first = delegate.components.first(as: UIViewController.self) {
+			vc.setViewControllers([first], animated: false)
+		}
+		return vc
 	}
 	
 }
@@ -57,7 +61,7 @@ extension NavigationFlow {
 extension UINavigationController {
 	
 	public struct ArrayDelegate: ArrayFlowDelegateProtocol {
-		public var setType: ArrayFlowSetType { .upTo }
+		public var setType: ArrayFlowSetType { .upTo(min: 1) }
 		
 		public func children(for parent: UINavigationController) -> [UIViewController] {
 			parent.viewControllers

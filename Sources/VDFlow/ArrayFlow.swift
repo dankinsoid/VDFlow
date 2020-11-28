@@ -149,17 +149,18 @@ public struct ArrayFlow<Delegate: ArrayFlowDelegateProtocol> {
 }
 
 public enum ArrayFlowSetType {
-	case all, upTo, from, one, custom((_ count: Int, _ current: Int) -> [ClosedRange<Int>])
+	case all, upTo(min: Int), from, one, custom((_ count: Int, _ current: Int) -> [ClosedRange<Int>])
 	
 	public func componentsToSet<T>(from all: [T], current index: Int) -> [T] {
 		switch self {
 		case .all:								return all
-		case .upTo:								return Array(all.prefix(upTo: index + 1))
+		case .upTo(let minimum):	return Array(all.prefix(upTo: min(index + 1, minimum)))
 		case .from:								return Array(all.suffix(from: index))
 		case .one:								return [all[index]]
 		case .custom(let block):	return Array(block(all.count, index).map { all[$0] }.joined())
 		}
 	}
+	
 }
 
 public protocol ArrayFlowDelegateProtocol {
@@ -199,3 +200,16 @@ extension UIViewController {
 }
 
 fileprivate var flowIdKey = "flowIdKey"
+
+extension Collection where Element == AnyFlowComponent {
+	
+	func first<T>(as type: T.Type) -> T? {
+		for element in self {
+			if let result = element.createAny() as? T {
+				return result
+			}
+		}
+		return nil
+	}
+	
+}

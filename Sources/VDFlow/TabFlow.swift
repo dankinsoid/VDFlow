@@ -24,7 +24,11 @@ public struct TabFlow: ArrayFlowProtocol {
 	}
 	
 	public func create() -> UITabBarController {
-		createController()
+		let vc = createController()
+		if let first = delegate.components.first(as: UIViewController.self) {
+			vc.setViewControllers([first], animated: false)
+		}
+		return vc
 	}
 	
 }

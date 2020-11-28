@@ -132,7 +132,7 @@ extension Array where Element: Equatable {
 
 public struct PresentFlowDelegate<Parent: UIViewController>: ArrayFlowDelegateProtocol {
 	
-	public let setType = ArrayFlowSetType.upTo
+	public let setType = ArrayFlowSetType.upTo(min: 0)
 	public let presentationStyle: UIModalPresentationStyle?
 	public let transitionStyle: UIModalTransitionStyle?
 	

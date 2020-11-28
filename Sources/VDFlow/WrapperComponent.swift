@@ -33,12 +33,10 @@ extension WrapperAnyComponentProtocol where Self: WrapperComponentProtocol {
 	public var baseAny: AnyFlowComponent { base }
 }
 
-extension AnyFlowComponent where Self: WrapperComponentProtocol {
-	
+extension AnyFlowComponent where Self: WrapperAnyComponentProtocol {
 	public var id: String {
-		base.id
+		baseAny.id
 	}
-
 }
 
 extension FlowComponent where Self: WrapperComponentProtocol {
