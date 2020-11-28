@@ -105,7 +105,7 @@ public struct ArrayFlow<Delegate: ArrayFlowDelegateProtocol> {
 		return result
 	}
 	
-	private func ids() -> [String] {
+	func ids() -> [String] {
 		var orders: [String: Int] = [:]
 		var result: [String] = []
 		for component in components {
@@ -203,11 +203,13 @@ fileprivate var flowIdKey = "flowIdKey"
 
 extension Collection where Element == AnyFlowComponent {
 	
-	func first<T>(as type: T.Type) -> T? {
+	func first<T>(as type: T.Type) -> (T, Int)? {
+		var i = 0
 		for element in self {
 			if let result = element.createAny() as? T {
-				return result
+				return (result, i)
 			}
+			i += 1
 		}
 		return nil
 	}

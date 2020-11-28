@@ -26,7 +26,8 @@ public struct NavigationFlow: ArrayFlowProtocol {
 	
 	public func create() -> UINavigationController {
 		let vc = createController()
-		if let first = delegate.components.first(as: UIViewController.self) {
+		if let (first, i) = delegate.components.first(as: UIViewController.self) {
+			first.nodeId = delegate.ids()[i]
 			vc.setViewControllers([first], animated: false)
 		}
 		return vc
