@@ -22,4 +22,8 @@ public struct NodeID<Value>: Hashable, Codable {
 		.id(self, data: value, animated: animated)
 	}
 	
+	public subscript(_ value: Value, animated: Bool = true) -> FlowStep {
+		with(value, animated: animated)
+	}
+	
 }
