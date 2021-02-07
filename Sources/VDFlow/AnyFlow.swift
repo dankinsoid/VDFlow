@@ -8,25 +8,27 @@
 
 import Foundation
 
-public struct AnyFlow: BaseFlow {
+public struct AnyFlow<Content>: BaseFlow {
 	
+	private let baseCreate: () -> Content
 	private let base: AnyBaseFlow
 	public var id: String { base.id }
 	public var contentType: Any.Type { base.contentType }
 	
-	public init(_ base: AnyBaseFlow) {
+	public init<R: BaseFlow>(_ base: R) where R.Content == Content {
 		self.base = base
+		baseCreate = base.create
 	}
 	
-	public func create() -> Any {
-		base.createAny()
+	public func create() -> Content {
+		baseCreate()
 	}
 	
-	public func current(content: Any) -> (AnyFlowComponent, Any)? {
+	public func current(content: Content) -> (AnyFlowComponent, Any)? {
 		base.current(contentAny: content)
 	}
 	
-	public func navigate(to step: FlowStep, content: Any, completion: FlowCompletion) {
+	public func navigate(to step: FlowStep, content: Content, completion: FlowCompletion) {
 		base.navigate(to: step, contentAny: content, completion: completion)
 	}
 	
@@ -38,20 +40,14 @@ public struct AnyFlow: BaseFlow {
 		base.flow(for: node)
 	}
 	
-	public func update(content: Any, data: Any?) {
+	public func update(content: Content, data: Any?) {
 		base.updateAny(content: content, data: data)
 	}
 	
 }
 
-extension AnyBaseFlow {
-	public func asAny() -> AnyFlow {
-		AnyFlow(self)
-	}
-}
-
 extension Flow {
-	public func asAny() -> AnyFlow {
+	public func asAny() -> AnyFlow<Root.Content> {
 		AnyFlow(self.root)
 	}
 }

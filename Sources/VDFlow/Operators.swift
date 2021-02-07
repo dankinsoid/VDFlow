@@ -79,11 +79,15 @@ extension BaseFlow {
 	
 }
 
-extension FlowComponent where Content: UIViewController {
+extension FlowComponent where Content: UIViewControllerConvertable {
 	
-	public func present(style presentationStyle: UIModalPresentationStyle? = nil, transition: UIModalTransitionStyle? = nil, present: @escaping PresentClosure = { $0.present($1, animated: $2, completion: $3) }, @FlowBuilder _ builder: () -> FlowArrayConvertable) -> PresentFlow<Self> {
-		PresentFlow(root: self, presentationStyle: presentationStyle, transitionStyle: transition, present: present, components: builder().asFlowArray())
+	public func present(over: Bool = false, style presentationStyle: UIModalPresentationStyle? = nil, transition: UIModalTransitionStyle? = nil, present: @escaping PresentClosure = { $0.present($1, animated: $2, completion: $3) }, @FlowBuilder _ builder: () -> FlowArrayConvertable) -> PresentFlow<Self> {
+		PresentFlow(root: self, presentationStyle: presentationStyle, transitionStyle: transition, dismissPresented: !over, present: present, components: builder().asFlowArray())
 	}
+	
+}
+
+extension FlowComponent where Content: UIViewController {
 	
 	public func presentationStyle(_ style: UIModalPresentationStyle) -> VCWrapperComponent<Self> {
 		VCWrapperComponent(base: self) { $0.modalPresentationStyle = style }
