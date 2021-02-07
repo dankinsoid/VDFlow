@@ -22,9 +22,6 @@ let package = Package(
         .target(
             name: "VDFlow",
             dependencies: []
-        ),
-        .testTarget(
-            name: "VDFlowTests",
-            dependencies: ["VDFlow"]),
+        )
     ]
 )
