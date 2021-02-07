@@ -179,12 +179,11 @@ public enum FlowNode: Equatable {
 	
 extension AnyFlowComponent {
 	
-	static var rootType: Any.Type {
-		let selfType = Self.self
-		if let wrapped = selfType as? WrapperAnyComponentProtocol.Type {
-			return wrapped.baseType.rootType
+	var rootType: Any.Type {
+		if let wrapped = self as? WrapperAnyComponentProtocol {
+			return wrapped.baseAny.rootType
 		}
-		return selfType
+		return type(of: self)
 	}
 	
 	func canGo(to node: FlowNode?) -> Bool {
@@ -197,7 +196,7 @@ extension AnyFlowComponent {
 		case .id(let id):
 			return self.id == id
 		case .type(let anyType):
-			return Self.rootType == anyType
+			return rootType == anyType
 		case nil:
 			return false
 		}

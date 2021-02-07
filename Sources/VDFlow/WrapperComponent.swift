@@ -8,7 +8,6 @@
 import Foundation
 
 public protocol WrapperAnyComponentProtocol: AnyFlowComponent {
-	static var baseType: AnyFlowComponent.Type { get }
 	var baseAny: AnyFlowComponent { get }
 }
 
@@ -29,7 +28,6 @@ extension WrapperComponentProtocol {
 }
 
 extension WrapperAnyComponentProtocol where Self: WrapperComponentProtocol {
-	public static var baseType: AnyFlowComponent.Type { Base.self }
 	public var baseAny: AnyFlowComponent { base }
 }
 

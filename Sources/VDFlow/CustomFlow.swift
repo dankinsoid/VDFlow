@@ -8,7 +8,6 @@
 import Foundation
 
 public struct CustomFlow<Root: FlowComponent, Element>: BaseFlow, WrapperAnyComponentProtocol {
-	public static var baseType: AnyFlowComponent.Type { Root.self }
 	public let root: Root
 	public var baseAny: AnyFlowComponent { root }
 	public let nodeId: NodeID<Element>

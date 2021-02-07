@@ -8,7 +8,6 @@
 import Foundation
 
 public struct MapFlowComponent<Base: FlowComponent, Value>: FlowComponent, WrapperAnyComponentProtocol {
-	public static var baseType: AnyFlowComponent.Type { Base.self }
 	public var baseAny: AnyFlowComponent { base }
 	public let base: Base
 	public var id: String { base.id }
