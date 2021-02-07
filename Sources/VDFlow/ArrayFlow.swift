@@ -154,7 +154,7 @@ public enum ArrayFlowSetType {
 	public func componentsToSet<T>(from all: [T], current index: Int) -> [T] {
 		switch self {
 		case .all:								return all
-		case .upTo(let minimum):	return Array(all.prefix(upTo: min(index + 1, minimum)))
+		case .upTo(let minimum):	return Array(all.prefix(upTo: max(index + 1, minimum)))
 		case .from:								return Array(all.suffix(from: index))
 		case .one:								return [all[index]]
 		case .custom(let block):	return Array(block(all.count, index).map { all[$0] }.joined())
