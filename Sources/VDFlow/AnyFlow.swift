@@ -46,8 +46,8 @@ public struct AnyFlow<Content>: BaseFlow {
 	
 }
 
-extension Flow {
-	public func asAny() -> AnyFlow<Root.Content> {
-		AnyFlow(self.root)
+extension BaseFlow {
+	public func asAny() -> AnyFlow<Content> {
+		AnyFlow(self)
 	}
 }

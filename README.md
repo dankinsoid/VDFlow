@@ -44,7 +44,7 @@ import PackageDescription
 let package = Package(
   name: "SomeProject",
   dependencies: [
-    .package(url: "https://github.com/dankinsoid/VDFlow.git", from: "1.0.27")
+    .package(url: "https://github.com/dankinsoid/VDFlow.git", from: "1.0.28")
   ],
   targets: [
     .target(name: "SomeProject", dependencies: ["VDFlow"])
