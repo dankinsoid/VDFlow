@@ -169,9 +169,9 @@ public enum FlowNode: Equatable {
 	
 	public static func == (lhs: FlowNode, rhs: FlowNode) -> Bool {
 		switch (lhs, rhs) {
-		case (.id(let left), .id(let right)): return left == right
+		case (.id(let left), .id(let right)): 		return left == right
 		case (.type(let left), .type(let right)): return left == right
-		default: return false
+		default: 																	return false
 		}
 	}
 	
@@ -207,6 +207,12 @@ extension AnyFlowComponent {
 
 public protocol FlowPathConvertable {
 	func asPath() -> FlowPath
+}
+
+extension FlowPathConvertable {
+	public var finalStep: FlowStep? {
+		asPath().steps.last
+	}
 }
 
 extension FlowPath: FlowPathConvertable {
