@@ -11,7 +11,7 @@ public protocol WrapperAnyComponentProtocol: AnyFlowComponent {
 	var baseAny: AnyFlowComponent { get }
 }
 
-extension WrapperAnyComponentProtocol {
+extension AnyFlowComponent where Self: WrapperAnyComponentProtocol {
 	public func didNavigated() {
 		baseAny.didNavigated()
 	}
@@ -19,12 +19,9 @@ extension WrapperAnyComponentProtocol {
 
 public protocol WrapperComponentProtocol: WrapperAnyComponentProtocol, FlowComponent {
 	associatedtype Base: FlowComponent
+	override associatedtype Content = Base.Content
+	override associatedtype Value = Base.Value
 	var base: Base { get }
-}
-
-extension WrapperComponentProtocol {
-	public typealias Content = Base.Content
-	public typealias Value = Base.Value
 }
 
 extension WrapperAnyComponentProtocol where Self: WrapperComponentProtocol {
@@ -37,7 +34,7 @@ extension AnyFlowComponent where Self: WrapperAnyComponentProtocol {
 	}
 }
 
-extension FlowComponent where Self: WrapperComponentProtocol {
+extension FlowComponent where Self: WrapperComponentProtocol, Content == Base.Content {
 	
 	public func create() -> Content {
 		base.create()
@@ -45,7 +42,7 @@ extension FlowComponent where Self: WrapperComponentProtocol {
 	
 }
 
-extension FlowComponent where Self: WrapperComponentProtocol {
+extension FlowComponent where Self: WrapperComponentProtocol, Content == Base.Content, Value == Base.Value {
 	
 	public func update(content: Content, data: Value?) {
 		base.update(content: content, data: data)

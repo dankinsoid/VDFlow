@@ -49,7 +49,7 @@ public protocol Flow: BaseFlow {
 	var root: Root { get }
 }
 
-extension Flow where Content == Root.Content {
+extension BaseFlow where Self: Flow, Content == Root.Content {
 	
 	public func create() -> Root.Content {
 		root.create()
@@ -65,13 +65,13 @@ extension Flow where Content == Root.Content {
 	
 }
 
-extension Flow where Content == Root.Content, Value == Root.Value {
+extension BaseFlow where Self: Flow, Content == Root.Content, Value == Root.Value {
 	public func update(content: Root.Content, data: Root.Value?) {
 		root.update(content: content, data: data)
 	}
 }
 
-extension Flow {
+extension AnyBaseFlow where Self: Flow {
 	
 	public func canNavigate(to step: FlowNode) -> Bool {
 		root.canNavigate(to: step)
@@ -81,6 +81,10 @@ extension Flow {
 		root.flow(for: step)
 	}
 	
+}
+
+extension ArrayFlowProtocol where Self: Flow {
+		
 	public func asFlowArray() -> [AnyFlowComponent] {
 		[root]
 	}

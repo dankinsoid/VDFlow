@@ -16,9 +16,10 @@ public protocol AnyFlowComponent: FlowArrayConvertable {
 }
 
 extension AnyFlowComponent {
-	
 	public func didNavigated() {}
-	
+}
+
+extension AnyFlowComponent {
 	public func asFlowArray() -> [AnyFlowComponent] {
 		[self]
 	}
