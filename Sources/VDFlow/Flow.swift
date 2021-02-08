@@ -42,7 +42,7 @@ extension AnyBaseFlow where Self: BaseFlow {
 	
 }
 
-public protocol Flow: FlowComponent {
+public protocol Flow: BaseFlow {
 	associatedtype Root: BaseFlow
 	override associatedtype Content = Root.Content
 	override associatedtype Value = Root.Value
@@ -50,9 +50,19 @@ public protocol Flow: FlowComponent {
 }
 
 extension Flow where Content == Root.Content {
+	
 	public func create() -> Root.Content {
 		root.create()
 	}
+	
+	public func navigate(to step: FlowStep, content: Root.Content, completion: FlowCompletion) {
+		root.navigate(to: step, content: content, completion: completion)
+	}
+	
+	public func current(content: Root.Content) -> (AnyFlowComponent, Any)? {
+		root.current(content: content)
+	}
+	
 }
 
 extension Flow where Content == Root.Content, Value == Root.Value {
@@ -62,7 +72,15 @@ extension Flow where Content == Root.Content, Value == Root.Value {
 }
 
 extension Flow {
-		
+	
+	public func canNavigate(to step: FlowNode) -> Bool {
+		root.canNavigate(to: step)
+	}
+	
+	public func flow(for step: FlowNode) -> AnyBaseFlow? {
+		root.flow(for: step)
+	}
+	
 	public func asFlowArray() -> [AnyFlowComponent] {
 		[root]
 	}
