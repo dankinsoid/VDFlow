@@ -42,13 +42,27 @@ extension AnyBaseFlow where Self: BaseFlow {
 	
 }
 
-public protocol Flow: FlowArrayConvertable {
+public protocol Flow: FlowComponent {
 	associatedtype Root: BaseFlow
+	override associatedtype Content = Root.Content
+	override associatedtype Value = Root.Value
 	var root: Root { get }
 }
 
+extension Flow where Content == Root.Content {
+	public func create() -> Root.Content {
+		root.create()
+	}
+}
+
+extension Flow where Content == Root.Content, Value == Root.Value {
+	public func update(content: Root.Content, data: Root.Value?) {
+		root.update(content: content, data: data)
+	}
+}
+
 extension Flow {
-	
+		
 	public func asFlowArray() -> [AnyFlowComponent] {
 		[root]
 	}
