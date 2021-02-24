@@ -9,18 +9,18 @@ import Foundation
 
 public struct FlowGroup: FlowArrayConvertable {
 	
-	public var flows: [AnyFlowComponent]
+	public var flows: [FlowArrayConvertable]
 	
-	public init(_ flows: [AnyFlowComponent]) {
+	public init(_ flows: [FlowArrayConvertable]) {
 		self.flows = flows
 	}
 	
 	public init(@FlowBuilder _ builder: () -> FlowArrayConvertable) {
-		flows = builder().asFlowArray()
+		flows = [builder()]
 	}
 	
 	public func asFlowArray() -> [AnyFlowComponent] {
-		flows
+		Array(flows.map { $0.asFlowArray() }.joined())
 	}
 	
 }

@@ -10,33 +10,39 @@ import Foundation
 @_functionBuilder
 public struct FlowBuilder {
 	
-	/// :nodoc:
-	@inlinable
-	public static func buildBlock() -> FlowArrayConvertable {
-		[]
-	}
-	
-	/// :nodoc:
 	@inlinable
 	public static func buildBlock(_ components: FlowArrayConvertable...) -> FlowArrayConvertable {
-		FlowGroup(components.flatMap { $0.asFlowArray() })
+		FlowGroup(components)
 	}
 	
 	@inlinable
-	public static func buildIf(_ component: FlowArrayConvertable?) -> FlowArrayConvertable {
+	public static func buildOptional(_ component: FlowArrayConvertable?) -> FlowArrayConvertable {
 		component ?? FlowGroup([])
 	}
 	
-	/// :nodoc:
 	@inlinable
 	public static func buildEither(first: FlowArrayConvertable) -> FlowArrayConvertable {
 		first
 	}
 	
-	/// :nodoc:
 	@inlinable
 	public static func buildEither(second: FlowArrayConvertable) -> FlowArrayConvertable {
 		second
+	}
+	
+	@inlinable
+	public static func buildExpression<T: FlowArrayConvertable>(_ expression: T) -> FlowArrayConvertable {
+		expression
+	}
+	
+	@inlinable
+	public static func buildArray(_ components: [FlowArrayConvertable]) -> FlowArrayConvertable {
+		FlowGroup(components)
+	}
+	
+	@inlinable
+	public static func buildExpression<T: UIViewControllerConvertable>(_ expression: @escaping @autoclosure () -> T) -> FlowArrayConvertable {
+		VC(expression)
 	}
 	
 }

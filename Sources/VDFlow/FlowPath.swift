@@ -229,3 +229,28 @@ extension NodeID: FlowPathConvertable {
 extension FlowPathConvertable where Self: RawRepresentable, RawValue == String {
 	public func asPath() -> FlowPath { NodeID<Void>(self).asPath() }
 }
+
+
+extension FlowStep {
+	
+	public static func id<R: RawRepresentable>(_ value: R) -> FlowStep where R.RawValue == String {
+		.id(NodeID(value))
+	}
+	
+}
+
+extension FlowNode {
+	
+	public static func id<R: RawRepresentable>(_ value: R) -> FlowNode where R.RawValue == String {
+		.id(NodeID<Void>(value).id)
+	}
+	
+}
+
+extension FlowPathConvertable {
+	
+	public var node: FlowNode? {
+		finalStep?.node
+	}
+	
+}
