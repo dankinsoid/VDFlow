@@ -7,7 +7,7 @@
 
 import Foundation
 
-@_functionBuilder
+@resultBuilder
 public struct FlowBuilder {
 	
 	@inlinable
@@ -28,11 +28,6 @@ public struct FlowBuilder {
 	@inlinable
 	public static func buildEither(second: FlowArrayConvertable) -> FlowArrayConvertable {
 		second
-	}
-	
-	@inlinable
-	public static func buildExpression<T: FlowArrayConvertable>(_ expression: T) -> FlowArrayConvertable {
-		expression
 	}
 	
 	@inlinable
