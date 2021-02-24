@@ -40,4 +40,9 @@ public struct FlowBuilder {
 		VC(expression)
 	}
 	
+	@inlinable
+	public static func buildExpression(_ expression: FlowArrayConvertable) -> FlowArrayConvertable {
+		expression
+	}
+	
 }
