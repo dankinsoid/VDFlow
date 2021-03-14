@@ -7,7 +7,7 @@
 
 import Foundation
 
-@resultBuilder
+@_functionBuilder
 public struct FlowBuilder {
 	
 	@inlinable
@@ -44,5 +44,4 @@ public struct FlowBuilder {
 	public static func buildExpression(_ expression: FlowArrayConvertable) -> FlowArrayConvertable {
 		expression
 	}
-	
 }
