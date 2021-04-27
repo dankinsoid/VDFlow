@@ -8,9 +8,9 @@
 import Foundation
 
 @propertyWrapper
-public struct FlowValue<T> {
+public struct FlowValue<T, ID: Hashable> {
 	
-	private let id: NodeID<T>
+	private let id: NodeID<T, ID>
 	
 	public var wrappedValue: T? {
 		get { FlowStorage.shared.steps[id.id]?.data as? T }
@@ -20,23 +20,17 @@ public struct FlowValue<T> {
 		}
 	}
 	
-	public var projectedValue: NodeID<T> { id }
+	public var projectedValue: NodeID<T, ID> { id }
 	
-	public init(_ id: NodeID<T>) {
+	public init(_ id: NodeID<T, ID>) {
 		self.id = id
 		FlowStorage.shared.collect(for: id.id)
 	}
-	
 }
 
 extension FlowValue {
-	
-	public init<R: RawRepresentable>(_ raw: R) where R.RawValue == String {
-		self = FlowValue(NodeID<T>(raw))
-	}
-	
-	public init(_ id: String) {
-		self = FlowValue(NodeID<T>(id))
+	public init(_ id: ID) {
+		self = FlowValue(NodeID<T, ID>(id))
 	}
 }
 
@@ -44,26 +38,26 @@ final class FlowStorage {
 	static let shared = FlowStorage()
 	var currentStep: FlowStep?
 	
-	private(set) var steps: [String: FlowStep] = [:]
-	private var needToCollect: Set<String> = []
+	private(set) var steps: [AnyHashable: FlowStep] = [:]
+	private var needToCollect: Set<AnyHashable> = []
 	private var observers: [ObjectIdentifier: (FlowStep) -> Void] = [:]
 	
-	func collect(for id: String) {
+	func collect(for id: AnyHashable) {
 		needToCollect.insert(id)
 	}
 	
-	func remove(id: String) {
+	func remove(id: AnyHashable) {
 		if !needToCollect.contains(id) {
 			steps[id] = nil
 		}
 	}
 	
 	func set(_ value: FlowStep) {
-		steps[value._id] = value
+		steps[value.id] = value
 	}
 	
 	func setToNavigate(_ value: FlowStep) {
-		steps[value._id] = value
+		steps[value.id] = value
 		DispatchQueue.main.async {
 			self.observers.forEach {
 				$0.value(value)
@@ -78,5 +72,4 @@ final class FlowStorage {
 	func remove(observer: AnyObject) {
 		observers[ObjectIdentifier(observer)] = nil
 	}
-	
 }

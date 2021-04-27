@@ -8,7 +8,8 @@
 import Foundation
 
 public struct EmptyComponent: FlowComponent {
+	public typealias Content = Void
+	public init() {}
 	public func create() -> Void { () }
 	public func update(content: Void, data: Void?) {}
-	public init() {}
 }

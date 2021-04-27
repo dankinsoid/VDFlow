@@ -7,86 +7,84 @@
 
 import Foundation
 
-public protocol AnyBaseFlow: AnyFlowComponent {
-	func canNavigate(to step: FlowNode) -> Bool
-	func flow(for step: FlowNode) -> AnyBaseFlow?
-	func current(contentAny: Any) -> (AnyFlowComponent, Any)?
-	func navigate(to step: FlowStep, contentAny: Any, completion: FlowCompletion)
+public protocol AnyPrimitiveFlow {
+	func contains(step: FlowStep) -> Bool
+	func canNavigate(to step: FlowStep, contentAny: Any) -> Bool
+	func navigate(to step: FlowStep, contentAny: Any, completion: @escaping (Bool) -> Void)
+	func currentNode(contentAny: Any) -> FlowNode?
+	func flow(for node: FlowNode, contentAny: Any) -> (AnyPrimitiveFlow, Any)?
 }
 
-public protocol BaseFlow: AnyBaseFlow, FlowComponent {
-	func current(content: Content) -> (AnyFlowComponent, Any)?
-	func navigate(to step: FlowStep, content: Content, completion: FlowCompletion)
+public protocol PrimitiveFlow: AnyPrimitiveFlow {
+	associatedtype Content
+	func canNavigate(to step: FlowStep, content: Content) -> Bool
+	func navigate(to step: FlowStep, content: Content, completion: @escaping (Bool) -> Void)
+	func currentNode(content: Content) -> FlowNode?
+	func flow(for node: FlowNode, content: Content) -> (AnyPrimitiveFlow, Any)?
 }
 
-extension BaseFlow {
-	public func update(content: Content, data: Value?) {}
-}
-
-extension AnyBaseFlow where Self: BaseFlow {
-	
-	public func current(contentAny: Any) -> (AnyFlowComponent, Any)? {
-		guard let content = contentAny as? Content else {
-			return nil
-		}
-		return current(content: content)
+extension AnyPrimitiveFlow where Self: PrimitiveFlow {
+	public func canNavigate(to step: FlowStep, contentAny: Any) -> Bool {
+		guard let content = contentAny as? Content else { return false }
+		return canNavigate(to: step, content: content)
 	}
-	
-	public func navigate(to step: FlowStep, contentAny: Any, completion: FlowCompletion) {
-		guard let content = contentAny as? Content else {
-			completion.complete(nil)
-			return
-		}
+	public func navigate(to step: FlowStep, contentAny: Any, completion: @escaping (Bool) -> Void) {
+		guard let content = contentAny as? Content else { return completion(false) }
 		navigate(to: step, content: content, completion: completion)
 	}
-	
+	public func currentNode(contentAny: Any) -> FlowNode? {
+		guard let content = contentAny as? Content else { return nil }
+		return currentNode(content: content)
+	}
+	public func flow(for node: FlowNode, contentAny: Any) -> (AnyPrimitiveFlow, Any)? {
+		guard let content = contentAny as? Content else { return nil }
+		return flow(for: node, content: content)
+	}
 }
 
-public protocol Flow: BaseFlow {
-	associatedtype Root: BaseFlow
+extension AnyPrimitiveFlow {
+	public func current(contentAny: Any) -> (AnyPrimitiveFlow, Any)? {
+		currentNode(contentAny: contentAny).flatMap {
+			flow(for: $0, contentAny: contentAny)
+		}
+	}
+}
+
+extension PrimitiveFlow {
+	public func current(content: Content) -> (AnyPrimitiveFlow, Any)? {
+		currentNode(content: content).flatMap {
+			flow(for: $0, content: content)
+		}
+	}
+}
+
+public protocol Flow: FlowComponent {
+	associatedtype Root: FlowComponent
 	override associatedtype Content = Root.Content
 	override associatedtype Value = Root.Value
 	var root: Root { get }
 }
 
-extension BaseFlow where Self: Flow, Content == Root.Content {
+extension PrimitiveFlow where Self: Flow, Content == Root.Content {
+	public func contains(step: FlowStep) -> Bool {
+		root.contains(step: step)
+	}
 	
-	public func create() -> Root.Content {
+	public func canNavigate(to step: FlowStep, content: Content) -> Bool {
+		root.canNavigate(to: step, content: content)
+	}
+	
+	public func navigate(to step: FlowStep, content: Content, completion: @escaping (Bool) -> Void) {
+		root.navigate(to: step, content: content, completion: completion)
+	}
+}
+
+extension FlowComponent where Self: Flow, Content == Root.Content, Value == Root.Value {
+	public func create() -> Content {
 		root.create()
 	}
 	
-	public func navigate(to step: FlowStep, content: Root.Content, completion: FlowCompletion) {
-		root.navigate(to: step, content: content, completion: completion)
-	}
-	
-	public func current(content: Root.Content) -> (AnyFlowComponent, Any)? {
-		root.current(content: content)
-	}
-	
-}
-
-extension BaseFlow where Self: Flow, Content == Root.Content, Value == Root.Value {
-	public func update(content: Root.Content, data: Root.Value?) {
+	public func update(content: Content, data: Value?) {
 		root.update(content: content, data: data)
 	}
-}
-
-extension AnyBaseFlow where Self: Flow {
-	
-	public func canNavigate(to step: FlowNode) -> Bool {
-		root.canNavigate(to: step)
-	}
-	
-	public func flow(for step: FlowNode) -> AnyBaseFlow? {
-		root.flow(for: step)
-	}
-	
-}
-
-extension ArrayFlowProtocol where Self: Flow {
-		
-	public func asFlowArray() -> [AnyFlowComponent] {
-		[root]
-	}
-	
 }

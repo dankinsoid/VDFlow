@@ -7,15 +7,19 @@
 
 import Foundation
 
-public struct FlowPath {
+public struct FlowPath: ExpressibleByArrayLiteral {
 	public var steps: [FlowStep]
 	
-	public init(_ steps: [FlowStep]) {
-		self.steps = steps
+	public init(arrayLiteral elements: FlowStep...) {
+		steps = elements
 	}
 	
-	public func through(_ steps: [FlowStep]) -> FlowPath {
-		FlowPath(steps + self.steps)
+	public init<C: Collection>(_ steps: C) where C.Element == FlowStep {
+		self.steps = Array(steps)
+	}
+	
+	public func through<C: Collection>(_ steps: C) -> FlowPath where C.Element == FlowStep {
+		FlowPath(steps + Array(self.steps))
 	}
 	
 	public func through(_ steps: FlowStep...) -> FlowPath {
@@ -27,77 +31,51 @@ public struct FlowPath {
 	}
 	
 	public func dropFirst(_ count: Int = 1) -> FlowPath {
-		FlowPath(Array(steps.dropFirst(count)))
+		FlowPath(steps.dropFirst(count))
 	}
 	
+	public var asStep: FlowStep? { steps.count == 1 ? steps[0] : nil }
 }
 
 public struct FlowStep {
 	
-	public static let empty = FlowStep(move: .node(.id("emptyFlowStepID")), data: nil, animated: true)
+	public static let empty = FlowStep(id: NoneID(), data: nil, options: [])
 	
 	public static var current: FlowStep {
 		get { FlowStorage.shared.currentStep ?? .empty }
 		set { FlowStorage.shared.setToNavigate(newValue) }
 	}
 	
-	public var move: Move
-	var data: Any?
-	public var animated: Bool
+	public var id: FlowNode
+	public var data: Any?
+	public var options: FlowOptions
 	
-	public var id: String? {
-		if case .node(.id(let id)) = move {
-			return id
-		}
-		return nil
+	public var offset: Int {
+		get { options.offset }
+		set { options.offset = newValue }
 	}
 	
-	public var node: FlowNode? {
-		if case .node(let node) = move {
-			return node
-		}
-		return nil
+	public var animated: Bool {
+		options.contains(.animated)
 	}
 	
-	public var offset: Int? {
-		if case .offset(let offset) = move {
-			return offset
-		}
-		return nil
+	public func isNode<ID: Hashable>(_ id: ID) -> Bool {
+		self.id.base as? ID == id
 	}
 	
-	var _id: String {
-		switch move {
-		case .node(.id(let id)): return id
-		case .node(.type(let type)): return String(reflecting: type)
-		case .offset(let offset): return "\(offset)"
-		}
+	public func isNode<T, ID: Hashable>(id: NodeID<T, ID>) -> Bool {
+		self.id.base as? ID == id.id
 	}
 	
-	public func isNode(_ node: FlowNode) -> Bool {
-		self.node == node
+	public func isNode<C: FlowComponent>(of type: C.Type) -> Bool where C.ID == String {
+		String(reflecting: C.Content.self) == id.base as? String
 	}
 	
-	public func isNode<T>(id: NodeID<T>) -> Bool {
-		self.id == id.id
-	}
-	
-	public func valueIf<T>(id: NodeID<T>) -> T? {
+	public func valueIf<T, ID: Hashable>(id: NodeID<T, ID>) -> T? {
 		if isNode(id: id), let result = data as? T {
 			return result
 		}
 		return nil
-	}
-	
-	public func valueIf<T: FlowComponent>(type: T.Type) -> T.Value? {
-		if isNode(.type(type)), let result = data as? T.Value {
-			return result
-		}
-		return nil
-	}
-	
-	public enum Move: Equatable {
-		case node(FlowNode), offset(Int)
 	}
 	
 	public func through(_ steps: [FlowStep]) -> FlowPath {
@@ -110,100 +88,46 @@ public struct FlowStep {
 	
 	public func animated(_ animated: Bool) -> FlowStep {
 		var result = self
-		result.animated = animated
+		if animated { result.options.insert(.animated) } else { result.options.remove(.animated) }
 		return result
 	}
 	
-	static func move(_ move: Move, animated: Bool = true) -> FlowStep {
-		FlowStep(move: move, data: nil, animated: animated)
+	public static func id<T, ID: Hashable>(_ id: NodeID<T, ID>, data: T, options: FlowOptions = .animated) -> FlowStep {
+		FlowStep(id: id.id, data: data, options: options)
 	}
 	
-	public static func id<T>(_ id: NodeID<T>, data: T, animated: Bool = true) -> FlowStep {
-		FlowStep(move: .node(.id(id.id)), data: data, animated: animated)
+	public static func id<ID: Hashable>(_ id: NodeID<Void, ID>, options: FlowOptions = .animated) -> FlowStep {
+		FlowStep(id: id.id, data: (), options: options)
 	}
 	
-	public static func id(_ id: NodeID<Void>, animated: Bool = true) -> FlowStep {
-		FlowStep(move: .node(.id(id.id)), data: (), animated: animated)
+	public static func id<ID: Hashable>(_ id: ID, options: FlowOptions = .animated) -> FlowStep {
+		.id(NodeID<Void, ID>(id), options: options)
 	}
 	
-	public static func id(_ id: String, animated: Bool = true) -> FlowStep {
-		FlowStep.id(NodeID<Void>(id), animated: animated)
+	public static func type<T: FlowComponent>(_ type: T.Type, data: T.Value, options: FlowOptions = .animated) -> FlowStep where T.ID == String {
+		.id(NodeID(String(reflecting: type)), data: data, options: options)
 	}
 	
-	public static func id<R: RawRepresentable>(_ id: R, animated: Bool = true) -> FlowStep where R.RawValue == String {
-		FlowStep.id(NodeID<Void>(id), animated: animated)
+	public static func type<T: FlowComponent>(_ type: T.Type, options: FlowOptions = .animated) -> FlowStep where T.Value == Void, T.ID == String {
+		.type(type, data: (), options: options)
 	}
 	
-	public static func type<T: FlowComponent>(_ type: T.Type, data: T.Value, animated: Bool = true) -> FlowStep {
-		FlowStep(move: .node(.type(type)), data: data, animated: animated)
+	public static var next: FlowStep {
+		steps(1)
 	}
 	
-	public static func type<T: FlowComponent>(_ type: T.Type, animated: Bool = true) -> FlowStep where T.Value == Void {
-		FlowStep(move: .node(.type(type)), data: (), animated: animated)
+	public static var back: FlowStep {
+		steps(-1)
 	}
 	
-	public static func next(animated: Bool = true) -> FlowStep {
-		steps(1, animated: animated)
+	public static func steps(_ count: Int) -> FlowStep {
+		FlowStep(id: NoneID(), data: nil, options: .offset(Int16(count)))
 	}
-	
-	public static func back(animated: Bool = true) -> FlowStep {
-		steps(-1, animated: animated)
-	}
-	
-	public static func steps(_ count: Int, animated: Bool = true) -> FlowStep {
-		FlowStep(move: .offset(count), animated: animated)
-	}
-	
 }
 
-public enum FlowNode: Equatable {
+public struct NoneID: Hashable { public init() {} }
+public typealias FlowNode = AnyHashable
 	
-	case id(String), type(AnyFlowComponent.Type)
-	
-	public var id: String? {
-		if case .id(let id) = self {
-			return id
-		}
-		return nil
-	}
-	
-	public static func == (lhs: FlowNode, rhs: FlowNode) -> Bool {
-		switch (lhs, rhs) {
-		case (.id(let left), .id(let right)): 		return left == right
-		case (.type(let left), .type(let right)): return left == right
-		default: 																	return false
-		}
-	}
-	
-}
-	
-extension AnyFlowComponent {
-	
-	var rootType: Any.Type {
-		if let wrapped = self as? WrapperAnyComponentProtocol {
-			return wrapped.baseAny.rootType
-		}
-		return type(of: self)
-	}
-	
-	func canGo(to node: FlowNode?) -> Bool {
-		guard let node = node else { return false }
-		return isNode(node) || asFlow?.canNavigate(to: node) == true
-	}
-	
-	func isNode(_ node: FlowNode?) -> Bool {
-		switch node {
-		case .id(let id):
-			return self.id == id
-		case .type(let anyType):
-			return rootType == anyType
-		case nil:
-			return false
-		}
-	}
-	
-}
-
 public protocol FlowPathConvertable {
 	func asPath() -> FlowPath
 }
@@ -223,34 +147,9 @@ extension FlowStep: FlowPathConvertable {
 }
 
 extension NodeID: FlowPathConvertable {
-	public func asPath() -> FlowPath { FlowStep(move: .node(.id(id)), data: nil, animated: true).asPath() }
-}
-
-extension FlowPathConvertable where Self: RawRepresentable, RawValue == String {
-	public func asPath() -> FlowPath { NodeID<Void>(self).asPath() }
-}
-
-
-extension FlowStep {
-	
-	public static func id<R: RawRepresentable>(_ value: R) -> FlowStep where R.RawValue == String {
-		.id(NodeID(value))
-	}
-	
-}
-
-extension FlowNode {
-	
-	public static func id<R: RawRepresentable>(_ value: R) -> FlowNode where R.RawValue == String {
-		.id(NodeID<Void>(value).id)
-	}
-	
+	public func asPath() -> FlowPath { FlowStep(id: id, data: nil, options: []).asPath() }
 }
 
 extension FlowPathConvertable {
-	
-	public var node: FlowNode? {
-		finalStep?.node
-	}
-	
+	public var node: FlowNode? { finalStep?.node }
 }

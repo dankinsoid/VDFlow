@@ -9,82 +9,55 @@ import UIKit
 
 extension FlowComponent {
 	
-	public func identified(by id: NodeID<Value>) -> IdentifiedComponent<Self> {
-		IdentifiedComponent(id: id.id, base: self)
+	public func identified<ID: Hashable>(by id: NodeID<Value, ID>) -> IdentifiedFlow<Self, ID> {
+		IdentifiedFlow(flowId: id.id, component: self)
 	}
 	
-	public func map<R>(value: @escaping (R) -> Value) -> MapFlowComponent<Self, R> {
-		MapFlowComponent<Self, R>(base: self, map: value)
+	public func map<R>(value: @escaping (R) -> Value) -> MapFlow<Self, R> {
+		MapFlow<Self, R>(component: self, map: value)
 	}
 	
-	public func map<R>(value: KeyPath<R, Value>) -> MapFlowComponent<Self, R> {
-		MapFlowComponent<Self, R>(base: self, map: { $0[keyPath: value] })
+	public func map<R>(value: KeyPath<R, Value>) -> MapFlow<Self, R> {
+		MapFlow<Self, R>(component: self, map: { $0[keyPath: value] })
 	}
 	
-	public func custom<E>(id: NodeID<E>, _ action: @escaping (Content, E?, @escaping () -> Void) -> Void) -> CustomFlow<Self, E> {
-		CustomFlow<Self, E>(root: self, id: id, action)
+	public func custom<E, ID: Hashable>(id: NodeID<E, ID>, _ action: @escaping (Content, E?, @escaping (Bool) -> Void) -> Void) -> CustomFlow<Self, E, ID> {
+		CustomFlow<Self, E, ID>(root: self, id: id, action)
 	}
 	
-	public func custom<E>(id: NodeID<E>, _ action: @escaping (Content, @escaping () -> Void) -> Void) -> CustomFlow<Self, E> {
-		CustomFlow<Self, E>(root: self, id: id) { content, _, completion in action(content, completion) }
+	public func custom<E, ID: Hashable>(id: NodeID<E, ID>, _ action: @escaping (Content, @escaping (Bool) -> Void) -> Void) -> CustomFlow<Self, E, ID> {
+		CustomFlow<Self, E, ID>(root: self, id: id) { content, _, completion in action(content, completion) }
 	}
 	
-	public func custom<E>(id: NodeID<E>, _ action: @escaping (@escaping () -> Void) -> Void) -> CustomFlow<Self, E> {
-		CustomFlow<Self, E>(root: self, id: id) { _, _, completion in action(completion) }
+	public func custom<E, ID: Hashable>(id: NodeID<E, ID>, _ action: @escaping (@escaping (Bool) -> Void) -> Void) -> CustomFlow<Self, E, ID> {
+		CustomFlow<Self, E, ID>(root: self, id: id) { _, _, completion in action(completion) }
 	}
 	
-	public func custom<R: RawRepresentable>(id: R, _ action: @escaping (Content, @escaping () -> Void) -> Void) -> CustomFlow<Self, Void> where R.RawValue == String {
-		CustomFlow<Self, Void>(root: self, id: NodeID(id)) { content, _, completion in action(content, completion) }
-	}
-	
-	public func custom<R: RawRepresentable>(id: R, _ action: @escaping (@escaping () -> Void) -> Void) -> CustomFlow<Self, Void> where R.RawValue == String {
-		CustomFlow<Self, Void>(root: self, id: NodeID(id)) { _, _, completion in action(completion) }
-	}
-	
-	public func openURL() -> CustomFlow<Self, URL> {
+	public func openURL() -> CustomFlow<Self, URL, String> {
 		custom(id: SharedSteps.url) { _, url, completion in
 			if let url = url, UIApplication.shared.canOpenURL(url) {
 				UIApplication.shared.open(url) { _ in
-					completion()
+					completion(true)
 				}
 			} else {
-				completion()
+				completion(false)
 			}
 		}
 	}
-	
-	public func onNavigate(_ action: @escaping () -> Void) -> OnNavigateComponent<Self> {
-		OnNavigateComponent(base: self, onNavigate: action)
-	}
-	
 }
 
 extension FlowComponent where Value == Void {
 	
-	public func identified(by id: String) -> IdentifiedComponent<Self> {
-		IdentifiedComponent(id: id, base: self)
+	public func identified(by id: ID) -> IdentifiedFlow<Self, ID> {
+		identified(by: .init(id))
 	}
-	
-	public func identified<R: RawRepresentable>(by id: R) -> IdentifiedComponent<Self> where R.RawValue == String {
-		IdentifiedComponent(id: NodeID<Void>(id).id, base: self)
-	}
-	 
-}
-
-extension BaseFlow {
-	
-	public func identified<T>(by id: NodeID<T>) -> IdentifiedComponent<Self> {
-		IdentifiedComponent(id: id.id, base: self)
-	}
-	
 }
 
 extension FlowComponent where Content: UIViewControllerConvertable {
 	
-	public func present(over: Bool = false, style presentationStyle: UIModalPresentationStyle? = nil, transition: UIModalTransitionStyle? = nil, present: @escaping PresentClosure = { $0.present($1, animated: $2, completion: $3) }, @FlowBuilder _ builder: () -> FlowArrayConvertable) -> PresentFlow<Self> {
-		PresentFlow(root: self, presentationStyle: presentationStyle, transitionStyle: transition, dismissPresented: !over, present: present, components: builder().asFlowArray())
+	public func present<C: FlowComponent>(over: Bool = false, style presentationStyle: UIModalPresentationStyle? = nil, transition: UIModalTransitionStyle? = nil, present: @escaping PresentClosure = { $0.present($1, animated: $2, completion: $3) }, @FlowBuilder _ builder: () -> C) -> PresentFlow<Self, C> where C.Content: UIViewControllerArrayConvertable {
+		PresentFlow(root: self, presentationStyle: presentationStyle, transitionStyle: transition, dismissPresented: !over, present: present, component: builder())
 	}
-	
 }
 
 extension FlowComponent where Content: UIViewController {
@@ -126,72 +99,38 @@ extension FlowComponent where Content: UIViewController {
 		VCWrapperComponent(base: self) { $0.title = title }
 	}
 	
-	public func alert(id: NodeID<Void>, title: String?, message: String?, actions: [UIAlertAction]) -> CustomFlow<Self, Void> {
+	public func alert<ID: Hashable>(id: NodeID<Void, ID>, title: String?, message: String?, actions: [UIAlertAction]) -> CustomFlow<Self, Void, ID> {
 		custom(id: id) { vc, completion in
 			let alertVC = UIAlertController(title: title, message: message, preferredStyle: .alert)
 			actions.forEach(alertVC.addAction)
-			vc.vcForPresent.present(alertVC, animated: true, completion: completion)
+			vc.vcForPresent.present(alertVC, animated: true, completion: { completion(true) })
 		}
 	}
 	
-	public func actionSheet(id: NodeID<Void>, title: String?, message: String?, actions: [UIAlertAction]) -> CustomFlow<Self, Void> {
+	public func actionSheet<ID: Hashable>(id: NodeID<Void, ID>, title: String?, message: String?, actions: [UIAlertAction]) -> CustomFlow<Self, Void, ID> {
 		custom(id: id) { vc, completion in
 			let alertVC = UIAlertController(title: title, message: message, preferredStyle: .actionSheet)
 			actions.forEach(alertVC.addAction)
-			vc.vcForPresent.present(alertVC, animated: true, completion: completion)
+			vc.vcForPresent.present(alertVC, animated: true, completion: { completion(true) })
 		}
 	}
 	
-	public func alert(id: NodeID<AlertConfig>) -> CustomFlow<Self, AlertConfig> {
+	public func alert<ID: Hashable>(id: NodeID<AlertConfig, ID>) -> CustomFlow<Self, AlertConfig, ID> {
 		custom(id: id) { vc, config, completion in
-			vc.presentAlert(config: config, completion: completion)
+			vc.presentAlert(config: config, completion: { completion(true) })
 		}
 	}
-	
 }
 
 extension FlowComponent where Content: UIWindow {
 	
-	public func alert() -> CustomFlow<Self, AlertConfig> {
+	public func alert() -> CustomFlow<Self, AlertConfig, String> {
 		custom(id: SharedSteps.alert) { window, config, completion in
 			guard let vc = window.rootViewController else {
-				completion()
+				completion(false)
 				return
 			}
-			vc.presentAlert(config: config, completion: completion)
+			vc.presentAlert(config: config, completion: { completion(true) })
 		}
-	}
-	
-}
-
-public struct IdentifiedComponent<Base: FlowComponent>: WrapperComponentProtocol {
-	public let id: String
-	public let base: Base
-}
-
-public struct VCWrapperComponent<Base: FlowComponent>: WrapperComponentProtocol where Base.Content: UIViewController {
-	public let base: Base
-	public let wrap: (UIViewController) -> Void
-	
-	public init(base: Base, wrap: @escaping (UIViewController) -> Void) {
-		self.base = base
-		self.wrap = wrap
-	}
-	
-	public func create() -> Base.Content {
-		let result = base.create()
-		wrap(result)
-		return result
-	}
-	
-}
-
-public struct OnNavigateComponent<Base: FlowComponent>: WrapperComponentProtocol {
-	public let base: Base
-	let onNavigate: () -> Void
-	
-	public func didNavigated() {
-		base.didNavigated()
-		onNavigate()
 	}
 }

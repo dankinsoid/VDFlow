@@ -8,30 +8,69 @@
 import Foundation
 import UIKit
 
-public struct TabFlow: ArrayFlowProtocol {
+public struct TabFlow<Component: FlowComponent>: FlowComponent where Component.Content: UIViewControllerArrayConvertable {
 	private let createController: () -> UITabBarController
-	public let delegate: ArrayFlow<UITabBarController.ArrayDelegate>
+	public let component: Component
 	
-	public init(create: @escaping () -> UITabBarController, components: [AnyFlowComponent]) {
+	public init(create: @escaping () -> UITabBarController, component: Component) {
 		createController = create
-		self.delegate = ArrayFlow(
-			delegate: .init(),
-			components: Array(components.map {
-				($0.rootComponent as? TabFlow)?.delegate.components ?? [$0]
-			}
-			.joined())
-		)
+		self.component = component
 	}
 	
 	public func create() -> UITabBarController {
 		let vc = createController()
-		if let (first, i) = delegate.components.first(as: UIViewController.self) {
-			first.nodeId = delegate.ids()[i]
-			vc.setViewControllers([first], animated: false)
-		}
+		vc.setViewControllers(component.asVcList.create(), animated: false)
 		return vc
 	}
 	
+	public func navigate(to step: FlowStep, content: UITabBarController, completion: @escaping (Bool) -> Void) {
+		guard let i = component.asVcList.index(for: step) else {
+			completion(false)
+			return
+		}
+		let vcs = component.asVcList.controllers(current: content.viewControllers ?? [], upTo: nil)
+		guard let new = component.asVcList.create(from: vcs) else {
+			completion(false)
+			return
+		}
+		let animated = step.animated && content.view?.window != nil
+		if component.canNavigate(to: step, content: new) {
+			multiCompletion(
+				[
+					{ component.navigate(to: step, content: new, completion: $0) },
+					{ c in content.set(viewControllers: vcs, current: i, animated: animated, completion: { c(true) }) }
+				],
+				completion: completion
+			)
+		} else {
+			content.set(viewControllers: vcs, current: i, animated: animated) {
+				component.navigate(to: step, content: new, completion: completion)
+			}
+		}
+	}
+	
+	public func contains(step: FlowStep) -> Bool {
+		component.contains(step: step)
+	}
+	
+	public func canNavigate(to step: FlowStep, content: UITabBarController) -> Bool {
+		content.selectedIndex == component.asVcList.index(for: step) &&
+		component.asVcList.create(from: content.viewControllers ?? []).map {
+			component.canNavigate(to: step, content: $0)
+		} == true
+	}
+	
+	public func currentNode(content: UITabBarController) -> FlowNode? {
+		content.selectedViewController.flatMap {
+			component.asVcList.node(for: $0)
+		}
+	}
+	
+	public func flow(for node: FlowNode, content: UITabBarController) -> (AnyPrimitiveFlow, Any)? {
+		component.asVcList.create(from: content.viewControllers ?? []).flatMap {
+			component.flow(for: node, content: $0)
+		}
+	}
 }
 
 extension UITabBarController {
@@ -57,54 +96,16 @@ extension UITabBarController {
 			action()
 		}
 	}
-	
 }
 
 extension TabFlow {
 	
-	public init(create: @escaping @autoclosure () -> UITabBarController = FlowTabBarController(), @FlowBuilder _ builder: () -> FlowArrayConvertable) {
-		self = TabFlow(create: create, components: builder().asFlowArray())
+	public init(create: @escaping @autoclosure () -> UITabBarController = FlowTabBarController(), @FlowBuilder _ builder: () -> Component) {
+		self = TabFlow(create: create, component: builder())
 	}
-	
 }
 
-extension UITabBarController {
-	
-	public struct ArrayDelegate: ArrayFlowDelegateProtocol {
-		
-		public var setType: ArrayFlowSetType { .all }
-		
-		public func children(for parent: UITabBarController) -> [UIViewController] {
-			parent.viewControllers ?? []
-		}
-		
-		public func currentChild(for parent: UITabBarController) -> UIViewController? {
-			parent.selectedViewController
-		}
-		
-		public func set(children: [UIViewController], current: Int, to parent: UITabBarController, animated: Bool, completion: OnReadyCompletion<Void>) {
-			if parent.presentedViewController != nil {
-				completion.onReady { completion in
-					multiCompletion(
-						[
-							{ parent.set(viewControllers: children, current: current, animated: animated, completion: $0) },
-							{ parent.dismissPresented(animated: animated, completion: $0) }
-						]
-					) {
-						completion(())
-					}
-				}
-			} else {
-				parent.set(viewControllers: children, current: current, animated: animated) {
-					completion.complete(())
-				}
-			}
-		}
-	}
-	
-}
-
-open class FlowTabBarController: UITabBarController, UITabBarControllerDelegate {
+public final class FlowTabBarController: UITabBarController, UITabBarControllerDelegate {
 	
 	required public init?(coder: NSCoder) {
 		super.init(coder: coder)
@@ -121,23 +122,22 @@ open class FlowTabBarController: UITabBarController, UITabBarControllerDelegate 
 		delegate = self
 	}
 	
-	open func tabBarController(_ tabBarController: UITabBarController, animationControllerForTransitionFrom fromVC: UIViewController, to toVC: UIViewController) -> UIViewControllerAnimatedTransitioning? {
+	public func tabBarController(_ tabBarController: UITabBarController, animationControllerForTransitionFrom fromVC: UIViewController, to toVC: UIViewController) -> UIViewControllerAnimatedTransitioning? {
 		guard fromVC !== toVC else { return nil }
 		return TabBarTransitioning(tabBarController: tabBarController, from: fromVC, to: toVC)
 	}
-	
 }
 
-open class TabBarTransitioning: NSObject, UIViewControllerAnimatedTransitioning {
+final class TabBarTransitioning: NSObject, UIViewControllerAnimatedTransitioning {
 	
-	open weak var tabBarController: UITabBarController?
-	open var fromRight = true
+	weak var tabBarController: UITabBarController?
+	var fromRight = true
 	
-	public override init() {
+	override init() {
 		super.init()
 	}
 	
-	public init(tabBarController: UITabBarController, from fromVC: UIViewController, to toVC: UIViewController) {
+	init(tabBarController: UITabBarController, from fromVC: UIViewController, to toVC: UIViewController) {
 		super.init()
 		self.tabBarController = tabBarController
 		let from = tabBarController.viewControllers?.firstIndex(of: fromVC) ?? 0
@@ -145,7 +145,7 @@ open class TabBarTransitioning: NSObject, UIViewControllerAnimatedTransitioning 
 		fromRight = from < to
 	}
 	
-	open func animateTransition(using transitionContext: UIViewControllerContextTransitioning) {
+	func animateTransition(using transitionContext: UIViewControllerContextTransitioning) {
 		guard	let fromVC = transitionContext.viewController(forKey: .from),
 					let fromView = transitionContext.view(forKey: .from),
 					let toView: UIView = transitionContext.view(forKey: .to) else {
@@ -168,10 +168,9 @@ open class TabBarTransitioning: NSObject, UIViewControllerAnimatedTransitioning 
 		})
 	}
 
-	open func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
+	func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
 		0.25
 	}
-	
 }
 
 fileprivate final class TabBarContextTransitioning: NSObject, UIViewControllerContextTransitioning {
@@ -235,5 +234,4 @@ fileprivate final class TabBarContextTransitioning: NSObject, UIViewControllerCo
 	func finalFrame(for vc: UIViewController) -> CGRect {
 		defaultFrame
 	}
-	
 }

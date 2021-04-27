@@ -8,7 +8,6 @@
 import Foundation
 
 public struct VC<Content>: FlowComponent {
-	
 	private let createClosure: () -> Content
 	
 	public init(_ create: @escaping () -> Content) {
@@ -18,5 +17,4 @@ public struct VC<Content>: FlowComponent {
 	public func create() -> Content {
 		createClosure()
 	}
-	
 }

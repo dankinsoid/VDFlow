@@ -8,210 +8,118 @@
 import UIKit
 import Foundation
 
-public protocol ArrayFlowProtocol: BaseFlow where Delegate.Parent == Content {
-	associatedtype Delegate: ArrayFlowDelegateProtocol
-	var delegate: ArrayFlow<Delegate> { get }
-}
-
-extension ArrayFlowProtocol {
+public struct ArrayFlow<Component: FlowComponent>: FlowComponent {
+	public let array: [Component]
 	
-	public func navigate(to step: FlowStep, content: Content, completion: FlowCompletion) {
-		delegate.navigate(to: step, flow: self, parent: content, completion: completion)
+	public init(_ array: [Component]) {
+		self.array = array
 	}
 	
-	public func flow(for node: FlowNode) -> AnyBaseFlow? {
-		if delegate.rootComponent?.isNode(node) == true {
-			return self
-		} else if let flow = delegate.flow(for: node) {
-			return flow
-		} else if canNavigate(to: node) {
-			return self
-		}
-		return nil
+	public func create() -> [OneContent] {
+		array.map { .init(id: $0.flowId, content: $0.create()) }
 	}
 	
-	public func canNavigate(to node: FlowNode) -> Bool {
-		delegate.canNavigate(to: node) || isNode(node)
-	}
-	
-	public func current(content: Content) -> (AnyFlowComponent, Any)? {
-		delegate.current(parent: content)
-	}
-	
-}
-
-public struct ArrayFlow<Delegate: ArrayFlowDelegateProtocol> {
-	public let components: [AnyFlowComponent]
-	private let delegate: Delegate
-	fileprivate let rootComponent: AnyFlowComponent?
-	
-	public init(delegate: Delegate, root: AnyFlowComponent? = nil, components: [AnyFlowComponent]) {
-		self.components = components
-		self.delegate = delegate
-		self.rootComponent = root
-	}
-	
-	public func navigate(to step: FlowStep, flow: AnyBaseFlow, parent: Delegate.Parent, completion: FlowCompletion) {
-		guard let i =
-						moveIndex(step.offset, parent: parent) ??
-						components.firstIndex(where: { $0.canGo(to: step.node) }) ??
-						(rootComponent?.canGo(to: step.node) == true ? -1 : nil) ??
-						(step.node.map(flow.isNode) == true ? (rootComponent == nil ? 0 : -1) : nil),
-						i < components.count,
-						let component = i > -1 ? components[i] : rootComponent else {
-			completion.complete(nil)
+	public func navigate(to step: FlowStep, content: [OneContent], completion: @escaping (Bool) -> Void) {
+		guard let pare = content.compactMap({ c in
+			array.first(where: { $0.flowId == c.id && $0.contains(step: step) }).map {
+				(c.content, $0)
+			}
+		}).last else {
+			completion(false)
 			return
 		}
-		let (vcs, vc) = children(parent: parent, current: i)
-		if step.node.map(flow.isNode) == true {
-			flow.updateAny(content: parent, data: step.data)
-		}
-		let componentPending = FlowCompletion.pending {
-			completion.complete($0 ?? (flow, parent))
-		}
-		component.updateAny(content: i > -1 ? (vc ?? components[i].createAny()) : parent, step: step, completion: componentPending.completion)
-		let pending = OnReadyCompletion<Void>.pending(componentPending.ready)
-		delegate.set(children: vcs, current: max(i, 0), to: parent, animated: step.animated, completion: pending.completion)
-		completion.onReady { _ in
-			pending.ready()
+		pare.1.navigate(to: step, content: pare.0, completion: completion)
+	}
+	
+	public func contains(step: FlowStep) -> Bool {
+		array.reduce(false) { $0 || $1.contains(step: step) }
+	}
+	
+	public func canNavigate(to step: FlowStep, content: [OneContent]) -> Bool {
+		content.reduce(false) { f, s in
+			f || array.first(where: { $0.flowId == s.id })?.canNavigate(to: step, content: s.content) == true
 		}
 	}
 	
-	private func moveIndex(_ move: Int?, parent: Delegate.Parent) -> Int? {
-		guard let offset = move, let i = currentIndex(parent: parent) else { return nil }
-		return min(components.count, max(0, i + offset))
+	public func update(content: [OneContent], data: Component.Value?) {
+		content.forEach { arg in
+			array.first(where: { $0.flowId == arg.id })?.update(content: arg.content, data: data)
+		}
 	}
 	
-	private func children(parent: Delegate.Parent, current: Int) -> ([Delegate.Child], Any?) {
-		guard current >= 0 else { return ([], nil) }
-		var result: ([Delegate.Child], Any?) = ([], nil)
-		delegate.setType.componentsToSet(from: Array(ids().enumerated()), current: current).forEach { pare in
-			if let vc = delegate.children(for: parent).first(where: { delegate.getId(for: $0) == pare.element }) {
-				result.0.append(vc)
-				if pare.offset == current {
-					result.1 = vc
-				}
-				return
+	public func currentNode(content: [OneContent]) -> FlowNode? {
+		content.compactMap({ c in
+			array.first(where: { $0.flowId == c.id }).map {
+				$0.flowId
 			}
-			let view = components[pare.offset].createAny()
-			if let vc = view as? Delegate.Child {
-				delegate.update(id: pare.element, child: vc)
-				result.0.append(vc)
+		}).last
+	}
+	
+	public func flow(for node: FlowNode, content: [OneContent]) -> (AnyPrimitiveFlow, Any)? {
+		content.compactMap({ c in
+			array.first(where: {
+				$0.flowId == c.id && $0.contains(step: .init(id: node, data: nil, options: []))
+			}).map {
+				($0, c.content)
 			}
-			if pare.offset == current {
-				 result.1 = view
-			 }
-		}
-		return result
+		}).last
 	}
 	
-	func ids() -> [String] {
-		var orders: [String: Int] = [:]
-		var result: [String] = []
-		for component in components {
-			let id = component.id + (orders[component.id].map { "\($0)" } ?? "")
-			result.append(id)
-			orders[component.id, default: 0] += 1
-		}
-		return result
-	}
-	
-	public func canNavigate(to node: FlowNode) -> Bool {
-		rootComponent?.canGo(to: node) == true || components.contains(where: { $0.canGo(to: node) })
-	}
-	
-	public func flow(for node: FlowNode) -> AnyBaseFlow? {
-		if let result = rootComponent?.asFlow?.flow(for: node) {
-			return result
-		}
-		for component in components {
-			if let result = component.asFlow?.flow(for: node) {
-				return result
-			}
-		}
-		return nil
-	}
-	
-	public func current(parent: Delegate.Parent) -> (AnyFlowComponent, Any)? {
-		guard let vc = delegate.currentChild(for: parent),
-					let id = delegate.getId(for: vc),
-					let i = ids().firstIndex(of: id) else { return nil }
-		return components[i].asFlow?.current(contentAny: vc) ?? (components[i], vc)
-	}
-	
-	private func currentIndex(parent: Delegate.Parent) -> Int? {
-		guard let child = delegate.currentChild(for: parent),
-					let id = delegate.getId(for: child),
-					let i = ids().firstIndex(of: id) else { return nil }
-		return i
-	}
-	
-}
-
-public enum ArrayFlowSetType {
-	case all, upTo(min: Int), from, one, custom((_ count: Int, _ current: Int) -> [ClosedRange<Int>])
-	
-	public func componentsToSet<T>(from all: [T], current index: Int) -> [T] {
-		switch self {
-		case .all:								return all
-		case .upTo(let minimum):	return Array(all.prefix(max(index + 1, minimum)))
-		case .from:								return Array(all.suffix(from: index))
-		case .one:								return [all[index]]
-		case .custom(let block):	return Array(block(all.count, index).map { all[$0] }.joined())
-		}
-	}
-	
-}
-
-public protocol ArrayFlowDelegateProtocol {
-	associatedtype Parent
-	associatedtype Child
-	var setType: ArrayFlowSetType { get }
-	func children(for parent: Parent) -> [Child]
-	func update(id: String, child: Child)
-	func getId(for child: Child) -> String?
-	func currentChild(for parent: Parent) -> Child?
-	func set(children: [Child], current: Int, to parent: Parent, animated: Bool, completion: OnReadyCompletion<Void>)
-}
-
-extension ArrayFlowDelegateProtocol where Child: AnyObject {
-	public func getId(for child: Child) -> String? {
-		objc_getAssociatedObject(child, &flowIdKey) as? String
-	}
-	public func update(id: String, child: Child) {
-		objc_setAssociatedObject(child, &flowIdKey, id, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+	public struct OneContent {
+		public var id: Component.ID
+		public var content: Component.Content
 	}
 }
 
-extension UIView {
+extension ArrayFlow: ViewControllersListComponent where Component.Content: UIViewControllerArrayConvertable {
+	public var count: Int { array.reduce(0) { $0 + $1.asVcList.count } }
 	
-	public var nodeId: String? {
-		get { objc_getAssociatedObject(self, &flowIdKey) as? String }
-		set { objc_setAssociatedObject(self, &flowIdKey, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC) }
+	public func index(for step: FlowStep) -> Int? {
+		guard let i = array.firstIndex(where: { $0.contains(step: step) }),
+					let ind = array[i].asVcList.index(for: step) else { return nil }
+		return array.prefix(i).reduce(0) { $0 + $1.asVcList.count } + ind
 	}
 	
-}
-
-extension UIViewController {
-	public var nodeId: String? {
-		get { objc_getAssociatedObject(self, &flowIdKey) as? String }
-		set { objc_setAssociatedObject(self, &flowIdKey, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC) }
+	public func controllers(current: [UIViewController], upTo: Int?) -> [UIViewController] {
+		array.reduce((0, [])) { a, b in
+			(a.0 + b.asVcList.count, a.1 + b.asVcList.controllers(current: current, upTo: upTo.map { $0 - a.0 }))
+		}.1
 	}
-}
-
-fileprivate var flowIdKey = "flowIdKey"
-
-extension Collection where Element == AnyFlowComponent {
 	
-	func first<T>(as type: T.Type) -> (T, Int)? {
-		var i = 0
-		for element in self {
-			if let result = element.createAny() as? T {
-				return (result, i)
-			}
-			i += 1
+	public func asViewControllers(contentAny: Any) -> [UIViewController] {
+		guard let content = contentAny as? [OneContent] else { return [] }
+		let list = content.compactMap { c in
+			array.first(where: { $0.flowId == c.id })?.asVcList.asViewControllers(content: c.content)
 		}
-		return nil
+		return Array(list.joined())
 	}
 	
+	public func createContent(from vcs: [UIViewController]) -> Any? {
+		let content: Content = array.compactMap { c in c.asVcList.create(from: vcs).map { .init(id: c.flowId, content: $0) } }
+		return content
+	}
+}
+
+extension ArrayFlow.OneContent: UIViewControllerArrayConvertable where Component.Content: UIViewControllerArrayConvertable {
+	
+	public static func create(from vcs: [UIViewController]) -> ArrayFlow.OneContent? {
+		guard let id = vcs.compactMap({ $0.flowId(of: Component.ID.self) }).first else { return nil }
+		return Component.Content.create(from: vcs).map { .init(id: id, content: $0) }
+	}
+	
+	public func asViewControllers() -> [UIViewController] {
+		content.asViewControllers()
+	}
+}
+
+extension ArrayFlow.OneContent: UIViewControllerConvertable where Component.Content: UIViewControllerConvertable {
+	
+	public static func create(from vc: UIViewController) -> ArrayFlow.OneContent? {
+		guard let id = vc.flowId(of: Component.ID.self) else { return nil }
+		return Component.Content.create(from: vc).map { .init(id: id, content: $0) }
+	}
+	
+	public func asViewController() -> UIViewController {
+		content.asViewController()
+	}
 }

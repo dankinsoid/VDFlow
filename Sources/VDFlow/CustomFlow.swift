@@ -6,17 +6,17 @@
 //
 
 import Foundation
+import UIKit
 
-public struct CustomFlow<Root: FlowComponent, Element>: BaseFlow, WrapperAnyComponentProtocol {
+public struct CustomFlow<Root: FlowComponent, Element, I: Hashable>: FlowComponent {
 	public let root: Root
-	public var baseAny: AnyFlowComponent { root }
-	public let nodeId: NodeID<Element>
-	private let action: (Root.Content, Element?, @escaping () -> Void) -> Void
-	public var contentType: Any.Type { root.contentType }
+	public var flowId: I
 	
-	public init(root: Root, id: NodeID<Element>, _ action: @escaping (Root.Content, Element?, @escaping () -> Void) -> Void) {
+	private let action: (Root.Content, Element?, @escaping (Bool) -> Void) -> Void
+	
+	public init(root: Root, id: NodeID<Element, I>, _ action : @escaping (Root.Content, Element?, @escaping (Bool) -> Void) -> Void) {
 		self.root = root
-		self.nodeId = id
+		self.flowId = id.id
 		self.action = action
 	}
 	
@@ -24,38 +24,57 @@ public struct CustomFlow<Root: FlowComponent, Element>: BaseFlow, WrapperAnyComp
 		root.create()
 	}
 	
-	public func current(content: Content) -> (AnyFlowComponent, Any)? {
-		root.asFlow?.current(contentAny: content) ?? (root, content)
-	}
-	
-	public func navigate(to step: FlowStep, content: Content, completion: FlowCompletion) {
-		if step.node?.id == nodeId.id {
-			completion.onReady { completion in
-				action(content, step.data as? Element) {
-					completion((self, content))
-			 	}
-			}
-			return
-		}
-		if let flow = root.asFlow {
-			flow.navigate(to: step, contentAny: content, completion: completion)
-		} else if let node = step.node, root.isNode(node) {
-			root.updateAny(content: content, data: step.data)
-			completion.complete(root.asFlow.map { ($0, content) } ?? (self, content))
+	public func navigate(to step: FlowStep, content: Root.Content, completion: @escaping (Bool) -> Void) {
+		if root.contains(step: step) {
+			root.navigate(to: step, content: content, completion: completion)
+		} else if step.isNode(flowId) {
+			action(content, step.data as? Element, completion)
 		} else {
-			completion.complete(nil)
+			completion(false)
 		}
 	}
 	
-	public func canNavigate(to node: FlowNode) -> Bool {
-		isNode(node) || root.canGo(to: node)
-	}
-	
-	public func flow(for node: FlowNode) -> AnyBaseFlow? {
-		if isNode(node) {
-			return self
+	public func canNavigate(to step: FlowStep, content: Root.Content) -> Bool {
+		if root.contains(step: step) {
+			return root.canNavigate(to: step, content: content)
+		} else {
+			return true
 		}
-		return root.asFlow?.flow(for: node)
 	}
 	
+	public func contains(step: FlowStep) -> Bool {
+		step.isNode(flowId) || root.contains(step: step)
+	}
+	
+	public func update(content: Root.Content, data: Root.Value?) {
+		root.update(content: content, data: data)
+	}
+	
+	public func flow(for node: FlowNode, content: Root.Content) -> (AnyPrimitiveFlow, Any)? {
+		root.flow(for: node, content: content)
+	}
+	
+	public func currentNode(content: Root.Content) -> FlowNode? {
+		root.currentNode(content: content)
+	}
+}
+
+extension CustomFlow: ViewControllersListComponent where Root: ViewControllersListComponent {
+	public var count: Int { root.count }
+	
+	public func index(for step: FlowStep) -> Int? {
+		root.index(for: step)
+	}
+	
+	public func controllers(current: [UIViewController], upTo: Int?) -> [UIViewController] {
+		root.controllers(current: current, upTo: upTo)
+	}
+	
+	public func asViewControllers(contentAny: Any) -> [UIViewController] {
+		root.asViewControllers(contentAny: contentAny)
+	}
+	
+	public func createContent(from vcs: [UIViewController]) -> Any? {
+		root.createContent(from: vcs)
+	}
 }

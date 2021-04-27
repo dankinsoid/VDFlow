@@ -8,31 +8,82 @@
 import Foundation
 import UIKit
 
-public struct NavigationFlow: ArrayFlowProtocol {
+public struct NavigationFlow<Component: FlowComponent>: FlowComponent where Component.Content: UIViewControllerArrayConvertable {
 	
-	private let createController: () -> UINavigationController
-	public let delegate: ArrayFlow<UINavigationController.ArrayDelegate>
+	public let createController: () -> UINavigationController
+	public let component: Component
 	
-	public init(create: @escaping () -> UINavigationController, components: [AnyFlowComponent]) {
+	public init(create: @escaping () -> UINavigationController, component: Component) {
 		createController = create
-		self.delegate = ArrayFlow(
-			delegate: .init(),
-			components: Array(components.map {
-				($0.rootComponent as? NavigationFlow)?.delegate.components ?? [$0]
-			}
-			.joined())
-		)
+		self.component = component
 	}
 	
 	public func create() -> UINavigationController {
 		let vc = createController()
-		if let (first, i) = delegate.components.first(as: UIViewController.self) {
-			first.nodeId = delegate.ids()[i]
+		if let first = component.asVcList.create().first {
 			vc.setViewControllers([first], animated: false)
 		}
 		return vc
 	}
 	
+	public func navigate(to step: FlowStep, content: UINavigationController, completion: @escaping (Bool) -> Void) {
+		guard let i = component.asVcList.index(for: step) else {
+			completion(false)
+			return
+		}
+		let vcs = component.asVcList.controllers(current: content.viewControllers, upTo: i)
+		guard let new = component.asVcList.create(from: vcs) else {
+			completion(false)
+			return
+		}
+		let animated = step.animated && content.view?.window != nil
+//		content.dismissPresented(animated: animated) {[self] in
+		if component.canNavigate(to: step, content: new) {
+			multiCompletion(
+				[
+					{ component.navigate(to: step, content: new, completion: $0) },
+					{ c in content.set(viewControllers: vcs, animated: animated, completion: { c(true) }) }
+				],
+				completion: completion
+			)
+		} else {
+			content.set(viewControllers: vcs, animated: animated) {
+				component.navigate(to: step, content: new, completion: completion)
+			}
+		}
+//		}
+	}
+	
+	public func contains(step: FlowStep) -> Bool {
+		component.contains(step: step)
+	}
+	
+	public func canNavigate(to step: FlowStep, content: UINavigationController) -> Bool {
+		content.presentedViewController == nil &&
+		component.asVcList.create(from: content.viewControllers).map {
+			component.canNavigate(to: step, content: $0)
+		} == true
+	}
+	
+	public func current(content: UINavigationController) -> (AnyPrimitiveFlow, Any)? {
+		content.topViewController.flatMap {
+			component.asVcList.create(from: [$0])
+		}.flatMap {
+			(component, $0)
+		}
+	}
+	
+	public func currentNode(content: UINavigationController) -> FlowNode? {
+		content.topViewController.flatMap {
+			component.asVcList.node(for: $0)
+		}
+	}
+	
+	public func flow(for node: FlowNode, content: UINavigationController) -> (AnyPrimitiveFlow, Any)? {
+		component.asVcList.create(from: content.viewControllers).flatMap {
+			component.flow(for: node, content: $0)
+		}
+	}
 }
 
 extension UINavigationController {
@@ -48,52 +99,13 @@ extension UINavigationController {
 			completion()
 		}
 	}
-	
 }
 
 extension NavigationFlow {
 	
-	public init(create: @escaping @autoclosure () -> UINavigationController = UINavigationController(), @FlowBuilder _ builder: () -> FlowArrayConvertable) {
-		self = NavigationFlow(create: create, components: builder().asFlowArray())
+	public init(create: @escaping @autoclosure () -> UINavigationController = UINavigationController(), @FlowBuilder _ builder: () -> Component) {
+		self = NavigationFlow(create: create, component: builder())
 	}
-	
-}
-
-extension UINavigationController {
-	
-	public struct ArrayDelegate: ArrayFlowDelegateProtocol {
-		public var setType: ArrayFlowSetType { .upTo(min: 1) }
-		
-		public func children(for parent: UINavigationController) -> [UIViewController] {
-			parent.viewControllers
-		}
-		
-		public func currentChild(for parent: UINavigationController) -> UIViewController? {
-			parent.topViewController
-		}
-		
-		public func set(children: [UIViewController], current: Int, to parent: UINavigationController, animated: Bool, completion: OnReadyCompletion<Void>) {
-			var array = Array(children.prefix(current + 1))
-			if let i = array.lastIndex(where: { $0.isDisabledBack }) {
-				array.removeFirst(i)
-			}
-			if parent.presentedViewController != nil {
-				completion.onReady { completion in
-					parent.dismissPresented(animated: animated) {
-						parent.set(viewControllers: array, animated: animated) {
-							completion(())
-						}
-					}
-				}
-			} else {
-				parent.set(viewControllers: array, animated: animated) {
-					completion.complete(())
-				}
-			}
-		}
-		
-	}
-	
 }
 
 extension UIViewController {
@@ -102,7 +114,6 @@ extension UIViewController {
 		get { (objc_getAssociatedObject(self, &disableBackKey) as? Bool) ?? false }
 		set { objc_setAssociatedObject(self, &disableBackKey, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC) }
 	}
-	
 }
 
 fileprivate var disableBackKey = "disableBackKey"

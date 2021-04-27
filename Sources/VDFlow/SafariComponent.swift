@@ -8,7 +8,9 @@
 import UIKit
 import SafariServices
 
-public struct SafariComponent: FlowComponent {
+public struct SafariFlow: FlowComponent {
+	public typealias Content = SFSafariViewController
+	
 	public let url: URL
 	public let configuration: SFSafariViewController.Configuration
 	
@@ -22,5 +24,4 @@ public struct SafariComponent: FlowComponent {
 	}
 	
 	public func update(content: SFSafariViewController, data: Void?) {}
-	
 }

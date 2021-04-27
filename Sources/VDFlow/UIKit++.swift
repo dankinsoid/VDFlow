@@ -19,5 +19,4 @@ extension UIViewController {
 		config.buttons.map({ UIAlertAction(title: $0.title, style: $0.style, handler: $0.action.map { a in {_ in a() } }) }).forEach(alertVC.addAction)
 		vcForPresent.present(alertVC, animated: true, completion: completion)
 	}
-	
 }
