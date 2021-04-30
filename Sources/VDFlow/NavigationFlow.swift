@@ -20,6 +20,7 @@ public struct NavigationFlow<Component: FlowComponent>: FlowComponent where Comp
 	
 	public func create() -> UINavigationController {
 		let vc = createController()
+		vc.setFlowId(flowId)
 		if let first = component.asVcList.create().first {
 			vc.setViewControllers([first], animated: false)
 		}
@@ -65,24 +66,23 @@ public struct NavigationFlow<Component: FlowComponent>: FlowComponent where Comp
 		} == true
 	}
 	
-	public func current(content: UINavigationController) -> (AnyPrimitiveFlow, Any)? {
-		content.topViewController.flatMap {
-			component.asVcList.create(from: [$0])
-		}.flatMap {
-			(component, $0)
+	public func children(content: UINavigationController) -> [(AnyFlowComponent, Any, Bool)] {
+		guard !content.viewControllers.isEmpty else {
+			return []
 		}
-	}
 	
-	public func currentNode(content: UINavigationController) -> FlowNode? {
-		content.topViewController.flatMap {
-			component.asVcList.node(for: $0)
+		let commonContent = component.asVcList.create(from: content.viewControllers.dropLast())
+		let currentContent = component.asVcList.create(from: content.topViewController.map { [$0] } ?? [])
+		
+		var common = commonContent.map(component.children)
+		var current = currentContent.map(component.children)
+		common?.indices.forEach {
+			common?[$0].2 = false
 		}
-	}
-	
-	public func flow(for node: FlowNode, content: UINavigationController) -> (AnyPrimitiveFlow, Any)? {
-		component.asVcList.create(from: content.viewControllers).flatMap {
-			component.flow(for: node, content: $0)
+		current?.indices.forEach {
+			current?[$0].2 = true
 		}
+		return common.map { c in current.map { c + $0 } ?? c } ?? []
 	}
 }
 

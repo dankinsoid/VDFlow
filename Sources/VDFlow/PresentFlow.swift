@@ -95,24 +95,26 @@ public struct PresentFlow<Root: FlowComponent, Component: FlowComponent>: FlowCo
 			)
 	}
 	
-	public func current(content: Root.Content) -> (AnyPrimitiveFlow, Any)? {
-		content.asViewController().allPresented.last.flatMap {
-			component.asVcList.create(from: [$0])
-		}.flatMap {
-			component.current(content: $0)
-		} ?? root.current(content: content)
-	}
-	
-	public func currentNode(content: Root.Content) -> FlowNode? {
-		content.asViewController().allPresented.last.flatMap {
-			component.asVcList.node(for: $0)
-		} ?? AnyHashable(root.flowId)
-	}
-	
-	public func flow(for node: FlowNode, content: Root.Content) -> (AnyPrimitiveFlow, Any)? {
-		component.asVcList.create(from: content.asViewController().allPresented).flatMap {
-			component.flow(for: node, content: $0)
-		} ?? (root.contains(step: .init(id: node, data: nil, options: [])) ? (root, content) : nil)
+	public func children(content: Root.Content) -> [(AnyFlowComponent, Any, Bool)] {
+		let presented = content.asViewController().allPresented
+		var result: [(AnyFlowComponent, Any, Bool)] = [(root, content, presented.isEmpty)]
+		
+		guard !presented.isEmpty else { return result }
+		
+		let commonContent = component.asVcList.create(from: presented.dropLast())
+		let currentContent = component.asVcList.create(from: presented.last.map { [$0] } ?? [])
+		
+		var common = commonContent.map(component.children)
+		var current = currentContent.map(component.children)
+		common?.indices.forEach {
+			common?[$0].2 = false
+		}
+		current?.indices.forEach {
+			current?[$0].2 = true
+		}
+		result += common.map { c in current.map { c + $0 } ?? c } ?? []
+		
+		return result
 	}
 }
 

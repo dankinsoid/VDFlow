@@ -7,14 +7,30 @@
 
 import Foundation
 
-public final class FlowCoordinator<Root: FlowComponent> {
+public protocol AnyFlowCoordinator {
+	func navigate<ID: Hashable>(id: ID, completion: @escaping () -> Void)
+	func navigate<P: FlowPathConvertable>(to path: P, completion: @escaping () -> Void)
+	func current() -> (component: AnyFlowComponent, view: Any)?
+}
+
+extension AnyFlowCoordinator {
+	public func navigate<ID: Hashable>(id: ID) { navigate(id: id, completion: {}) }
+	public func navigate<P: FlowPathConvertable>(to path: P) { navigate(to: path, completion: {}) }
+}
+
+public final class FlowCoordinator<Root: FlowComponent>: AnyFlowCoordinator {
 	
-	private var root: () -> Root
+	var root: () -> Root
 	private lazy var previousFlow = root()
 	private var queue: [(FlowPath, () -> Void)] = []
 	private var isNavigating = false
 	
 	public init(_ root: @escaping @autoclosure () -> Root) {
+		self.root = root
+		afterInit()
+	}
+	
+	public init(@FlowBuilder _ root: @escaping () -> Root) {
 		self.root = root
 		afterInit()
 	}
@@ -36,7 +52,7 @@ public final class FlowCoordinator<Root: FlowComponent> {
 		}
 		isNavigating = true
 		path.steps.forEach(FlowStorage.shared.set)
-		FlowStorage.shared.currentStep = path.steps.last!
+		FlowStorage.shared.currentStep = path.steps.last ?? .empty
 		let flow = root()
 		let compl: () -> Void = {[weak self] in
 			completion()
@@ -51,12 +67,8 @@ public final class FlowCoordinator<Root: FlowComponent> {
 			}
 		}
 		let content = flow.create()
-		guard let (current, view) = flow.current(content: content) else {
-			FlowStorage.shared.currentStep = nil
-			compl()
-			return
-		}
-		if current.contains(path: path, content: view) {
+		let currentFlow = flow.current(content: content)
+		if let (current, view) = currentFlow, current.contains(path: path, content: view) {
 			navigate(to: path, flow: current, content: view, completion: compl)
 		} else if flow.contains(path: path, content: content) {
 			navigate(to: path, flow: flow, content: content, completion: compl)
@@ -67,11 +79,11 @@ public final class FlowCoordinator<Root: FlowComponent> {
 		}
 	}
 	
-	public func current() -> (component: AnyPrimitiveFlow, view: Any)? {
+	public func current() -> (component: AnyFlowComponent, view: Any)? {
 		previousFlow.current(contentAny: previousFlow.createAny())
 	}
 	
-	private func navigate(to path: FlowPath, flow: AnyPrimitiveFlow, content: Any, completion: @escaping () -> Void) {
+	private func navigate(to path: FlowPath, flow: AnyFlowComponent, content: Any, completion: @escaping () -> Void) {
 		guard !path.steps.isEmpty else {
 //			flow.current(contentAny: content)?.0.didNavigated()
 			completion()
@@ -103,11 +115,11 @@ public final class FlowCoordinator<Root: FlowComponent> {
 	}
 }
 
-extension AnyPrimitiveFlow {
+extension AnyFlowComponent {
 	func contains(path: FlowPath, content: Any) -> Bool {
 		guard let step = path.steps.first else { return true }
-		if let fl = flow(for: step.id, contentAny: content) {
-			return fl.0.contains(path: path.dropFirst(), content: fl.1)
+		if let flow = children(contentAny: content).first(where: { step.isNode($0.0.flowIdAny) }) {
+			return flow.0.contains(path: path.dropFirst(), content: flow.1)
 		}
 		return false
 	}

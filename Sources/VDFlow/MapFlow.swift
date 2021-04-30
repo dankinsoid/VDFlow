@@ -35,12 +35,8 @@ public struct MapFlow<Component: FlowComponent, Value>: FlowComponent {
 		component.update(content: content, data: data.map(map))
 	}
 	
-	public func currentNode(content: Component.Content) -> FlowNode? {
-		component.currentNode(content: content)
-	}
-	
-	public func flow(for node: FlowNode, content: Component.Content) -> (AnyPrimitiveFlow, Any)? {
-		component.flow(for: node, content: content)
+	public func children(content: Component.Content) -> [(AnyFlowComponent, Any, Bool)] {
+		component.children(content: content)
 	}
 }
 

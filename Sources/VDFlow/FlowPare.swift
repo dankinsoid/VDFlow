@@ -7,33 +7,27 @@
 
 import UIKit
 
-public struct FlowPare<L: FlowComponent, R: FlowComponent>: FlowComponent {
+public struct FlowTuple<L: FlowComponent, R: FlowComponent>: FlowComponent {
 	
 	public typealias Value = Any
+	public typealias Content = [XorValue<L.Content, R.Content>]
 	
 	public let _0: L
 	public let _1: R
-	
-	public enum Xor {
-		case first(L.Content), second(R.Content)
-		
-		public var first: L.Content? { if case .first(let f) = self { return f } else { return nil } }
-		public var second: R.Content? { if case .second(let f) = self { return f } else { return nil } }
-	}
 	
 	public init(_ l: L, _ r: R) {
 		_0 = l
 		_1 = r
 	}
 	
-	public func create() -> [Xor] {
-		[.first(_0.create()), .second(_1.create())]
+	public func create() -> Content {
+		[._0(_0.create()), ._1(_1.create())]
 	}
 	
-	public func navigate(to step: FlowStep, content: [Xor], completion: @escaping (Bool) -> Void) {
-		if _0.contains(step: step), let cont = content.compactMap({ $0.first }).first {
+	public func navigate(to step: FlowStep, content: Content, completion: @escaping (Bool) -> Void) {
+		if _0.contains(step: step), let cont = content.compactMap({ $0._0 }).last {
 			_0.navigate(to: step, content: cont, completion: completion)
-		} else if _1.contains(step: step), let cont = content.compactMap({ $0.second }).first {
+		} else if _1.contains(step: step), let cont = content.compactMap({ $0._1 }).last {
 			_1.navigate(to: step, content: cont, completion: completion)
 		} else {
 			completion(false)
@@ -44,47 +38,42 @@ public struct FlowPare<L: FlowComponent, R: FlowComponent>: FlowComponent {
 		_0.contains(step: step) || _1.contains(step: step)
 	}
 	
-	public func canNavigate(to step: FlowStep, content: [Xor]) -> Bool {
+	public func canNavigate(to step: FlowStep, content: Content) -> Bool {
 		content.reduce(false) {
 			switch $1 {
-			case .first(let l): return $0 || _0.canNavigate(to: step, content: l)
-			case .second(let r): return $0 || _1.canNavigate(to: step, content: r)
+			case ._0(let l): return $0 || _0.canNavigate(to: step, content: l)
+			case ._1(let r): return $0 || _1.canNavigate(to: step, content: r)
 			}
 		}
 	}
 	
-	public func update(content: [Xor], data: Any?) {
+	public func update(content: Content, data: Any?) {
 		content.forEach {
 			switch $0 {
-			case .first(let f): if let v = data as? L.Value? { _0.update(content: f, data: v) }
-			case .second(let f): if let v = data as? R.Value? { _1.update(content: f, data: v) }
+			case ._0(let content): if let value = data as? L.Value? { _0.update(content: content, data: value) }
+			case ._1(let content): if let value = data as? R.Value? { _1.update(content: content, data: value) }
 			}
 		}
 	}
 	
-	public func currentNode(content: [Xor]) -> FlowNode? {
-		content.last.map {
+	public func children(content: Content) -> [(AnyFlowComponent, Any, Bool)] {
+		content.map {
 			switch $0 {
-			case .first(let first): return _0.currentNode(content: first) ?? FlowNode(_0.flowId)
-			case .second(let second): return _1.currentNode(content: second) ?? FlowNode(_1.flowId)
+			case ._0(let content): return (_0, content, true)
+			case ._1(let content): return (_1, content, true)
 			}
-		}
-	}
-	
-	public func flow(for node: FlowNode, content: [Xor]) -> (AnyPrimitiveFlow, Any)? {
-		if _0.contains(step: .init(id: node, data: nil, options: [])) {
-			let contents = content.compactMap({ $0.first })
-			return contents.map { _0.flow(for: node, content: $0) }.last ?? contents.last.map { (_0, $0) }
-		} else if _0.contains(step: .init(id: node, data: nil, options: [])) {
-			let contents = content.compactMap({ $0.second })
-			return contents.map { _1.flow(for: node, content: $0) }.last ?? contents.last.map { (_1, $0) }
-		} else {
-			return nil
 		}
 	}
 }
 
-extension FlowPare: ViewControllersListComponent where L.Content: UIViewControllerArrayConvertable, R.Content: UIViewControllerArrayConvertable {
+public enum XorValue<L, R> {
+	case _0(L), _1(R)
+	
+	public var _0: L? { if case ._0(let value) = self { return value } else { return nil } }
+	public var _1: R? { if case ._1(let value) = self { return value } else { return nil } }
+}
+
+extension FlowTuple: ViewControllersListComponent where L.Content: UIViewControllerArrayConvertable, R.Content: UIViewControllerArrayConvertable {
 	public var count: Int { _0.asVcList.count + _1.asVcList.count }
 	
 	public func index(for step: FlowStep) -> Int? {
@@ -97,26 +86,30 @@ extension FlowPare: ViewControllersListComponent where L.Content: UIViewControll
 	}
 	
 	public func asViewControllers(contentAny: Any) -> [UIViewController] {
-		guard let content = contentAny as? [Xor] else { return [] }
-		return content.compactMap { $0.first }.reduce([], { $0 + _0.asVcList.asViewControllers(content: $1) }) +
-			content.compactMap { $0.second }.reduce([], { $0 + _1.asVcList.asViewControllers(content: $1) })
+		guard let content = contentAny as? Content else { return [] }
+		return content.map { c -> [UIViewController] in
+			switch c {
+			case ._0(let f): return _0.asVcList.asViewControllers(content: f)
+			case ._1(let s): return _1.asVcList.asViewControllers(content: s)
+			}
+		}.joined().map { $0 }
 	}
 	
 	public func createContent(from vcs: [UIViewController]) -> Any? {
 		let content: Content =
-			(_0.asVcList.create(from: vcs).map { [Xor.first($0)] } ?? []) +
-			(_1.asVcList.create(from: vcs).map { [Xor.second($0)] } ?? [])
+			(_0.asVcList.create(from: vcs).map { [._0($0)] } ?? []) +
+			(_1.asVcList.create(from: vcs).map { [._1($0)] } ?? [])
 		return content
 	}
 }
 
-extension FlowPare.Xor: UIViewControllerArrayConvertable where L.Content: UIViewControllerArrayConvertable, R.Content: UIViewControllerArrayConvertable {
+extension XorValue: UIViewControllerArrayConvertable where L: UIViewControllerArrayConvertable, R: UIViewControllerArrayConvertable {
 	
-	public static func create(from vcs: [UIViewController]) -> FlowPare<L, R>.Xor? {
-		if let vc = L.Content.create(from: vcs) {
-			return .first(vc)
-		} else if let vc = R.Content.create(from: vcs) {
-			return .second(vc)
+	public static func create(from vcs: [UIViewController]) -> XorValue? {
+		if let vc = L.create(from: vcs) {
+			return ._0(vc)
+		} else if let vc = R.create(from: vcs) {
+			return ._1(vc)
 		} else {
 			return nil
 		}
@@ -124,19 +117,19 @@ extension FlowPare.Xor: UIViewControllerArrayConvertable where L.Content: UIView
 	
 	public func asViewControllers() -> [UIViewController] {
 		switch self {
-		case .first(let f): return f.asViewControllers()
-		case .second(let s): return s.asViewControllers()
+		case ._0(let content): return content.asViewControllers()
+		case ._1(let content): return content.asViewControllers()
 		}
 	}
 }
 
-extension FlowPare.Xor: UIViewControllerConvertable where L.Content: UIViewControllerConvertable, R.Content: UIViewControllerConvertable {
+extension XorValue: UIViewControllerConvertable where L: UIViewControllerConvertable, R: UIViewControllerConvertable {
 	
-	public static func create(from vc: UIViewController) -> FlowPare<L, R>.Xor? {
-		if let vc = L.Content.create(from: vc) {
-			return .first(vc)
-		} else if let vc = R.Content.create(from: vc) {
-			return .second(vc)
+	public static func create(from vc: UIViewController) -> XorValue? {
+		if let vc = L.create(from: vc) {
+			return ._0(vc)
+		} else if let vc = R.create(from: vc) {
+			return ._1(vc)
 		} else {
 			return nil
 		}
@@ -144,8 +137,8 @@ extension FlowPare.Xor: UIViewControllerConvertable where L.Content: UIViewContr
 	
 	public func asViewController() -> UIViewController {
 		switch self {
-		case .first(let f): return f.asViewController()
-		case .second(let s): return s.asViewController()
+		case ._0(let content): return content.asViewController()
+		case ._1(let content): return content.asViewController()
 		}
 	}
 }

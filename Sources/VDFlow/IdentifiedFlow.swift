@@ -7,8 +7,8 @@
 
 import UIKit
 
-public struct IdentifiedFlow<Component: FlowComponent, ID: Hashable>: FlowComponent {
-	public var flowId: ID
+public struct IdentifiedFlow<Component: FlowComponent>: FlowComponent {
+	public var flowId: Component.ID
 	public var component: Component
 	
 	public func create() -> Content {
@@ -31,12 +31,8 @@ public struct IdentifiedFlow<Component: FlowComponent, ID: Hashable>: FlowCompon
 		component.update(content: content.content, data: data)
 	}
 	
-	public func currentNode(content: Content) -> FlowNode? {
-		component.currentNode(content: content.content)
-	}
-	
-	public func flow(for node: FlowNode, content: Content) -> (AnyPrimitiveFlow, Any)? {
-		component.flow(for: node, content: content.content)
+	public func children(content: Content) -> [(AnyFlowComponent, Any, Bool)] {
+		component.children(content: content.content)
 	}
 	
 	public struct Content {
@@ -85,8 +81,8 @@ extension IdentifiedFlow.Content: UIViewControllerArrayConvertable where Compone
 		return vcs
 	}
 	
-	public static func create(from vcs: [UIViewController]) -> IdentifiedFlow<Component, ID>.Content? {
-		guard let id = vcs.compactMap({ $0.flowId(of: ID.self) }).first else { return nil }
+	public static func create(from vcs: [UIViewController]) -> IdentifiedFlow<Component>.Content? {
+		guard let id = vcs.compactMap({ $0.flowId(of: Component.ID.self) }).first else { return nil }
 		return Component.Content.create(from: vcs).map {
 			.init(content: $0, id: id)
 		}
@@ -95,8 +91,8 @@ extension IdentifiedFlow.Content: UIViewControllerArrayConvertable where Compone
 
 extension IdentifiedFlow.Content: UIViewControllerConvertable where Component.Content: UIViewControllerConvertable {
 	
-	public static func create(from vc: UIViewController) -> IdentifiedFlow<Component, ID>.Content? {
-		guard let id = vc.flowId(of: ID.self) else { return nil }
+	public static func create(from vc: UIViewController) -> IdentifiedFlow<Component>.Content? {
+		guard let id = vc.flowId(of: Component.ID.self) else { return nil }
 		return Component.Content.create(from: vc).map {
 			.init(content: $0, id: id)
 		}
@@ -119,7 +115,7 @@ private final class Wrapper<T> {
 
 private var flowIdKey = "flowIdKey"
 
-extension UIViewController {
+extension NSObject {
 	
 	func flowId<ID: Hashable>(of type: ID.Type) -> ID? {
 		(objc_getAssociatedObject(self, &flowIdKey) as? Wrapper<ID>)?.value

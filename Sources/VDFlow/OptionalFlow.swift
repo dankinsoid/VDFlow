@@ -45,16 +45,8 @@ public struct OptionalFlow<Component: FlowComponent>: FlowComponent {
 		component?.contains(step: step) == true
 	}
 	
-	public func current(content: Content) -> (AnyPrimitiveFlow, Any)? {
-		content.content.flatMap { c in component.map { ($0, c) } }
-	}
-	
-	public func currentNode(content: Content) -> FlowNode? {
-		content.content.flatMap { component?.currentNode(content: $0) }
-	}
-	
-	public func flow(for node: FlowNode, content: Content) -> (AnyPrimitiveFlow, Any)? {
-		content.content.flatMap { component?.flow(for: node, content: $0) }
+	public func children(content: Content) -> [(AnyFlowComponent, Any, Bool)] {
+		content.content.flatMap { component?.children(content: $0) } ?? []
 	}
 	
 	public struct Content {

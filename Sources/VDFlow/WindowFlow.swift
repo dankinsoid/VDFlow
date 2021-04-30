@@ -8,7 +8,7 @@
 import Foundation
 import UIKit
 
-public struct WindowFlow<Component: FlowComponent>: FlowComponent where Component.Content: UIViewControllerConvertable {
+public struct WindowFlow<Component: FlowComponent>: FlowComponent where Component.Content: UIViewControllerArrayConvertable {
 	public typealias Content = UIWindow
 	public let component: Component
 	public var transition: UIView.AnimationOptions
@@ -23,19 +23,21 @@ public struct WindowFlow<Component: FlowComponent>: FlowComponent where Componen
 	
 	private func afterInit() {
 		if content.rootViewController == nil {
-			content.rootViewController = FakeVC()
+			content.rootViewController = component.create().asViewControllers().first ?? FakeVC()
 			content.rootViewController?.loadViewIfNeeded()
-			content.rootViewController?.view?.backgroundColor = .clear
 		}
 	}
 	
 	public func create() -> UIWindow {
 		content.makeKeyAndVisible()
+		content.setFlowId(flowId)
 		return content
 	}
 	
 	public func navigate(to step: FlowStep, content: UIWindow, completion: @escaping (Bool) -> Void) {
-		guard let vc = content.rootViewController, let cont = component.asVcList.create(from: [vc]) else {
+		guard let i = component.asVcList.index(for: step),
+					let vc = component.asVcList.controllers(current: content.rootViewController.map { [$0] } ?? [], upTo: i).last,
+					let cont = component.asVcList.create(from: [vc]) else {
 			completion(false)
 			return
 		}
@@ -44,12 +46,12 @@ public struct WindowFlow<Component: FlowComponent>: FlowComponent where Componen
 			multiCompletion(
 				[
 					{ component.navigate(to: step, content: cont, completion: $0) },
-					{ c in set(content: content, rootViewController: cont.asViewController(), animated: animated, completion: { c(true) }) }
+					{ c in set(content: content, rootViewController: vc, animated: animated, completion: { c(true) }) }
 				],
 				completion: completion
 			)
 		} else {
-			set(content: content, rootViewController: cont.asViewController(), animated: animated) {
+			set(content: content, rootViewController: vc, animated: animated) {
 				component.navigate(to: step, content: cont, completion: completion)
 			}
 		}
@@ -89,16 +91,15 @@ public struct WindowFlow<Component: FlowComponent>: FlowComponent where Componen
 		component.update(content: cont, data: data)
 	}
 	
-	public func currentNode(content: UIWindow) -> FlowNode? {
-		content.rootViewController.flatMap {
-			component.asVcList.node(for: $0)
+	public func children(content: UIWindow) -> [(AnyFlowComponent, Any, Bool)] {
+		guard let root = content.rootViewController, let commonContent = component.asVcList.create(from: [root]) else {
+			return []
 		}
-	}
-	
-	public func flow(for node: FlowNode, content: UIWindow) -> (AnyPrimitiveFlow, Any)? {
-		component.asVcList.create(from: content.rootViewController.map { [$0] } ?? []).flatMap {
-			component.flow(for: node, content: $0)
+		var common = component.children(content: commonContent)
+		common.indices.forEach {
+			common[$0].2 = true
 		}
+		return common
 	}
 }
 

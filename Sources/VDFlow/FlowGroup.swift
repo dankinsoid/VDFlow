@@ -41,12 +41,8 @@ public struct FlowGroup<Component: FlowComponent>: FlowComponent {
 		component.contains(step: step)
 	}
 	
-	public func currentNode(content: Component.Content) -> FlowNode? {
-		component.currentNode(content: content)
-	}
-	
-	public func flow(for node: FlowNode, content: Component.Content) -> (AnyPrimitiveFlow, Any)? {
-		component.flow(for: node, content: content)
+	public func children(content: Component.Content) -> [(AnyFlowComponent, Any, Bool)] {
+		component.children(content: content)
 	}
 }
 

@@ -46,23 +46,13 @@ public struct ArrayFlow<Component: FlowComponent>: FlowComponent {
 			array.first(where: { $0.flowId == arg.id })?.update(content: arg.content, data: data)
 		}
 	}
-	
-	public func currentNode(content: [OneContent]) -> FlowNode? {
-		content.compactMap({ c in
+
+	public func children(content: [OneContent]) -> [(AnyFlowComponent, Any, Bool)] {
+		content.compactMap { c in
 			array.first(where: { $0.flowId == c.id }).map {
-				$0.flowId
+				($0, c.content, false)
 			}
-		}).last
-	}
-	
-	public func flow(for node: FlowNode, content: [OneContent]) -> (AnyPrimitiveFlow, Any)? {
-		content.compactMap({ c in
-			array.first(where: {
-				$0.flowId == c.id && $0.contains(step: .init(id: node, data: nil, options: []))
-			}).map {
-				($0, c.content)
-			}
-		}).last
+		}
 	}
 	
 	public struct OneContent {

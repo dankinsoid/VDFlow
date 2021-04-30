@@ -19,6 +19,7 @@ public struct TabFlow<Component: FlowComponent>: FlowComponent where Component.C
 	
 	public func create() -> UITabBarController {
 		let vc = createController()
+		vc.setFlowId(flowId)
 		vc.setViewControllers(component.asVcList.create(), animated: false)
 		return vc
 	}
@@ -60,16 +61,23 @@ public struct TabFlow<Component: FlowComponent>: FlowComponent where Component.C
 		} == true
 	}
 	
-	public func currentNode(content: UITabBarController) -> FlowNode? {
-		content.selectedViewController.flatMap {
-			component.asVcList.node(for: $0)
+	public func children(content: UITabBarController) -> [(AnyFlowComponent, Any, Bool)] {
+		guard content.viewControllers?.isEmpty == false else {
+			return []
 		}
-	}
-	
-	public func flow(for node: FlowNode, content: UITabBarController) -> (AnyPrimitiveFlow, Any)? {
-		component.asVcList.create(from: content.viewControllers ?? []).flatMap {
-			component.flow(for: node, content: $0)
+		
+		let commonContent = component.asVcList.create(from: content.viewControllers?.dropLast() ?? [])
+		let currentContent = component.asVcList.create(from: content.selectedViewController.map { [$0] } ?? [])
+		
+		var common = commonContent.map(component.children)
+		var current = currentContent.map(component.children)
+		common?.indices.forEach {
+			common?[$0].2 = false
 		}
+		current?.indices.forEach {
+			current?[$0].2 = true
+		}
+		return common.map { c in current.map { c + $0 } ?? c } ?? []
 	}
 }
 

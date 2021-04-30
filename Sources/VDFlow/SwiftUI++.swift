@@ -41,15 +41,22 @@ extension PresentFlow: UIViewControllerRepresentable {
 	public func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}
 }
 
-@available(iOS 13.0, *)
-extension View where Self: Flow, Body: Flow {
-	public typealias Body = Root
-}
-
-@available(iOS 13.0, *)
-extension View where Self: Flow, Body: Flow, Body == Root {
-	public var Body: Root { root }
-}
+//@available(iOS 13.0, *)
+//extension FlowTuple: View where L.Content: UIViewControllerArrayConvertable, R.Content: UIViewControllerArrayConvertable {
+//	
+//}
+//
+//@available(iOS 13.0, *)
+//extension FlowTuple: UIViewControllerRepresentable where L.Content: UIViewControllerArrayConvertable, R.Content: UIViewControllerArrayConvertable {
+//	
+//	public func makeUIViewController(context: Context) -> UIViewController {
+//		
+//	}
+//	
+//	public func updateUIViewController(_ uiViewController: UIViewController, context: Context) {
+//		
+//	}
+//}
 
 @available(iOS 13.0, *)
 extension FlowBuilder {
@@ -57,5 +64,20 @@ extension FlowBuilder {
 	public static func buildExpression<T: View>(_ expression: @escaping @autoclosure () -> T) -> VC<UIHostingController<T>> {
 		VC { UIHostingController(rootView: expression()) }
 	}
+	
+	@inline(__always)
+	public static func buildExpression<T: View & FlowComponent>(_ expression: T) -> T {
+		expression
+	}
 }
+
+@available(iOS 14.0, *)
+extension FlowCoordinator: Scene where Root: View {
+	public var body: some Scene {
+		WindowGroup {
+			root()
+		}
+	}
+}
+
 #endif

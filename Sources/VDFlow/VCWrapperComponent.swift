@@ -42,12 +42,8 @@ public struct VCWrapperComponent<Base: FlowComponent>: FlowComponent where Base.
 		base.navigate(to: step, content: content, completion: completion)
 	}
 	
-	public func currentNode(content: Base.Content) -> FlowNode? {
-		base.currentNode(content: content)
-	}
-	
-	public func flow(for node: FlowNode, content: Base.Content) -> (AnyPrimitiveFlow, Any)? {
-		base.flow(for: node, content: content)
+	public func children(content: Base.Content) -> [(AnyFlowComponent, Any, Bool)] {
+		base.children(content: content)
 	}
 }
 

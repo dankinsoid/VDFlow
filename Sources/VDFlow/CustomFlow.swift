@@ -50,12 +50,8 @@ public struct CustomFlow<Root: FlowComponent, Element, I: Hashable>: FlowCompone
 		root.update(content: content, data: data)
 	}
 	
-	public func flow(for node: FlowNode, content: Root.Content) -> (AnyPrimitiveFlow, Any)? {
-		root.flow(for: node, content: content)
-	}
-	
-	public func currentNode(content: Root.Content) -> FlowNode? {
-		root.currentNode(content: content)
+	public func children(content: Root.Content) -> [(AnyFlowComponent, Any, Bool)] {
+		[(root, content, true)]
 	}
 }
 

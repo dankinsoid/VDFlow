@@ -8,44 +8,45 @@
 
 import Foundation
 
-public struct AnyFlow<Content>: PrimitiveFlow {
-	private let _canNavigate: (FlowStep, Content) -> Bool
-	private let _navigate: (FlowStep, Content, @escaping (Bool) -> Void) -> Void
-	private let _contains: (FlowStep) -> Bool
-	private let _currentNode: (Content) -> FlowNode?
-	private let _flow: (FlowNode, Content) -> (AnyPrimitiveFlow, Any)?
+public struct AnyFlow: FlowComponent {
+	public let base: AnyFlowComponent
+	public var flowId: AnyHashable { base.flowIdAny }
 	
-	public init<R: PrimitiveFlow>(_ base: R) where R.Content == Content {
-		_canNavigate = base.canNavigate
-		_navigate = base.navigate
-		_contains = base.contains
-		_currentNode = base.currentNode
-		_flow = base.flow
+	public init<R: FlowComponent>(_ base: R) {
+		self.base = base
 	}
 	
-	public func navigate(to step: FlowStep, content: Content, completion: @escaping (Bool) -> Void) {
-		_navigate(step, content, completion)
+	public init(base: AnyFlowComponent) {
+		self.base = base
 	}
 	
-	public func canNavigate(to step: FlowStep, content: Content) -> Bool {
-		_canNavigate(step, content)
+	public func navigate(to step: FlowStep, content: Any, completion: @escaping (Bool) -> Void) {
+		base.navigate(to: step, contentAny: content, completion: completion)
+	}
+	
+	public func canNavigate(to step: FlowStep, content: Any) -> Bool {
+		base.canNavigate(to: step, contentAny: content)
 	}
 	
 	public func contains(step: FlowStep) -> Bool {
-		_contains(step)
+		base.contains(step: step)
 	}
 	
-	public func currentNode(content: Content) -> FlowNode? {
-		_currentNode(content)
+	public func children(content: Any) -> [(AnyFlowComponent, Any, Bool)] {
+		base.children(contentAny: content)
 	}
 	
-	public func flow(for node: FlowNode, content: Content) -> (AnyPrimitiveFlow, Any)? {
-		_flow(node, content)
+	public func create() -> Any {
+		base.createAny()
+	}
+	
+	public func update(content: Any, data: Any?) {
+		base.updateAny(content: content, data: data)
 	}
 }
 
-extension PrimitiveFlow {
-	public func asAnyFlow() -> AnyFlow<Content> {
+extension FlowComponent {
+	public func asAny() -> AnyFlow {
 		AnyFlow(self)
 	}
 }

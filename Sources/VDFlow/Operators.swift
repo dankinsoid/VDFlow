@@ -9,7 +9,7 @@ import UIKit
 
 extension FlowComponent {
 	
-	public func identified<ID: Hashable>(by id: NodeID<Value, ID>) -> IdentifiedFlow<Self, ID> {
+	public func identified(by id: NodeID<Value, ID>) -> IdentifiedFlow<Self> {
 		IdentifiedFlow(flowId: id.id, component: self)
 	}
 	
@@ -48,7 +48,7 @@ extension FlowComponent {
 
 extension FlowComponent where Value == Void {
 	
-	public func identified(by id: ID) -> IdentifiedFlow<Self, ID> {
+	public func identified(by id: ID) -> IdentifiedFlow<Self> {
 		identified(by: .init(id))
 	}
 }
@@ -58,9 +58,6 @@ extension FlowComponent where Content: UIViewControllerConvertable {
 	public func present<C: FlowComponent>(over: Bool = false, style presentationStyle: UIModalPresentationStyle? = nil, transition: UIModalTransitionStyle? = nil, present: @escaping PresentClosure = { $0.present($1, animated: $2, completion: $3) }, @FlowBuilder _ builder: () -> C) -> PresentFlow<Self, C> where C.Content: UIViewControllerArrayConvertable {
 		PresentFlow(root: self, presentationStyle: presentationStyle, transitionStyle: transition, dismissPresented: !over, present: present, component: builder())
 	}
-}
-
-extension FlowComponent where Content: UIViewController {
 	
 	public func presentationStyle(_ style: UIModalPresentationStyle) -> VCWrapperComponent<Self> {
 		VCWrapperComponent(base: self) { $0.modalPresentationStyle = style }
@@ -103,7 +100,7 @@ extension FlowComponent where Content: UIViewController {
 		custom(id: id) { vc, completion in
 			let alertVC = UIAlertController(title: title, message: message, preferredStyle: .alert)
 			actions.forEach(alertVC.addAction)
-			vc.vcForPresent.present(alertVC, animated: true, completion: { completion(true) })
+			vc.asViewController().vcForPresent.present(alertVC, animated: true, completion: { completion(true) })
 		}
 	}
 	
@@ -111,13 +108,13 @@ extension FlowComponent where Content: UIViewController {
 		custom(id: id) { vc, completion in
 			let alertVC = UIAlertController(title: title, message: message, preferredStyle: .actionSheet)
 			actions.forEach(alertVC.addAction)
-			vc.vcForPresent.present(alertVC, animated: true, completion: { completion(true) })
+			vc.asViewController().vcForPresent.present(alertVC, animated: true, completion: { completion(true) })
 		}
 	}
 	
 	public func alert<ID: Hashable>(id: NodeID<AlertConfig, ID>) -> CustomFlow<Self, AlertConfig, ID> {
 		custom(id: id) { vc, config, completion in
-			vc.presentAlert(config: config, completion: { completion(true) })
+			vc.asViewController().presentAlert(config: config, completion: { completion(true) })
 		}
 	}
 }

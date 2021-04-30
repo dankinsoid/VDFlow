@@ -14,6 +14,10 @@ public struct VC<Content>: FlowComponent {
 		createClosure = create
 	}
 	
+	public init(_ create: @escaping @autoclosure () -> Content) {
+		createClosure = create
+	}
+	
 	public func create() -> Content {
 		createClosure()
 	}
