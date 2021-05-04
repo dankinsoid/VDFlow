@@ -15,22 +15,20 @@ public typealias PresentClosure = (UIViewController, UIViewController, Bool, @es
 public struct PresentFlow<Root: FlowComponent, Component: FlowComponent, Selection: Hashable>: FlowComponent, FullScreenUIViewControllerRepresentable where Component.Content: UIViewControllerArrayConvertable, Root.Content: UIViewControllerConvertable {
 	public let root: Root
 	public let style: PresentFlowStyle?
-	public let dismissPresented: Bool
 	public let component: Component
 	let present: PresentClosure
 	@Binding private var id: Selection?
 	
-	public init(root: Root, selection: Binding<Selection?>, style: PresentFlowStyle? = nil, dismissPresented: Bool = true, present: @escaping PresentClosure = { $0.present($1, animated: $2, completion: $3) }, component: Component) {
+	public init(root: Root, selection: Binding<Selection?>, style: PresentFlowStyle? = nil, present: @escaping PresentClosure = { $0.present($1, animated: $2, completion: $3) }, component: Component) {
 		self.root = root
 		self.style = style
 		self.present = present
-		self.dismissPresented = dismissPresented
 		self.component = component
 		self._id = selection
 	}
 	
-	public init(root: Root, selection: Binding<Selection?>, style: PresentFlowStyle? = nil, dismissPresented: Bool = true, present: @escaping PresentClosure = { $0.present($1, animated: $2, completion: $3) }, @FlowBuilder _ builder: () -> Component) {
-		self = PresentFlow(root: root, selection: selection, style: style, dismissPresented: dismissPresented, present: present, component: builder())
+	public init(root: Root, selection: Binding<Selection?>, style: PresentFlowStyle? = nil, present: @escaping PresentClosure = { $0.present($1, animated: $2, completion: $3) }, @FlowBuilder _ builder: () -> Component) {
+		self = PresentFlow(root: root, selection: selection, style: style, present: present, component: builder())
 	}
 	
 	public func create() -> Root.Content {
@@ -77,7 +75,7 @@ public struct PresentFlow<Root: FlowComponent, Component: FlowComponent, Selecti
 	}
 	
 	private func set(_ children: [UIViewController], to parent: UIViewController, animated: Bool, completion: @escaping () -> Void) {
-		parent.present(children.filter { $0 !== parent }, dismiss: dismissPresented, animated: animated, presentClosure: present) {
+		parent.present(children.filter { $0 !== parent }, dismiss: true, animated: animated, presentClosure: present) {
 			completion()
 		}
 	}
@@ -158,8 +156,12 @@ private final class AppearDelegate {
 
 extension FlowComponent where Content: UIViewControllerConvertable {
 	
-	public func present<Component: FlowComponent, Selection: Hashable>(selection: Binding<Selection?>, style: PresentFlowStyle? = nil, dismissPresented: Bool = true, present: @escaping PresentClosure = { $0.present($1, animated: $2, completion: $3) }, @FlowBuilder _ builder: () -> Component) -> PresentFlow<Self, Component, Selection> where Component.Content: UIViewControllerArrayConvertable {
-		PresentFlow(root: self, selection: selection, style: style, dismissPresented: dismissPresented, present: present, component: builder())
+	public func present<Component: FlowComponent, Selection: Hashable>(selection: Binding<Selection?>, style: PresentFlowStyle? = nil, @FlowBuilder _ builder: () -> Component) -> PresentFlow<Self, Component, Selection> where Component.Content: UIViewControllerArrayConvertable {
+		PresentFlow(root: self, selection: selection, style: style, component: builder())
+	}
+	
+	public func customPresent<Component: FlowComponent, Selection: Hashable>(selection: Binding<Selection?>, present: @escaping PresentClosure, @FlowBuilder _ builder: () -> Component) -> PresentFlow<Self, Component, Selection> where Component.Content: UIViewControllerArrayConvertable {
+		PresentFlow(root: self, selection: selection, present: present, component: builder())
 	}
 }
 
