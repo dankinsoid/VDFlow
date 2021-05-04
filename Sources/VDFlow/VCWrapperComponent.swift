@@ -29,31 +29,18 @@ public struct VCWrapperComponent<Base: FlowComponent>: FlowComponent where Base.
 	public func update(content: Base.Content, data: Base.Value?) {
 		base.update(content: content, data: data)
 	}
-	
-	public func contains(step: FlowStep) -> Bool {
-		base.contains(step: step)
-	}
-	
-	public func canNavigate(to step: FlowStep, content: Base.Content) -> Bool {
-		base.canNavigate(to: step, content: content)
-	}
-	
-	public func navigate(to step: FlowStep, content: Base.Content, completion: @escaping (Bool) -> Void) {
-		base.navigate(to: step, content: content, completion: completion)
-	}
-	
-	public func children(content: Base.Content) -> [(AnyFlowComponent, Any, Bool)] {
-		base.children(content: content)
-	}
 }
 
 extension VCWrapperComponent: ViewControllersListComponent {
+	
 	public var count: Int {
 		base.asVcList.count
 	}
 	
-	public func index(for step: FlowStep) -> Int? {
-		base.asVcList.index(for: step)
+	public var ids: [AnyHashable] { base.asVcList.allIds }
+	
+	public func index(for id: AnyHashable) -> Int? {
+		base.asVcList.index(for: id)
 	}
 	
 	public func controllers(current: [UIViewController], upTo: Int?) -> [UIViewController] {
@@ -69,5 +56,17 @@ extension VCWrapperComponent: ViewControllersListComponent {
 	
 	public func createContent(from vcs: [UIViewController]) -> Any? {
 		base.asVcList.create(from: vcs)
+	}
+}
+
+extension FlowComponent where Content: UIViewControllerConvertable {
+	public func disableBack() -> VCWrapperComponent<Self> {
+		VCWrapperComponent(base: self) {
+			$0.isDisabledBack = true
+		}
+	}
+	
+	public func viewController(_ action: @escaping (UIViewController) -> Void) -> VCWrapperComponent<Self> {
+		VCWrapperComponent(base: self, wrap: action)
 	}
 }

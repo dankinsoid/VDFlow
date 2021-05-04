@@ -7,123 +7,92 @@
 
 import Foundation
 import UIKit
+import SwiftUI
+import VDKit
 
 public typealias PresentClosure = (UIViewController, UIViewController, Bool, @escaping () -> Void) -> Void
 
-public struct PresentFlow<Root: FlowComponent, Component: FlowComponent>: FlowComponent where Component.Content: UIViewControllerArrayConvertable, Root.Content: UIViewControllerConvertable {
+public struct PresentFlow<Root: FlowComponent, Component: FlowComponent, Selection: Hashable>: FlowComponent, FullScreenUIViewControllerRepresentable where Component.Content: UIViewControllerArrayConvertable, Root.Content: UIViewControllerConvertable {
 	public let root: Root
-	public let presentationStyle: UIModalPresentationStyle?
-	public let transitionStyle: UIModalTransitionStyle?
+	public let style: PresentFlowStyle?
 	public let dismissPresented: Bool
 	public let component: Component
 	let present: PresentClosure
+	@Binding private var id: Selection?
 	
-	public init(root: Root, presentationStyle: UIModalPresentationStyle? = nil, transitionStyle: UIModalTransitionStyle? = nil, dismissPresented: Bool = true, present: @escaping PresentClosure = { $0.present($1, animated: $2, completion: $3) }, component: Component) {
+	public init(root: Root, selection: Binding<Selection?>, style: PresentFlowStyle? = nil, dismissPresented: Bool = true, present: @escaping PresentClosure = { $0.present($1, animated: $2, completion: $3) }, component: Component) {
 		self.root = root
-		self.presentationStyle = presentationStyle
-		self.transitionStyle = transitionStyle
+		self.style = style
 		self.present = present
 		self.dismissPresented = dismissPresented
 		self.component = component
+		self._id = selection
+	}
+	
+	public init(root: Root, selection: Binding<Selection?>, style: PresentFlowStyle? = nil, dismissPresented: Bool = true, present: @escaping PresentClosure = { $0.present($1, animated: $2, completion: $3) }, @FlowBuilder _ builder: () -> Component) {
+		self = PresentFlow(root: root, selection: selection, style: style, dismissPresented: dismissPresented, present: present, component: builder())
 	}
 	
 	public func create() -> Root.Content {
-		root.create()
+		let result = root.create()
+		let vc = result.asViewController()
+		vc.on {[weak vc] in
+			if let content = vc {
+				update(content)
+			}
+		} disappear: {
+		}
+		return result
 	}
 	
-	public func navigate(to step: FlowStep, content: Root.Content, completion: @escaping (Bool) -> Void) {
-		let parent = content.asViewController()
-		let animated = step.animated && parent.view?.window != nil
-		guard let i = component.asVcList.index(for: step) else {
-			if root.contains(step: step) {
-				parent.dismissPresented(animated: animated) {
-					root.navigate(to: step, content: content, completion: completion)
-				}
+	public func makeUIViewController(context: Context) -> UIViewController {
+		create().asViewController()
+	}
+	
+	public func updateUIViewController(_ uiViewController: UIViewController, context: Context) {
+		update(uiViewController)
+	}
+	
+	private func update(_ uiViewController: UIViewController) {
+		let parent = uiViewController
+		guard let id = self.id, parent.view?.window != nil,
+				component.asVcList.idsChanged(vcs: parent.allPresented) else {
+			return
+		}
+		let animated = FlowStep.isAnimated
+		guard let i = component.asVcList.index(for: id) else {
+			if AnyHashable(root.flowId) == AnyHashable(id) {
+				parent.dismissPresented(animated: animated) { }
 				return
 			}
-			completion(false)
 			return
 		}
 		let vcs = component.asVcList.controllers(current: parent.allPresented, upTo: i)
-		guard let vc = vcs.last, let new = component.asVcList.create(from: vcs) else {
-			completion(false)
-			return
-		}
+		guard let vc = vcs.last else { return }
+		vcs.forEach { $0.on(appear: {}, disappear: {}) }
 		update(child: vc)
-		if component.canNavigate(to: step, contentAny: vc) {
-			multiCompletion(
-				[
-					{ component.navigate(to: step, content: new, completion: $0) },
-					{ c in set(vcs, to: content, animated: animated, completion: { c(true) }) }
-				],
-				completion: completion
-			)
-		} else {
-			set(vcs, to: content, animated: animated) {
-				component.navigate(to: step, content: new, completion: completion)
-			}
+		set(vcs, to: parent, animated: animated) {
+			vcs.forEach { $0.setIdOnAppear(_id, root: parent) }
 		}
 	}
 	
-	private func set(_ children: [UIViewController], to parent: Root.Content, animated: Bool, completion: @escaping () -> Void) {
-		let vc = parent.asViewController()
-		vc.present(children.filter { $0 !== vc }, dismiss: dismissPresented, animated: animated, presentClosure: present) {
+	private func set(_ children: [UIViewController], to parent: UIViewController, animated: Bool, completion: @escaping () -> Void) {
+		parent.present(children.filter { $0 !== parent }, dismiss: dismissPresented, animated: animated, presentClosure: present) {
 			completion()
 		}
 	}
 	
 	private func update(child: UIViewController) {
-		if let style = presentationStyle {
-			child.modalPresentationStyle = style
+		switch style {
+		case .native(let presentation, let transition):
+			child.modalPresentationStyle = presentation
+			child.modalTransitionStyle = transition
+		case .delegate(let delegate):
+			child.transitioningDelegate = delegate
+		case .none:
+			break
 		}
-		if let style = transitionStyle {
-			child.modalTransitionStyle = style
-		}
 	}
-	
-	public func contains(step: FlowStep) -> Bool {
-		root.contains(step: step) || component.contains(step: step)
-	}
-	
-	public func canNavigate(to step: FlowStep, content: Root.Content) -> Bool {
-		content.asViewController().view?.window != nil &&
-			(
-				root.canNavigate(to: step, content: content) ||
-				component.asVcList.create(from: content.asViewController().allPresented).map {
-					component.canNavigate(to: step, content: $0)
-				} == true
-			)
-	}
-	
-	public func children(content: Root.Content) -> [(AnyFlowComponent, Any, Bool)] {
-		let presented = content.asViewController().allPresented
-		var result: [(AnyFlowComponent, Any, Bool)] = [(root, content, presented.isEmpty)]
-		
-		guard !presented.isEmpty else { return result }
-		
-		let commonContent = component.asVcList.create(from: presented.dropLast())
-		let currentContent = component.asVcList.create(from: presented.last.map { [$0] } ?? [])
-		
-		var common = commonContent.map(component.children)
-		var current = currentContent.map(component.children)
-		common?.indices.forEach {
-			common?[$0].2 = false
-		}
-		current?.indices.forEach {
-			current?[$0].2 = true
-		}
-		result += common.map { c in current.map { c + $0 } ?? c } ?? []
-		
-		return result
-	}
-}
-
-extension PresentFlow {
-	
-	public init(root: Root, presentationStyle: UIModalPresentationStyle? = nil, transitionStyle: UIModalTransitionStyle? = nil, dismissPresented: Bool = true, present: @escaping PresentClosure = { $0.present($1, animated: $2, completion: $3) }, @FlowBuilder _ builder: () -> Component) {
-		self = PresentFlow(root: root, presentationStyle: presentationStyle, transitionStyle: transitionStyle, dismissPresented: dismissPresented, present: present, component: builder())
-	}
-	
 }
 
 extension Array where Element: Equatable {
@@ -135,4 +104,65 @@ extension Array where Element: Equatable {
 		}
 		return Array(prefix(i))
 	}
+}
+extension UIViewController {
+	
+	private var appearDelegate: AppearDelegate? {
+		get { objc_getAssociatedObject(self, &strongDelegateKey) as? AppearDelegate }
+		set {
+			objc_setAssociatedObject(self, &strongDelegateKey, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC) }
+	}
+	
+	func setIdOnAppear<T: Hashable>(_ binding: Binding<T?>, root: UIViewController) {
+		on {[weak self] in
+			let newId = self?.flowId(of: T.self)
+			if newId != binding.wrappedValue {
+				binding.wrappedValue = newId
+			}
+		} disappear: {[weak root] in
+			let newId = root?.vcForPresent.flowId(of: T.self)
+			if newId != binding.wrappedValue {
+				binding.wrappedValue = newId
+			}
+		}
+	}
+	
+	func on(appear: @escaping () -> Void, disappear: @escaping () -> Void ) {
+		if let delegate = appearDelegate {
+			delegate.appear = appear
+			delegate.disappear = disappear
+		} else {
+			let delegate = AppearDelegate(appear, disappear)
+			appearDelegate = delegate
+			_ = try? onMethodInvoked(#selector(viewDidAppear)) { _ in
+				delegate.appear()
+			}
+			_ = try? onMethodInvoked(#selector(viewDidDisappear)) { _ in
+				delegate.disappear()
+			}
+		}
+	}
+}
+
+fileprivate var strongDelegateKey = "strongDelegateKey"
+
+private final class AppearDelegate {
+	var appear: () -> Void
+	var disappear: () -> Void
+	
+	init(_ appear: @escaping () -> Void, _ disappear: @escaping () -> Void) {
+		self.appear = appear
+		self.disappear = disappear
+	}
+}
+
+extension FlowComponent where Content: UIViewControllerConvertable {
+	
+	public func present<Component: FlowComponent, Selection: Hashable>(selection: Binding<Selection?>, style: PresentFlowStyle? = nil, dismissPresented: Bool = true, present: @escaping PresentClosure = { $0.present($1, animated: $2, completion: $3) }, @FlowBuilder _ builder: () -> Component) -> PresentFlow<Self, Component, Selection> where Component.Content: UIViewControllerArrayConvertable {
+		PresentFlow(root: self, selection: selection, style: style, dismissPresented: dismissPresented, present: present, component: builder())
+	}
+}
+
+public enum PresentFlowStyle {
+	case native(UIModalPresentationStyle, UIModalTransitionStyle), delegate(UIViewControllerTransitioningDelegate)
 }

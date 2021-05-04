@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import SwiftUI
 
 public struct FlowPath: ExpressibleByArrayLiteral, RangeReplaceableCollection {
 	public typealias Element = FlowStep
@@ -13,7 +14,21 @@ public struct FlowPath: ExpressibleByArrayLiteral, RangeReplaceableCollection {
 	
 	public static var current: FlowPath {
 		get { FlowStep.tree.path.dropFirst() }
-		set { _ = FlowStep.tree.go(to: newValue) }
+		set { set(newValue) }
+	}
+	
+	@discardableResult
+	public static func set(_ new: FlowPath, animated: Bool = true) -> Bool {
+		FlowStep.isAnimated = animated
+		let result: Bool
+		if animated {
+			result = withAnimation {
+				FlowStep.tree.go(to: new)
+			}
+		} else {
+			result = FlowStep.tree.go(to: new)
+		}
+		return result
 	}
 	
 	public var steps: [FlowStep]
@@ -39,10 +54,6 @@ public struct FlowPath: ExpressibleByArrayLiteral, RangeReplaceableCollection {
 	
 	public func through(_ steps: FlowStep...) -> FlowPath {
 		through(steps)
-	}
-	
-	public func animated(_ animated: Bool) -> FlowPath {
-		FlowPath(steps.map { $0.animated(animated) })
 	}
 	
 	public func dropFirst(_ count: Int = 1) -> FlowPath {
@@ -81,10 +92,6 @@ extension FlowPath: FlowPathConvertable {
 
 extension FlowStep: FlowPathConvertable {
 	public func asPath() -> FlowPath { FlowPath([self]) }
-}
-
-extension NodeID: FlowPathConvertable {
-	public func asPath() -> FlowPath { FlowStep(id: id, data: nil, options: []).asPath() }
 }
 
 extension FlowPathConvertable {

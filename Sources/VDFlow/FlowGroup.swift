@@ -28,22 +28,6 @@ public struct FlowGroup<Component: FlowComponent>: FlowComponent {
 	public func update(content: Component.Content, data: Component.Value?) {
 		component.update(content: content, data: data)
 	}
-	
-	public func navigate(to step: FlowStep, content: Component.Content, completion: @escaping (Bool) -> Void) {
-		component.navigate(to: step, content: content, completion: completion)
-	}
-	
-	public func canNavigate(to step: FlowStep, content: Component.Content) -> Bool {
-		component.canNavigate(to: step, content: content)
-	}
-	
-	public func contains(step: FlowStep) -> Bool {
-		component.contains(step: step)
-	}
-	
-	public func children(content: Component.Content) -> [(AnyFlowComponent, Any, Bool)] {
-		component.children(content: content)
-	}
 }
 
 extension FlowGroup: ViewControllersListComponent where Component.Content: UIViewControllerArrayConvertable {
@@ -51,8 +35,10 @@ extension FlowGroup: ViewControllersListComponent where Component.Content: UIVie
 		component.asVcList.count
 	}
 	
-	public func index(for step: FlowStep) -> Int? {
-		component.asVcList.index(for: step)
+	public var ids: [AnyHashable] { component.asVcList.allIds }
+	
+	public func index(for id: AnyHashable) -> Int? {
+		component.asVcList.index(for: id)
 	}
 	
 	public func controllers(current: [UIViewController], upTo: Int?) -> [UIViewController] {

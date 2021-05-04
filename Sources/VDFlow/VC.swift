@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SwiftUI
 
 public struct VC<Content>: FlowComponent {
 	private let createClosure: () -> Content
@@ -21,4 +22,15 @@ public struct VC<Content>: FlowComponent {
 	public func create() -> Content {
 		createClosure()
 	}
+}
+
+extension VC: View where Content: UIViewControllerConvertable {}
+
+extension VC: FullScreenUIViewControllerRepresentable where Content: UIViewControllerConvertable {
+	
+	public func makeUIViewController(context: Context) -> UIViewController {
+		create().asViewController()
+	}
+	
+	public func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}
 }

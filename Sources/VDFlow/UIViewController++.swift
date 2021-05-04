@@ -114,3 +114,35 @@ extension UIViewController: UIViewControllerConvertable {
 		}
 	}
 }
+
+private protocol WrapperId {
+	var id: AnyHashable { get }
+}
+
+private final class Wrapper<T: Hashable>: WrapperId {
+	var value: T
+	var id: AnyHashable { value }
+	
+	init(_ value: T) {
+		self.value = value
+	}
+}
+
+private var flowIdKey = "flowIdKey"
+
+extension NSObject {
+	
+	func flowId<ID: Hashable>(of type: ID.Type) -> ID? {
+		(objc_getAssociatedObject(self, &flowIdKey) as? Wrapper<ID>)?.value
+	}
+	
+	func isFlowId<ID: Hashable>(_ id: ID) -> Bool {
+		(objc_getAssociatedObject(self, &flowIdKey) as? Wrapper<ID>)?.value == id
+	}
+	
+	func setFlowId<ID: Hashable>(_ id: ID) {
+		objc_setAssociatedObject(self, &flowIdKey, Wrapper(id), .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+	}
+	
+	var anyFlowId: AnyHashable? { (objc_getAssociatedObject(self, &flowIdKey) as? WrapperId)?.id }
+}

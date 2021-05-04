@@ -24,43 +24,11 @@ public struct FlowTuple<L: FlowComponent, R: FlowComponent>: FlowComponent {
 		[._0(_0.create()), ._1(_1.create())]
 	}
 	
-	public func navigate(to step: FlowStep, content: Content, completion: @escaping (Bool) -> Void) {
-		if _0.contains(step: step), let cont = content.compactMap({ $0._0 }).last {
-			_0.navigate(to: step, content: cont, completion: completion)
-		} else if _1.contains(step: step), let cont = content.compactMap({ $0._1 }).last {
-			_1.navigate(to: step, content: cont, completion: completion)
-		} else {
-			completion(false)
-		}
-	}
-	
-	public func contains(step: FlowStep) -> Bool {
-		_0.contains(step: step) || _1.contains(step: step)
-	}
-	
-	public func canNavigate(to step: FlowStep, content: Content) -> Bool {
-		content.reduce(false) {
-			switch $1 {
-			case ._0(let l): return $0 || _0.canNavigate(to: step, content: l)
-			case ._1(let r): return $0 || _1.canNavigate(to: step, content: r)
-			}
-		}
-	}
-	
 	public func update(content: Content, data: Any?) {
 		content.forEach {
 			switch $0 {
-			case ._0(let content): if let value = data as? L.Value? { _0.update(content: content, data: value) }
-			case ._1(let content): if let value = data as? R.Value? { _1.update(content: content, data: value) }
-			}
-		}
-	}
-	
-	public func children(content: Content) -> [(AnyFlowComponent, Any, Bool)] {
-		content.map {
-			switch $0 {
-			case ._0(let content): return (_0, content, true)
-			case ._1(let content): return (_1, content, true)
+			case ._0(let content): _0.update(content: content, data: data as? L.Value)
+			case ._1(let content): _1.update(content: content, data: data as? R.Value)
 			}
 		}
 	}
@@ -74,14 +42,17 @@ public enum XorValue<L, R> {
 }
 
 extension FlowTuple: ViewControllersListComponent where L.Content: UIViewControllerArrayConvertable, R.Content: UIViewControllerArrayConvertable {
+	
 	public var count: Int { _0.asVcList.count + _1.asVcList.count }
 	
-	public func index(for step: FlowStep) -> Int? {
-		_0.asVcList.index(for: step) ?? _1.asVcList.index(for: step).map { _0.asVcList.count + $0 }
+	public var ids: [AnyHashable] { _0.asVcList.allIds + _1.asVcList.allIds }
+	
+	public func index(for id: AnyHashable) -> Int? {
+		_0.asVcList.index(for: id) ?? _1.asVcList.index(for: id).map { _0.asVcList.count + $0 }
 	}
 	
 	public func controllers(current: [UIViewController], upTo: Int?) -> [UIViewController] {
-		_0.asVcList.controllers(current: current, upTo: upTo.map { min(_0.asVcList.count - 1 , $0) }) +
+		_0.asVcList.controllers(current: current, upTo: upTo) +
 		_1.asVcList.controllers(current: current, upTo: upTo.map { $0 - _0.asVcList.count })
 	}
 	

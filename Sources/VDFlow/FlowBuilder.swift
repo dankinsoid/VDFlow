@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SwiftUI
 
 @resultBuilder
 public struct FlowBuilder {
@@ -137,6 +138,16 @@ public struct FlowBuilder {
 	
 	@inline(__always)
 	public static func buildExpression<F: FlowComponent>(_ expression: F) -> F {
+		expression
+	}
+	
+	@inline(__always)
+	public static func buildExpression<T: View>(_ expression: T) -> ViewFlow<T, String> {
+		ViewFlow(view: expression, flowId: String(reflecting: type(of: T.self)))
+	}
+	
+	@inline(__always)
+	public static func buildExpression<T: View & FlowComponent>(_ expression: T) -> T {
 		expression
 	}
 	

@@ -7,77 +7,35 @@
 
 import Foundation
 import UIKit
-
-#if canImport(SwiftUI)
 import SwiftUI
 
-@available(iOS 13.0, *)
-extension TabFlow: UIViewControllerRepresentable {
-	
-	public func makeUIViewController(context: Context) -> UITabBarController {
-		create()
-	}
-	
-	public func updateUIViewController(_ uiViewController: UITabBarController, context: Context) {}
-}
-
-@available(iOS 13.0, *)
-extension NavigationFlow: UIViewControllerRepresentable {
-	
-	public func makeUIViewController(context: Context) -> UINavigationController {
-		create()
-	}
-	
-	public func updateUIViewController(_ uiViewController: UINavigationController, context: Context) {}
-}
-
-@available(iOS 13.0, *)
-extension PresentFlow: UIViewControllerRepresentable {
-	
-	public func makeUIViewController(context: Context) -> UIViewController {
-		create().asViewController()
-	}
-	
-	public func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}
-}
-
-//@available(iOS 13.0, *)
-//extension FlowTuple: View where L.Content: UIViewControllerArrayConvertable, R.Content: UIViewControllerArrayConvertable {
-//	
-//}
-//
-//@available(iOS 13.0, *)
-//extension FlowTuple: UIViewControllerRepresentable where L.Content: UIViewControllerArrayConvertable, R.Content: UIViewControllerArrayConvertable {
-//	
-//	public func makeUIViewController(context: Context) -> UIViewController {
-//		
-//	}
-//	
-//	public func updateUIViewController(_ uiViewController: UIViewController, context: Context) {
-//		
-//	}
-//}
-
-@available(iOS 13.0, *)
-extension FlowBuilder {
-	@inline(__always)
-	public static func buildExpression<T: View>(_ expression: @escaping @autoclosure () -> T) -> VC<UIHostingController<T>> {
-		VC { UIHostingController(rootView: expression()) }
-	}
-	
-	@inline(__always)
-	public static func buildExpression<T: View & FlowComponent>(_ expression: T) -> T {
-		expression
+extension View {
+	public func flowId<ID: Hashable>(_ id: ID) -> ViewFlow<Self, ID> {
+		ViewFlow(view: self, flowId: id)
 	}
 }
 
-@available(iOS 14.0, *)
-extension FlowCoordinator: Scene where Root: View {
-	public var body: some Scene {
-		WindowGroup {
-			root()
-		}
+extension View where Self: FlowComponent {
+	public func flowId<ID: Hashable>(_ id: ID) -> IdentifiedFlow<Self, ID> {
+		IdentifiedFlow(flowId: id, component: self)
 	}
 }
 
-#endif
+public struct ViewFlow<Component: View, ID: Hashable>: FlowComponent {
+	public let view: Component
+	public let flowId: ID
+	
+	public func create() -> UIHostingController<Component> {
+		UIHostingController(rootView: view)
+	}
+	
+	public func update(content: UIHostingController<Component>, data: ()?) {
+		content.rootView = view
+	}
+}
+
+extension UIHostingController {
+	public convenience init(@ViewBuilder _ builder: () -> Content) {
+		self.init(rootView: builder())
+	}
+}

@@ -7,32 +7,17 @@
 
 import Foundation
 
-public protocol Flow: FlowComponent {
+public protocol Flow: FlowComponent where Content == Body.Content, Value == Body.Value, ID == Body.ID {
 	associatedtype Body: FlowComponent
 	override associatedtype Content = Body.Content
 	override associatedtype Value = Body.Value
+	override associatedtype ID = Body.ID
 	var body: Body { get }
 }
 
-extension FlowComponent where Self: Flow, Content == Body.Content {
-	public func contains(step: FlowStep) -> Bool {
-		body.contains(step: step)
-	}
+extension FlowComponent where Self: Flow {
+	public var flowId: ID { body.flowId }
 	
-	public func canNavigate(to step: FlowStep, content: Content) -> Bool {
-		body.canNavigate(to: step, content: content)
-	}
-	
-	public func navigate(to step: FlowStep, content: Content, completion: @escaping (Bool) -> Void) {
-		body.navigate(to: step, content: content, completion: completion)
-	}
-	
-	public func children(content: Content) -> [(AnyFlowComponent, Any, Bool)] {
-		body.children(content: content)
-	}
-}
-
-extension FlowComponent where Self: Flow, Content == Body.Content, Value == Body.Value {
 	public func create() -> Content {
 		body.create()
 	}

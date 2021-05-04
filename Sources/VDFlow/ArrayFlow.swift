@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import VDKit
 import Foundation
 
 public struct ArrayFlow<Component: FlowComponent>: FlowComponent {
@@ -19,39 +20,9 @@ public struct ArrayFlow<Component: FlowComponent>: FlowComponent {
 		array.map { .init(id: $0.flowId, content: $0.create()) }
 	}
 	
-	public func navigate(to step: FlowStep, content: [OneContent], completion: @escaping (Bool) -> Void) {
-		guard let pare = content.compactMap({ c in
-			array.first(where: { $0.flowId == c.id && $0.contains(step: step) }).map {
-				(c.content, $0)
-			}
-		}).last else {
-			completion(false)
-			return
-		}
-		pare.1.navigate(to: step, content: pare.0, completion: completion)
-	}
-	
-	public func contains(step: FlowStep) -> Bool {
-		array.reduce(false) { $0 || $1.contains(step: step) }
-	}
-	
-	public func canNavigate(to step: FlowStep, content: [OneContent]) -> Bool {
-		content.reduce(false) { f, s in
-			f || array.first(where: { $0.flowId == s.id })?.canNavigate(to: step, content: s.content) == true
-		}
-	}
-	
 	public func update(content: [OneContent], data: Component.Value?) {
 		content.forEach { arg in
 			array.first(where: { $0.flowId == arg.id })?.update(content: arg.content, data: data)
-		}
-	}
-
-	public func children(content: [OneContent]) -> [(AnyFlowComponent, Any, Bool)] {
-		content.compactMap { c in
-			array.first(where: { $0.flowId == c.id }).map {
-				($0, c.content, false)
-			}
 		}
 	}
 	
@@ -63,10 +34,11 @@ public struct ArrayFlow<Component: FlowComponent>: FlowComponent {
 
 extension ArrayFlow: ViewControllersListComponent where Component.Content: UIViewControllerArrayConvertable {
 	public var count: Int { array.reduce(0) { $0 + $1.asVcList.count } }
+	public var ids: [AnyHashable] { array.map { $0.asVcList.allIds }.joinedArray() }
 	
-	public func index(for step: FlowStep) -> Int? {
-		guard let i = array.firstIndex(where: { $0.contains(step: step) }),
-					let ind = array[i].asVcList.index(for: step) else { return nil }
+	public func index(for id: AnyHashable) -> Int? {
+		guard let i = array.firstIndex(where: { $0.asVcList.index(for: id) != nil }),
+					let ind = array[i].asVcList.index(for: id) else { return nil }
 		return array.prefix(i).reduce(0) { $0 + $1.asVcList.count } + ind
 	}
 	

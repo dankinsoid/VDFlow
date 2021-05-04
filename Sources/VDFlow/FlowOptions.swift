@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct FlowOptions: OptionSet, Hashable, Codable {
+struct FlowOptions: OptionSet, Hashable, Codable {
 	public static var animated: FlowOptions { FlowOptions(rawValue: 1) }
 	public static func offset(_ offset: Int16) -> FlowOptions { FlowOptions(rawValue: UInt32(offset >> 16)) }
 

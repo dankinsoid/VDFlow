@@ -7,82 +7,80 @@
 
 import Foundation
 import UIKit
+import SwiftUI
 
-public struct NavigationFlow<Component: FlowComponent>: FlowComponent where Component.Content: UIViewControllerArrayConvertable {
+public struct NavigationFlow<Component: FlowComponent, Selection: Hashable>: FlowComponent, FullScreenUIViewControllerRepresentable where Component.Content: UIViewControllerArrayConvertable {
 	
 	public let createController: () -> UINavigationController
 	public let component: Component
+	@Binding private var id: Selection?
 	
-	public init(create: @escaping () -> UINavigationController, component: Component) {
+	public init(create: @escaping () -> UINavigationController, _ selection: Binding<Selection?>, component: Component) {
 		createController = create
 		self.component = component
+		_id = selection
+	}
+	
+	public init(create: @escaping @autoclosure () -> UINavigationController = .init(), _ selection: Binding<Selection?>, @FlowBuilder _ builder: () -> Component) {
+		self = NavigationFlow(create: create, selection, component: builder())
 	}
 	
 	public func create() -> UINavigationController {
 		let vc = createController()
-		vc.setFlowId(flowId)
+		vc.strongDelegate = Delegate<Selection>(_id)
 		if let first = component.asVcList.create().first {
 			vc.setViewControllers([first], animated: false)
+		}
+		vc.on {[weak vc] in
+			if let content = vc {
+				update(content: content, data: nil)
+			}
+		} disappear: {
 		}
 		return vc
 	}
 	
-	public func navigate(to step: FlowStep, content: UINavigationController, completion: @escaping (Bool) -> Void) {
-		guard let i = component.asVcList.index(for: step) else {
-			completion(false)
+	public func makeUIViewController(context: Context) -> UINavigationController {
+		create()
+	}
+	
+	public func updateUIViewController(_ uiViewController: UINavigationController, context: Context) {
+		update(content: uiViewController, data: nil)
+	}
+	
+	public func update(content: UINavigationController, data: ()?) {
+		guard content.presentedViewController == nil,
+				let id = self.id,
+				component.asVcList.idsChanged(vcs: content.viewControllers),
+				let i = component.asVcList.index(for: id) else {
 			return
 		}
-		let vcs = component.asVcList.controllers(current: content.viewControllers, upTo: i)
-		guard let new = component.asVcList.create(from: vcs) else {
-			completion(false)
-			return
+		var vcs = component.asVcList.controllers(current: content.viewControllers, upTo: i)
+//		print(content.topViewController?.anyFlowId, vcs.map { $0.anyFlowId })
+		if let i = vcs.firstIndex(where: { $0.isDisabledBack }), i > 0 {
+			vcs.removeFirst(i - 1)
 		}
-		let animated = step.animated && content.view?.window != nil
-//		content.dismissPresented(animated: animated) {[self] in
-		if component.canNavigate(to: step, content: new) {
-			multiCompletion(
-				[
-					{ component.navigate(to: step, content: new, completion: $0) },
-					{ c in content.set(viewControllers: vcs, animated: animated, completion: { c(true) }) }
-				],
-				completion: completion
-			)
-		} else {
-			content.set(viewControllers: vcs, animated: animated) {
-				component.navigate(to: step, content: new, completion: completion)
-			}
-		}
+//		if let new = component.asVcList.create(from: vcs) {
+//			component.update(content: new, data: nil)
 //		}
+		guard vcs != content.viewControllers else { return }
+		let animated = FlowStep.isAnimated && content.view?.window != nil
+		content.set(viewControllers: vcs, animated: animated && vcs.last !== content.topViewController)
+	}
+}
+
+private final class Delegate<ID: Hashable>: NSObject, UINavigationControllerDelegate {
+	@Binding var id: ID?
+	
+	init(_ id: Binding<ID?>) {
+		self._id = id
 	}
 	
-	public func contains(step: FlowStep) -> Bool {
-		component.contains(step: step)
-	}
-	
-	public func canNavigate(to step: FlowStep, content: UINavigationController) -> Bool {
-		content.presentedViewController == nil &&
-		component.asVcList.create(from: content.viewControllers).map {
-			component.canNavigate(to: step, content: $0)
-		} == true
-	}
-	
-	public func children(content: UINavigationController) -> [(AnyFlowComponent, Any, Bool)] {
-		guard !content.viewControllers.isEmpty else {
-			return []
+	func navigationController(_ navigationController: UINavigationController, didShow viewController: UIViewController, animated: Bool) {
+		let newId = viewController.flowId(of: ID.self)
+		if newId != id {
+			id = newId
 		}
-	
-		let commonContent = component.asVcList.create(from: content.viewControllers.dropLast())
-		let currentContent = component.asVcList.create(from: content.topViewController.map { [$0] } ?? [])
-		
-		var common = commonContent.map(component.children)
-		var current = currentContent.map(component.children)
-		common?.indices.forEach {
-			common?[$0].2 = false
-		}
-		current?.indices.forEach {
-			current?[$0].2 = true
-		}
-		return common.map { c in current.map { c + $0 } ?? c } ?? []
 	}
 }
 
@@ -99,17 +97,16 @@ extension UINavigationController {
 			completion()
 		}
 	}
-}
-
-extension NavigationFlow {
 	
-	public init(create: @escaping @autoclosure () -> UINavigationController = UINavigationController(), @FlowBuilder _ builder: () -> Component) {
-		self = NavigationFlow(create: create, component: builder())
+	var strongDelegate: UINavigationControllerDelegate? {
+		get { objc_getAssociatedObject(self, &strongDelegateKey) as? UINavigationControllerDelegate }
+		set {
+			delegate = newValue
+			objc_setAssociatedObject(self, &strongDelegateKey, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC) }
 	}
 }
 
 extension UIViewController {
-	
 	var isDisabledBack: Bool {
 		get { (objc_getAssociatedObject(self, &disableBackKey) as? Bool) ?? false }
 		set { objc_setAssociatedObject(self, &disableBackKey, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC) }
@@ -117,3 +114,4 @@ extension UIViewController {
 }
 
 fileprivate var disableBackKey = "disableBackKey"
+fileprivate var strongDelegateKey = "strongDelegateKey"

@@ -10,7 +10,8 @@ import UIKit
 
 public protocol ViewControllersListComponent {
 	var count: Int { get }
-	func index(for step: FlowStep) -> Int?
+	var ids: [AnyHashable] { get }
+	func index(for id: AnyHashable) -> Int?
 	func controllers(current: [UIViewController], upTo: Int?) -> [UIViewController]
 	func asViewControllers(contentAny: Any) -> [UIViewController]
 	func createContent(from vcs: [UIViewController]) -> Any?
@@ -30,16 +31,18 @@ public struct VCListComponent<Component: FlowComponent> where Component.Content:
 	
 	public var count: Int { asVcList?.count ?? 1 }
 	
-	public func index(for step: FlowStep) -> Int? {
-		asVcList?.index(for: step) ?? (component.contains(step: step) ? 0 : nil)
+	public var allIds: [AnyHashable] { asVcList?.ids ?? [component.flowId] }
+	
+	public func index(for id: AnyHashable) -> Int? {
+		asVcList?.index(for: id) ?? (AnyHashable(component.flowId) == id ? 0 : nil)
 	}
 	
 	public func controllers(current: [UIViewController], upTo: Int?) -> [UIViewController] {
-		if let result = asVcList?.controllers(current: current, upTo: upTo) {
-			return result
-		}
 		if (upTo ?? 0) < 0 {
 			return []
+		}
+		if let result = asVcList?.controllers(current: current, upTo: upTo) {
+			return result
 		}
 		var result = current.filter({ $0.isFlowId(component.flowId) })
 		if result.isEmpty {
@@ -49,8 +52,12 @@ public struct VCListComponent<Component: FlowComponent> where Component.Content:
 	}
 	
 	public func create(from vcs: [UIViewController]) -> Component.Content? {
-		(asVcList?.createContent(from: vcs) as? Component.Content) ??
+		return (asVcList?.createContent(from: vcs) as? Component.Content) ??
 		Component.Content.create(from: vcs.filter({ $0.isFlowId(component.flowId) }))
+	}
+	
+	public func idsChanged(vcs: [UIViewController]) -> Bool {
+		vcs.compactMap { $0.anyFlowId } != allIds
 	}
 	
 	public func asViewControllers(content: Component.Content) -> [UIViewController] {

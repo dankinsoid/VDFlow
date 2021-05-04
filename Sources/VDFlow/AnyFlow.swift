@@ -20,22 +20,6 @@ public struct AnyFlow: FlowComponent {
 		self.base = base
 	}
 	
-	public func navigate(to step: FlowStep, content: Any, completion: @escaping (Bool) -> Void) {
-		base.navigate(to: step, contentAny: content, completion: completion)
-	}
-	
-	public func canNavigate(to step: FlowStep, content: Any) -> Bool {
-		base.canNavigate(to: step, contentAny: content)
-	}
-	
-	public func contains(step: FlowStep) -> Bool {
-		base.contains(step: step)
-	}
-	
-	public func children(content: Any) -> [(AnyFlowComponent, Any, Bool)] {
-		base.children(contentAny: content)
-	}
-	
 	public func create() -> Any {
 		base.createAny()
 	}

@@ -4,24 +4,18 @@
 import PackageDescription
 
 let package = Package(
-    name: "VDFlow",
-    platforms: [
-        .macOS(.v10_13),
-        .iOS(.v13)
-    ],
-    products: [
-        // Products define the executables and libraries produced by a package, and make them visible to other packages.
-        .library(
-            name: "VDFlow",
-            targets: ["VDFlow"]),
-    ],
-    dependencies: [],
-    targets: [
-        // Targets are the basic building blocks of a package. A target can define a module or a test suite.
-        // Targets can depend on other targets in this package, and on products in packages which this package depends on.
-        .target(
-            name: "VDFlow",
-            dependencies: []
-        )
-    ]
+	name: "VDFlow",
+	platforms: [
+		.macOS(.v10_13),
+		.iOS(.v13)
+	],
+	products: [
+		.library(name: "VDFlow", targets: ["VDFlow"]),
+	],
+	dependencies: [
+		.package(url: "https://github.com/dankinsoid/VDKit.git", from: "1.30.0"),
+	],
+	targets: [
+		.target(name: "VDFlow", dependencies: ["VDKit"])
+	]
 )

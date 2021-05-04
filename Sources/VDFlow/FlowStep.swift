@@ -6,48 +6,38 @@
 //
 
 import Foundation
+import SwiftUI
 
 public struct FlowStep {
 	
-	public static let empty = FlowStep(id: NoneID(), data: nil, options: [])
+	public static let empty = FlowStep(id: NoneID(), data: nil)
 	
 	public static var current: FlowStep {
-		get { (tree.recursiveCurrent?.1).map { FlowStep(id: $0, data: nil, options: []) } ?? .empty }
-		set { _ = tree.go(to: newValue) }//FlowStorage.shared.setToNavigate(newValue) }
+		get { (tree.recursiveCurrent?.1).map { FlowStep(id: $0, data: nil) } ?? .empty }
+		set { set(newValue) }
 	}
 	
-	static let tree = FlowTree(id: RootID())
+	@discardableResult
+	public static func set(_ new: FlowStep, animated: Bool = true) -> Bool {
+		FlowPath.set([new], animated: animated)
+	}
+	
+	internal(set) public static var isAnimated = false
+	static let tree = FlowTree(id: RootID(), mapKey: { $0 })
 	
 	public var id: AnyHashable
 	public var data: Any?
-	public var options: FlowOptions
-	
-	public var offset: Int {
-		get { options.offset }
-		set { options.offset = newValue }
-	}
-	
-	public var animated: Bool {
-		options.contains(.animated)
-	}
 	
 	public func isNode<ID: Hashable>(_ id: ID) -> Bool {
 		self.id == AnyHashable(id)
 	}
 	
-	public func isNode<T, ID: Hashable>(id: NodeID<T, ID>) -> Bool {
-		self.id == AnyHashable(id.id)
+	public func isNode<Value: Identifiable & Equatable>(_ value: Value) -> Bool {
+		self.id == AnyHashable(value.id)
 	}
 	
-	public func isNode<C: FlowComponent>(of type: C.Type) -> Bool where C.ID == String {
-		AnyHashable(String(reflecting: C.Content.self)) == id
-	}
-	
-	public func valueIf<T, ID: Hashable>(id: NodeID<T, ID>) -> T? {
-		if isNode(id: id), let result = data as? T {
-			return result
-		}
-		return nil
+	public func isNode<Value: Identifiable & Hashable>(_ value: Value) -> Bool {
+		self.id == AnyHashable(value.id)
 	}
 	
 	public func through(_ steps: [FlowStep]) -> FlowPath {
@@ -58,43 +48,20 @@ public struct FlowStep {
 		through(steps)
 	}
 	
-	public func animated(_ animated: Bool) -> FlowStep {
-		var result = self
-		if animated { result.options.insert(.animated) } else { result.options.remove(.animated) }
-		return result
+	public static func id<ID: Hashable>(_ id: ID) -> FlowStep {
+		FlowStep(id: id, data: nil)
 	}
 	
-	public static func id<T, ID: Hashable>(_ id: NodeID<T, ID>, data: T, options: FlowOptions = .animated) -> FlowStep {
-		FlowStep(id: id.id, data: data, options: options)
+	public static func value<Data: Identifiable & Equatable>(_ data: Data) -> FlowStep {
+		FlowStep(id: data.id, data: data)
 	}
 	
-	public static func id<ID: Hashable>(_ id: NodeID<Void, ID>, options: FlowOptions = .animated) -> FlowStep {
-		FlowStep(id: id.id, data: (), options: options)
-	}
-	
-	public static func id<ID: Hashable>(_ id: ID, options: FlowOptions = .animated) -> FlowStep {
-		.id(NodeID<Void, ID>(id), options: options)
-	}
-	
-	public static func type<T: FlowComponent>(_ type: T.Type, data: T.Value, options: FlowOptions = .animated) -> FlowStep where T.ID == String {
-		.id(NodeID(String(reflecting: type)), data: data, options: options)
-	}
-	
-	public static func type<T: FlowComponent>(_ type: T.Type, options: FlowOptions = .animated) -> FlowStep where T.Value == Void, T.ID == String {
-		.type(type, data: (), options: options)
-	}
-	
-	public static var next: FlowStep {
-		steps(1)
-	}
-	
-	public static var back: FlowStep {
-		steps(-1)
-	}
-	
-	public static func steps(_ count: Int) -> FlowStep {
-		FlowStep(id: NoneID(), data: nil, options: .offset(Int16(count)))
+	public static func type<Content>(_ type: Content.Type) -> FlowStep {
+		id(String(reflecting: Content.self))
 	}
 }
 
-struct RootID: Hashable {}
+struct RootID: Hashable {
+	var file: String?
+	var line: Int?
+}
