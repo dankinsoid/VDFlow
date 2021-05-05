@@ -68,15 +68,15 @@ extension FlowState where Value: Identifiable & Hashable {
 
 extension View {
 	public func flow<ID: Hashable>(_ state: FlowState<ID>, for id: ID) -> some View {
-		FlowView(content: self) { $0[id, { $0 }] }
+		FlowView(content: self) { $0[id, { $0 }] }.tag(id)
 	}
 	
 	public func flow<ID: Identifiable>(_ state: FlowState<ID>, for id: ID) -> some View {
-		FlowView(content: self) { $0[id, { $0.id }] }
+		FlowView(content: self) { $0[id, { $0.id }] }.tag(id.id)
 	}
 	
 	public func flow<ID: Identifiable & Hashable>(_ state: FlowState<ID>, for id: ID) -> some View {
-		FlowView(content: self) { $0[id, { $0.id }] }
+		FlowView(content: self) { $0[id, { $0.id }] }.tag(id.id)
 	}
 	
 	public func rootFlow(file: String = #file, line: Int = #line) -> some View {
