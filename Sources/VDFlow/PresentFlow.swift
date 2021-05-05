@@ -17,6 +17,7 @@ public struct PresentFlow<Root: FlowComponent, Component: FlowComponent, Selecti
 	public let style: PresentFlowStyle?
 	public let component: Component
 	let present: PresentClosure
+	public var flowId: Root.ID { root.flowId }
 	@Binding private var id: Selection?
 	
 	public init(root: Root, selection: Binding<Selection?>, style: PresentFlowStyle? = nil, present: @escaping PresentClosure = { $0.present($1, animated: $2, completion: $3) }, component: Component) {
@@ -51,10 +52,15 @@ public struct PresentFlow<Root: FlowComponent, Component: FlowComponent, Selecti
 		update(uiViewController)
 	}
 	
+	public func update(content: Root.Content, data: Void?) {
+		update(content.asViewController())
+	}
+	
 	private func update(_ uiViewController: UIViewController) {
+		print("present", id)
 		let parent = uiViewController
-		guard let id = self.id, parent.view?.window != nil,
-				component.asVcList.idsChanged(vcs: parent.allPresented) else {
+		guard let id = self.id, parent.view?.window != nil else {
+				//component.asVcList.idsChanged(vcs: parent.allPresented)
 			return
 		}
 		let animated = FlowStep.isAnimated
@@ -66,9 +72,13 @@ public struct PresentFlow<Root: FlowComponent, Component: FlowComponent, Selecti
 			return
 		}
 		let vcs = component.asVcList.controllers(current: parent.allPresented, upTo: i)
-		guard let vc = vcs.last else { return }
+//		if let new = component.asVcList.create(from: vcs) {
+//			component.update(content: new, data: nil)
+//		}
 		vcs.forEach { $0.on(appear: {}, disappear: {}) }
-		update(child: vc)
+		if let vc = vcs.last {
+			update(child: vc)
+		}
 		set(vcs, to: parent, animated: animated) {
 			vcs.forEach { $0.setIdOnAppear(_id, root: parent) }
 		}
@@ -103,7 +113,8 @@ extension Array where Element: Equatable {
 		return Array(prefix(i))
 	}
 }
-extension UIViewController {
+
+private extension UIViewController {
 	
 	private var appearDelegate: AppearDelegate? {
 		get { objc_getAssociatedObject(self, &strongDelegateKey) as? AppearDelegate }

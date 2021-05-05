@@ -7,7 +7,7 @@
 import Foundation
 import SwiftUI
 
-public struct FlowPath: ExpressibleByArrayLiteral, RangeReplaceableCollection {
+public struct FlowPath: ExpressibleByArrayLiteral, RangeReplaceableCollection, CustomStringConvertible {
 	public typealias Element = FlowStep
 	public typealias Index = Int
 	public typealias SubSequence = Array<FlowStep>.SubSequence
@@ -35,6 +35,7 @@ public struct FlowPath: ExpressibleByArrayLiteral, RangeReplaceableCollection {
 	public var asStep: FlowStep? { steps.count == 1 ? steps[0] : nil }
 	public var startIndex: Int { steps.startIndex }
 	public var endIndex: Int { steps.endIndex }
+	public var description: String { steps.description }
 	
 	public init(arrayLiteral elements: FlowStep...) {
 		steps = elements

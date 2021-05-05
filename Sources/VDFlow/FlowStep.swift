@@ -8,8 +8,7 @@
 import Foundation
 import SwiftUI
 
-public struct FlowStep {
-	
+public struct FlowStep: CustomStringConvertible {
 	public static let empty = FlowStep(id: NoneID(), data: nil)
 	
 	public static var current: FlowStep {
@@ -27,6 +26,13 @@ public struct FlowStep {
 	
 	public var id: AnyHashable
 	public var data: Any?
+	public var description: String {
+		if let value = data {
+			return "(\(id): \(value))"
+		} else {
+			return id.description
+		}
+	}
 	
 	public func isNode<ID: Hashable>(_ id: ID) -> Bool {
 		self.id == AnyHashable(id)
