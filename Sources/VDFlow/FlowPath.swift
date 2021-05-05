@@ -13,7 +13,7 @@ public struct FlowPath: ExpressibleByArrayLiteral, RangeReplaceableCollection, C
 	public typealias SubSequence = Array<FlowStep>.SubSequence
 	
 	public static var current: FlowPath {
-		get { FlowStep.tree.path.dropFirst() }
+		get { FlowTree.root.path.dropFirst() }
 		set { set(newValue) }
 	}
 	
@@ -23,10 +23,10 @@ public struct FlowPath: ExpressibleByArrayLiteral, RangeReplaceableCollection, C
 		let result: Bool
 		if animated {
 			result = withAnimation {
-				FlowStep.tree.go(to: new)
+				FlowTree.root.go(to: new)
 			}
 		} else {
-			result = FlowStep.tree.go(to: new)
+			result = FlowTree.root.go(to: new)
 		}
 		return result
 	}

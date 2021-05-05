@@ -12,7 +12,7 @@ public struct FlowStep: CustomStringConvertible {
 	public static let empty = FlowStep(id: NoneID(), data: nil)
 	
 	public static var current: FlowStep {
-		get { (tree.recursiveCurrent?.1).map { FlowStep(id: $0, data: nil) } ?? .empty }
+		get { (FlowTree.root.recursiveCurrent?.1).map { FlowStep(id: $0, data: nil) } ?? .empty }
 		set { set(newValue) }
 	}
 	
@@ -22,7 +22,6 @@ public struct FlowStep: CustomStringConvertible {
 	}
 	
 	internal(set) public static var isAnimated = false
-	static let tree = FlowTree(id: RootID(), mapKey: { $0 })
 	
 	public var id: AnyHashable
 	public var data: Any?
@@ -38,7 +37,7 @@ public struct FlowStep: CustomStringConvertible {
 		self.id == AnyHashable(id)
 	}
 	
-	public func isNode<Value: Identifiable & Equatable>(_ value: Value) -> Bool {
+	public func isNode<Value: Identifiable>(_ value: Value) -> Bool {
 		self.id == AnyHashable(value.id)
 	}
 	
@@ -58,7 +57,7 @@ public struct FlowStep: CustomStringConvertible {
 		FlowStep(id: id, data: nil)
 	}
 	
-	public static func value<Data: Identifiable & Equatable>(_ data: Data) -> FlowStep {
+	public static func value<Data: Identifiable>(_ data: Data) -> FlowStep {
 		FlowStep(id: data.id, data: data)
 	}
 	
