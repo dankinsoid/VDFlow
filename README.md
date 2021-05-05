@@ -4,30 +4,20 @@
 This repository provides a new declarative way to describe flows
 ## Example
 ```swift
-struct AppFlow: Flow {
-  static let tab1Step = FlowID<Void>()
+struct AppFlow: View {
+  
+  @FlowState var flowId = 0
 
-  let window: UIWindow
-
-  var root: some BaseFlow {
-    WindowFlow(window) {
-      if !autorise {
-        LoginFlow()
-      } else {
-        TabFlow {
-          Tab1()
-            .identified(by: AppFlow.tab1Step)
-          Tab2()
-            .present {
-              NavigationFlow {
-                Item1()
-                Item2()
-              }
-            }
-        }
-      }
-    }
-  }
+	var body: some View {
+		TabView(selection: $page) {
+			Tab0View()
+				.flow(_page, for: 0)
+			Tab1View()
+				.tag(1)
+			Tab1View()
+				.flow(_page, for: 2)
+		}
+	}
 }
 ```
 ## Usage
