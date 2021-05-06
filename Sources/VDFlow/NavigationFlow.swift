@@ -25,9 +25,17 @@ public struct NavigationFlow<Component: FlowComponent, Selection: Hashable>: Flo
 		self = NavigationFlow(create: create, selection, component: builder())
 	}
 	
+	public init(delegate: UINavigationControllerDelegate, _ selection: Binding<Selection?>, @FlowBuilder _ builder: () -> Component) {
+		self = NavigationFlow(create: {
+			let vc = UINavigationController()
+			vc.delegate = delegate
+			return vc
+		}, selection, component: builder())
+	}
+	
 	public func create() -> UINavigationController {
 		let vc = createController()
-		vc.strongDelegate = Delegate<Selection>(_id)
+		vc.strongDelegate = Delegate<Selection>(_id, delegate: vc.delegate)
 		if let first = component.asVcList.create().first {
 			vc.setViewControllers([first], animated: false)
 		}
@@ -49,10 +57,9 @@ public struct NavigationFlow<Component: FlowComponent, Selection: Hashable>: Flo
 	}
 	
 	public func update(content: UINavigationController, data: Void?) {
-		print("navigation", id, component.asVcList.idsChanged(vcs: content.viewControllers))
 		guard //content.presentedViewController == nil,
 				let id = self.id,
-				//component.asVcList.idsChanged(vcs: content.viewControllers),
+//				component.asVcList.idsChanged(vcs: content.viewControllers),
 				let i = component.asVcList.index(for: id) else {
 			return
 		}
@@ -73,9 +80,11 @@ public struct NavigationFlow<Component: FlowComponent, Selection: Hashable>: Flo
 
 private final class Delegate<ID: Hashable>: NSObject, UINavigationControllerDelegate {
 	@Binding var id: ID?
+	weak var delegate: UINavigationControllerDelegate?
 	
-	init(_ id: Binding<ID?>) {
+	init(_ id: Binding<ID?>, delegate: UINavigationControllerDelegate?) {
 		self._id = id
+		self.delegate = delegate
 	}
 	
 	func navigationController(_ navigationController: UINavigationController, didShow viewController: UIViewController, animated: Bool) {
@@ -83,6 +92,26 @@ private final class Delegate<ID: Hashable>: NSObject, UINavigationControllerDele
 		if newId != id {
 			id = newId
 		}
+	}
+	
+	func navigationController(_ navigationController: UINavigationController, interactionControllerFor animationController: UIViewControllerAnimatedTransitioning) -> UIViewControllerInteractiveTransitioning? {
+		delegate?.navigationController?(navigationController, interactionControllerFor: animationController)
+	}
+	
+	func navigationController(_ navigationController: UINavigationController, animationControllerFor operation: UINavigationController.Operation, from fromVC: UIViewController, to toVC: UIViewController) -> UIViewControllerAnimatedTransitioning? {
+		delegate?.navigationController?(navigationController, animationControllerFor: operation, from: fromVC, to: toVC)
+	}
+	
+	func navigationController(_ navigationController: UINavigationController, willShow viewController: UIViewController, animated: Bool) {
+		delegate?.navigationController?(navigationController, willShow: viewController, animated: animated)
+	}
+	
+	func navigationControllerSupportedInterfaceOrientations(_ navigationController: UINavigationController) -> UIInterfaceOrientationMask {
+		delegate?.navigationControllerSupportedInterfaceOrientations?(navigationController) ?? .all
+	}
+	
+	func navigationControllerPreferredInterfaceOrientationForPresentation(_ navigationController: UINavigationController) -> UIInterfaceOrientation {
+		delegate?.navigationControllerPreferredInterfaceOrientationForPresentation?(navigationController) ?? .portrait
 	}
 }
 

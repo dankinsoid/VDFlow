@@ -18,17 +18,22 @@ public struct FlowPath: ExpressibleByArrayLiteral, RangeReplaceableCollection, C
 	}
 	
 	@discardableResult
-	public static func set(_ new: FlowPath, animated: Bool = true) -> Bool {
-		FlowStep.isAnimated = animated
+	public static func set(_ new: FlowPath, animation: Animation?) -> Bool {
+		FlowStep.isAnimated = animation != nil
 		let result: Bool
-		if animated {
-			result = withAnimation {
+		if let animation = animation {
+			result = withAnimation(animation) {
 				FlowTree.root.go(to: new)
 			}
 		} else {
 			result = FlowTree.root.go(to: new)
 		}
 		return result
+	}
+	
+	@discardableResult
+	public static func set(_ new: FlowPath, animated: Bool = true) -> Bool {
+		set(new, animation: animated ? .default : nil)
 	}
 	
 	public var steps: [FlowStep]

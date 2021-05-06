@@ -133,11 +133,11 @@ private var flowIdKey = "flowIdKey"
 extension NSObject {
 	
 	func flowId<ID: Hashable>(of type: ID.Type) -> ID? {
-		(objc_getAssociatedObject(self, &flowIdKey) as? Wrapper<ID>)?.value
+		(objc_getAssociatedObject(self, &flowIdKey) as? WrapperId)?.id.base as? ID
 	}
 	
 	func isFlowId<ID: Hashable>(_ id: ID) -> Bool {
-		(objc_getAssociatedObject(self, &flowIdKey) as? Wrapper<ID>)?.value == id
+		flowId(of: ID.self) == id
 	}
 	
 	func setFlowId<ID: Hashable>(_ id: ID) {

@@ -142,13 +142,13 @@ public struct FlowBuilder {
 	}
 	
 	@inline(__always)
-	public static func buildExpression<T: View>(_ expression: T) -> ViewFlow<T, String> {
-		ViewFlow(view: expression, flowId: String(reflecting: type(of: T.self)))
+	public static func buildExpression<F: FlowComponent & View>(_ expression: F) -> F {
+		expression
 	}
 	
 	@inline(__always)
-	public static func buildExpression<T: View & FlowComponent>(_ expression: T) -> T {
-		expression
+	public static func buildExpression<F: View>(_ expression: F) -> ViewFlow<F> {
+		ViewFlow(view: expression)
 	}
 	
 	@inline(__always)

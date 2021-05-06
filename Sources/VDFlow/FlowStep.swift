@@ -21,12 +21,17 @@ public struct FlowStep: CustomStringConvertible {
 		FlowPath.set([new], animated: animated)
 	}
 	
+	@discardableResult
+	public static func set(_ new: FlowStep, animation: Animation?) -> Bool {
+		FlowPath.set([new], animation: animation)
+	}
+	
 	internal(set) public static var isAnimated = false
 	
 	public var id: AnyHashable
 	public var data: Any?
 	public var description: String {
-		if let value = data {
+		if let value = data, value as? None == nil {
 			return "(\(id): \(value))"
 		} else {
 			return id.description
@@ -67,6 +72,6 @@ public struct FlowStep: CustomStringConvertible {
 }
 
 struct RootID: Hashable {
-	var file: String?
-	var line: Int?
+	var file: String
+	var line: Int
 }

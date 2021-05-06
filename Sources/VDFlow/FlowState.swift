@@ -14,7 +14,14 @@ import VDKit
 public struct FlowState<Value>: DynamicProperty {
 	
 	public var wrappedValue: Value {
-		get { (node.id?.1 as? Value) ?? (node.id?.0.base as? Value) ?? defaultValue }
+		get {
+			let current = (node.id.1 as? Value) ?? (node.id.0.base as? Value)
+//			if current == nil {
+//				let pair = map(defaultValue)
+//				node.set(id: pair.0, value: pair.1)
+//			}
+			return current ?? defaultValue
+		}
 		nonmutating set {
 			let pair = map(newValue)
 			node.set(id: pair.0, value: pair.1)
@@ -68,28 +75,32 @@ extension FlowState where Value: Identifiable & Hashable {
 
 extension View {
 	public func flow<ID: Hashable>(_ state: FlowState<ID>, for id: ID) -> some View {
-		FlowView(content: self) { $0[id, { $0 }] }.tag(id)
+		FlowView(content: self) { $0[nil, id] }.tag(id)
 	}
 	
 	public func flow<ID: Identifiable>(_ state: FlowState<ID>, for id: ID) -> some View {
-		FlowView(content: self) { $0[id, { $0.id }] }.tag(id.id)
+		FlowView(content: self) { $0[id, id.id] }.tag(id.id)
 	}
 	
 	public func flow<ID: Identifiable & Hashable>(_ state: FlowState<ID>, for id: ID) -> some View {
-		FlowView(content: self) { $0[id, { $0.id }] }.tag(id.id)
+		FlowView(content: self) { $0[id, id.id] }.tag(id.id)
 	}
 	
 	public func rootFlow(file: String = #file, line: Int = #line) -> some View {
-		environmentObject(FlowTree.root[RootID(file: file, line: line), { $0 }])
+		environmentObject(FlowTree.root[nil, RootID(file: file, line: line)])
 	}
 }
 
-struct FlowView<Content: View>: View {
+public struct FlowView<Content: View>: View {
 	let content: Content
-	var create: (FlowTree) -> FlowTree
-	@EnvironmentObject var flow: FlowTree
+	var createTree: (FlowTree) -> FlowTree
+	@EnvironmentObject private var flow: FlowTree
 	
-	var body: some View {
-		content.environmentObject(create(flow))
+	public var body: some View {
+		content.environmentObject(createTree(flow))
+	}
+	
+	public func create() -> UIHostingController<FlowView> {
+		UIHostingController(rootView: self)
 	}
 }
