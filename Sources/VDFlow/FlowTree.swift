@@ -40,7 +40,7 @@ final class FlowTree: ObservableObject {
 			return true
 		}
 		for (key, value) in nodes where value.1.go(to: path) {
-			id = (key, value.0)
+			set(id: key, value: value.0)
 			return true
 		}
 		if steps.count == 1 {
@@ -50,9 +50,8 @@ final class FlowTree: ObservableObject {
 		return false
 	}
 	
-	func set<ID>(id: AnyHashable, value: ID) {
-		nodes[id]?.0 = value
-		self.id = (id, value)
+	func set<ID>(id: AnyHashable, value: ID?) {
+		set(FlowStep(id: id, data: value))
 	}
 	
 	private func set(_ step: FlowStep) {

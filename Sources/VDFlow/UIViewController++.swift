@@ -8,48 +8,7 @@
 import Foundation
 import UIKit
 
-public protocol UIViewControllerArrayConvertable {
-	static func create(from vcs: [UIViewController]) -> Self?
-	func asViewControllers() -> [UIViewController]
-}
-
-public protocol UIViewControllerConvertable: UIViewControllerArrayConvertable {
-	static func create(from vc: UIViewController) -> Self?
-	func asViewController() -> UIViewController
-}
-
-extension UIViewControllerArrayConvertable where Self: UIViewControllerConvertable {
-	public static func create(from vcs: [UIViewController]) -> Self? {
-		vcs.compactMap { Self.create(from: $0) }.first
-	}
-	
-	public func asViewControllers() -> [UIViewController] {
-		[asViewController()]
-	}
-}
-
-extension UIViewControllerConvertable where Self: UIViewController {
-	public static func create(from vc: UIViewController) -> Self? {
-		vc as? Self
-	}
-}
-
-extension Array: UIViewControllerArrayConvertable where Element: UIViewControllerArrayConvertable {
-	
-	public static func create(from vcs: [UIViewController]) -> Array<Element>? {
-		Element.create(from: vcs).map { [$0] }
-	}
-	
-	public func asViewControllers() -> [UIViewController] {
-		map({ $0.asViewControllers() }).joined().map { $0 }
-	}
-}
-
-extension UIViewController: UIViewControllerConvertable {
-	
-	public func asViewController() -> UIViewController {
-		self
-	}
+extension UIViewController {
 	
 	var vcForPresent: UIViewController {
 		presentedViewController?.vcForPresent ?? self

@@ -12,51 +12,45 @@ import VDKit
 
 public typealias PresentClosure = (UIViewController, UIViewController, Bool, @escaping () -> Void) -> Void
 
-public struct PresentFlow<Root: FlowComponent, Component: FlowComponent, Selection: Hashable>: FlowComponent, FullScreenUIViewControllerRepresentable where Component.Content: UIViewControllerArrayConvertable, Root.Content: UIViewControllerConvertable {
+public struct PresentFlow<Root: View, Content: IterableView, Selection: Hashable>: FullScreenUIViewControllerRepresentable {
 	public let root: Root
 	public let style: PresentFlowStyle?
-	public let component: Component
+	public let content: Content
 	let present: PresentClosure
-	public var flowId: Root.ID { root.flowId }
 	@Binding private var id: Selection?
 	
-	public init(root: Root, selection: Binding<Selection?>, style: PresentFlowStyle? = nil, present: @escaping PresentClosure = { $0.present($1, animated: $2, completion: $3) }, component: Component) {
+	public init(root: Root, selection: Binding<Selection?>, style: PresentFlowStyle? = nil, present: @escaping PresentClosure = { $0.present($1, animated: $2, completion: $3) }, content: Content) {
 		self.root = root
 		self.style = style
 		self.present = present
-		self.component = component
+		self.content = content
 		self._id = selection
 	}
 	
-	public init(root: Root, selection: Binding<Selection?>, style: PresentFlowStyle? = nil, present: @escaping PresentClosure = { $0.present($1, animated: $2, completion: $3) }, @FlowBuilder _ builder: () -> Component) {
-		self = PresentFlow(root: root, selection: selection, style: style, present: present, component: builder())
+	public init(root: Root, selection: Binding<Selection?>, style: PresentFlowStyle? = nil, present: @escaping PresentClosure = { $0.present($1, animated: $2, completion: $3) }, @IterableViewBuilder _ builder: () -> Content) {
+		self = PresentFlow(root: root, selection: selection, style: style, present: present, content: builder())
 	}
 	
-	public func create() -> Root.Content {
-		let result = root.create()
-		let vc = result.asViewController()
+	public func create() -> UIHostingController<Root> {
+		let vc = UIHostingController(rootView: root)
 		vc.on {[weak vc] in
 			if let content = vc {
 				update(content)
 			}
 		} disappear: {
 		}
-		return result
+		return vc
 	}
 	
-	public func makeUIViewController(context: Context) -> UIViewController {
-		create().asViewController()
+	public func makeUIViewController(context: Context) -> UIHostingController<Root> {
+		create()
 	}
 	
-	public func updateUIViewController(_ uiViewController: UIViewController, context: Context) {
+	public func updateUIViewController(_ uiViewController: UIHostingController<Root>, context: Context) {
 		update(uiViewController)
 	}
 	
-	public func update(content: Root.Content, data: Void?) {
-		update(content.asViewController())
-	}
-	
-	private func update(_ uiViewController: UIViewController) {
+	private func update(_ uiViewController: UIHostingController<Root>) {
 		print("present", id)
 		let parent = uiViewController
 		guard let id = self.id, parent.view?.window != nil else {
@@ -64,14 +58,15 @@ public struct PresentFlow<Root: FlowComponent, Component: FlowComponent, Selecti
 			return
 		}
 		let animated = FlowStep.isAnimated
-		guard let i = component.asVcList.index(for: id) else {
-			if AnyHashable(root.flowId) == AnyHashable(id) {
-				parent.dismissPresented(animated: animated) { }
-				return
-			}
+		if root.viewTag == AnyHashable(id) {
+			parent.dismissPresented(animated: animated) {}
 			return
 		}
-		let vcs = component.asVcList.controllers(current: parent.allPresented, upTo: i)
+		let visitor = ControllersVisitor(current: parent.allPresented, upTo: id)
+		_ = self.content.iterate(with: visitor)
+		guard visitor.index != nil else { return }
+		
+		let vcs = visitor.new
 //		if let new = component.asVcList.create(from: vcs) {
 //			component.update(content: new, data: nil)
 //		}
@@ -165,14 +160,14 @@ private final class AppearDelegate {
 	}
 }
 
-extension FlowComponent where Content: UIViewControllerConvertable {
+extension View {
 	
-	public func present<Component: FlowComponent, Selection: Hashable>(selection: Binding<Selection?>, style: PresentFlowStyle? = nil, @FlowBuilder _ builder: () -> Component) -> PresentFlow<Self, Component, Selection> where Component.Content: UIViewControllerArrayConvertable {
-		PresentFlow(root: self, selection: selection, style: style, component: builder())
+	public func present<Content: IterableView, Selection: Hashable>(selection: Binding<Selection?>, style: PresentFlowStyle? = nil, @IterableViewBuilder _ builder: () -> Content) -> PresentFlow<Self, Content, Selection> {
+		PresentFlow(root: self, selection: selection, style: style, content: builder())
 	}
 	
-	public func customPresent<Component: FlowComponent, Selection: Hashable>(selection: Binding<Selection?>, present: @escaping PresentClosure, @FlowBuilder _ builder: () -> Component) -> PresentFlow<Self, Component, Selection> where Component.Content: UIViewControllerArrayConvertable {
-		PresentFlow(root: self, selection: selection, present: present, component: builder())
+	public func customPresent<Content: IterableView, Selection: Hashable>(selection: Binding<Selection?>, present: @escaping PresentClosure, @IterableViewBuilder _ builder: () -> Content) -> PresentFlow<Self, Content, Selection> {
+		PresentFlow(root: self, selection: selection, present: present, content: builder())
 	}
 }
 

@@ -8,35 +8,38 @@
 import Foundation
 import UIKit
 import SwiftUI
+import VDKit
 
-public struct NavigationFlow<Component: FlowComponent, Selection: Hashable>: FlowComponent, FullScreenUIViewControllerRepresentable where Component.Content: UIViewControllerArrayConvertable {
+public struct NavigationFlow<Content: IterableView, Selection: Hashable>: FullScreenUIViewControllerRepresentable {
 	
 	public let createController: () -> UINavigationController
-	public let component: Component
+	public let content: Content
 	@Binding private var id: Selection?
 	
-	public init(create: @escaping () -> UINavigationController, _ selection: Binding<Selection?>, component: Component) {
+	public init(create: @escaping () -> UINavigationController, _ selection: Binding<Selection?>, content: Content) {
 		createController = create
-		self.component = component
+		self.content = content
 		_id = selection
 	}
 	
-	public init(create: @escaping @autoclosure () -> UINavigationController = .init(), _ selection: Binding<Selection?>, @FlowBuilder _ builder: () -> Component) {
-		self = NavigationFlow(create: create, selection, component: builder())
+	public init(create: @escaping @autoclosure () -> UINavigationController = .init(), _ selection: Binding<Selection?>, @IterableViewBuilder _ builder: () -> Content) {
+		self = NavigationFlow(create: create, selection, content: builder())
 	}
 	
-	public init(delegate: UINavigationControllerDelegate, _ selection: Binding<Selection?>, @FlowBuilder _ builder: () -> Component) {
+	public init(delegate: UINavigationControllerDelegate, _ selection: Binding<Selection?>, @IterableViewBuilder _ builder: () -> Content) {
 		self = NavigationFlow(create: {
 			let vc = UINavigationController()
 			vc.delegate = delegate
 			return vc
-		}, selection, component: builder())
+		}, selection, content: builder())
 	}
 	
 	public func create() -> UINavigationController {
 		let vc = createController()
 		vc.strongDelegate = Delegate<Selection>(_id, delegate: vc.delegate)
-		if let first = component.asVcList.create().first {
+		let visitor = FirstViewControllerVisitor()
+		_ = content.iterate(with: visitor)
+		if let first = visitor.vc {
 			vc.setViewControllers([first], animated: false)
 		}
 		vc.on {[weak vc] in
@@ -58,12 +61,15 @@ public struct NavigationFlow<Component: FlowComponent, Selection: Hashable>: Flo
 	
 	public func update(content: UINavigationController, data: Void?) {
 		guard //content.presentedViewController == nil,
-				let id = self.id,
+			let id = self.id else {
 //				component.asVcList.idsChanged(vcs: content.viewControllers),
-				let i = component.asVcList.index(for: id) else {
 			return
 		}
-		var vcs = component.asVcList.controllers(current: content.viewControllers, upTo: i)
+		let visitor = ControllersVisitor(current: content.viewControllers, upTo: id)
+		_ = self.content.iterate(with: visitor)
+		guard visitor.index != nil else { return }
+	
+		var vcs = visitor.new
 		if let i = vcs.firstIndex(where: { $0.isDisabledBack }), i > 0 {
 			vcs.removeFirst(i - 1)
 		}
