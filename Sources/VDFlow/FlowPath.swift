@@ -13,26 +13,22 @@ public struct FlowPath: ExpressibleByArrayLiteral, RangeReplaceableCollection, C
 	public typealias SubSequence = Array<FlowStep>.SubSequence
 	
 	public static var current: FlowPath {
-		get { FlowTree.root.path.dropFirst() }
+		get { FlowTree.root.path }
 		set { set(newValue) }
 	}
 	
-	@discardableResult
-	public static func set(_ new: FlowPath, animation: Animation?) -> Bool {
+	public static func set(_ new: FlowPath, animation: Animation?) {
 		FlowStep.isAnimated = animation != nil
-		let result: Bool
 		if let animation = animation {
-			result = withAnimation(animation) {
-				FlowTree.root.go(to: new)
+			withAnimation(animation) {
+				FlowViewModel.root.go(to: new)
 			}
 		} else {
-			result = FlowTree.root.go(to: new)
+			FlowViewModel.root.go(to: new)
 		}
-		return result
 	}
 	
-	@discardableResult
-	public static func set(_ new: FlowPath, animated: Bool = true) -> Bool {
+	public static func set(_ new: FlowPath, animated: Bool = true) {
 		set(new, animation: animated ? .default : nil)
 	}
 	
@@ -98,6 +94,10 @@ extension FlowPath: FlowPathConvertable {
 
 extension FlowStep: FlowPathConvertable {
 	public func asPath() -> FlowPath { FlowPath([self]) }
+}
+
+extension Array: FlowPathConvertable where Element == FlowStep {
+	public func asPath() -> FlowPath { FlowPath(self) }
 }
 
 extension FlowPathConvertable {

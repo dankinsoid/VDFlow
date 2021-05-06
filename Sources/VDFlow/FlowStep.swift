@@ -16,13 +16,11 @@ public struct FlowStep: CustomStringConvertible {
 		set { set(newValue) }
 	}
 	
-	@discardableResult
-	public static func set(_ new: FlowStep, animated: Bool = true) -> Bool {
+	public static func set(_ new: FlowStep, animated: Bool = true) {
 		FlowPath.set([new], animated: animated)
 	}
 	
-	@discardableResult
-	public static func set(_ new: FlowStep, animation: Animation?) -> Bool {
+	public static func set(_ new: FlowStep, animation: Animation?) {
 		FlowPath.set([new], animation: animation)
 	}
 	

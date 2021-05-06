@@ -12,29 +12,33 @@ import VDKit
 
 public typealias PresentClosure = (UIViewController, UIViewController, Bool, @escaping () -> Void) -> Void
 
-public struct PresentFlow<Root: View, Content: IterableView, Selection: Hashable>: FullScreenUIViewControllerRepresentable {
-	public let root: Root
+public struct PresentFlow<Content: IterableView, Selection: Hashable>: FullScreenUIViewControllerRepresentable {
 	public let style: PresentFlowStyle?
 	public let content: Content
 	let present: PresentClosure
 	private let observingId = "PresentObserve"
 	@Binding private var id: Selection?
 	
-	public init(root: Root, selection: Binding<Selection?>, style: PresentFlowStyle? = nil, present: @escaping PresentClosure = { $0.present($1, animated: $2, completion: $3) }, content: Content) {
-		self.root = root
+	init(_ selection: Binding<Selection?>, style: PresentFlowStyle? = nil, present: @escaping PresentClosure = { $0.present($1, animated: $2, completion: $3) }, content: Content) {
 		self.style = style
 		self.present = present
 		self.content = content
 		self._id = selection
 	}
 	
-	public init(root: Root, selection: Binding<Selection?>, style: PresentFlowStyle? = nil, present: @escaping PresentClosure = { $0.present($1, animated: $2, completion: $3) }, @IterableViewBuilder _ builder: () -> Content) {
-		self.init(root: root, selection: selection, style: style, present: present, content: builder())
+	public init(_ selection: Binding<Selection?>, style: PresentFlowStyle? = nil, @IterableViewBuilder _ builder: () -> Content) {
+		self.init(selection, style: style, content: builder())
 	}
 	
-	public func create() -> ObservableHostingController<Root> {
-		let vc = ObservableHostingController(rootView: root)
-		vc.on(.didAppear) {[weak vc] in
+	public static func custom(_ selection: Binding<Selection?>, present: @escaping PresentClosure, @IterableViewBuilder _ builder: () -> Content) -> PresentFlow {
+		self.init(selection, present: present, content: builder())
+	}
+	
+	public func makeUIViewController(context: Context) -> UIViewController {
+		let visitor = FirstViewControllerVisitor()
+		_ = content.iterate(with: visitor)
+		let vc = visitor.vc ?? ObservableHostingController(rootView: EmptyView())
+		_ = (vc as? ObservableControllerType)?.on(.didAppear, id: UUID()) {[weak vc] _ in
 			if let content = vc {
 				update(content)
 			}
@@ -42,23 +46,20 @@ public struct PresentFlow<Root: View, Content: IterableView, Selection: Hashable
 		return vc
 	}
 	
-	public func makeUIViewController(context: Context) -> ObservableHostingController<Root> {
-		create()
-	}
-	
-	public func updateUIViewController(_ uiViewController: ObservableHostingController<Root>, context: Context) {
+	public func updateUIViewController(_ uiViewController: UIViewController, context: Context) {
 		update(uiViewController)
 	}
 	
-	private func update(_ uiViewController: ObservableHostingController<Root>) {
-		print("present", id)
+	private func update(_ uiViewController: UIViewController) {
 		let parent = uiViewController
-		guard let id = self.id, parent.view?.window != nil else {
+		print("present", parent.isBeingPresented, parent.allPresented.contains(where: { $0.isBeingPresented }))
+		guard let id = self.id, parent.view?.window != nil,
+					!parent.allPresented.contains(where: { $0.isBeingPresented }) else {
 				//component.asVcList.idsChanged(vcs: parent.allPresented)
 			return
 		}
 		let animated = FlowStep.isAnimated
-		if root.viewTag == AnyHashable(id) {
+		if uiViewController.anyFlowId == AnyHashable(id) {
 			parent.dismissPresented(animated: animated) {}
 			return
 		}
@@ -112,8 +113,8 @@ extension Array where Element: Equatable {
 private extension ObservableControllerType {
 	
 	func setIdOnAppear<T: Hashable>(_ binding: Binding<T?>, id: AnyHashable, root: UIViewController) {
-		on(.didAppear, id: id) {[weak self] _ in
-			let newId = self?.flowId(of: T.self)
+		on(.didAppear, id: id) {[weak root] _ in
+			let newId = root?.vcForPresent.flowId(of: T.self)
 			if newId != binding.wrappedValue {
 				binding.wrappedValue = newId
 			}
@@ -124,17 +125,6 @@ private extension ObservableControllerType {
 				binding.wrappedValue = newId
 			}
 		}
-	}
-}
-
-extension View {
-	
-	public func present<Content: IterableView, Selection: Hashable>(selection: Binding<Selection?>, style: PresentFlowStyle? = nil, @IterableViewBuilder _ builder: () -> Content) -> PresentFlow<Self, Content, Selection> {
-		PresentFlow(root: self, selection: selection, style: style, content: builder())
-	}
-	
-	public func customPresent<Content: IterableView, Selection: Hashable>(selection: Binding<Selection?>, present: @escaping PresentClosure, @IterableViewBuilder _ builder: () -> Content) -> PresentFlow<Self, Content, Selection> {
-		PresentFlow(root: self, selection: selection, present: present, content: builder())
 	}
 }
 

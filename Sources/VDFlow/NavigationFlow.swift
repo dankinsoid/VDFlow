@@ -34,7 +34,7 @@ public struct NavigationFlow<Content: IterableView, Selection: Hashable>: FullSc
 		}, selection, content: builder())
 	}
 	
-	public func create() -> UINavigationController {
+	public func makeUIViewController(context: Context) -> UINavigationController {
 		let vc = createController()
 		vc.strongDelegate = Delegate<Selection>(_id, delegate: vc.delegate)
 		let visitor = FirstViewControllerVisitor()
@@ -44,22 +44,18 @@ public struct NavigationFlow<Content: IterableView, Selection: Hashable>: FullSc
 		}
 		vc.on {[weak vc] in
 			if let content = vc {
-				update(content: content, data: nil)
+				update(content: content)
 			}
 		} disappear: {
 		}
 		return vc
 	}
 	
-	public func makeUIViewController(context: Context) -> UINavigationController {
-		create()
-	}
-	
 	public func updateUIViewController(_ uiViewController: UINavigationController, context: Context) {
-		update(content: uiViewController, data: nil)
+		update(content: uiViewController)
 	}
 	
-	public func update(content: UINavigationController, data: Void?) {
+	private func update(content: UINavigationController) {
 		guard //content.presentedViewController == nil,
 			let id = self.id else {
 //				component.asVcList.idsChanged(vcs: content.viewControllers),
@@ -78,9 +74,9 @@ public struct NavigationFlow<Content: IterableView, Selection: Hashable>: FullSc
 //		}
 		guard vcs != content.viewControllers else { return }
 		let animated = FlowStep.isAnimated && content.view?.window != nil
-		content.dismissPresented(animated: animated) {
-			content.set(viewControllers: vcs, animated: animated && vcs.last !== content.topViewController)
-		}
+//		content.dismissPresented(animated: animated) {
+			content.set(viewControllers: vcs, animated: animated)
+//		}
 	}
 }
 

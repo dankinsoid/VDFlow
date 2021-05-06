@@ -8,13 +8,13 @@
 import Foundation
 import SwiftUI
 
-final class FlowTree: ObservableObject {
+final class FlowTree {
 	
 	static let root = FlowTree()
 	
 	var current: (FlowTree, AnyHashable)? { nodes[id.0].map { ($0.1, id.0) } }
 	private var nodes: [AnyHashable: (Any, FlowTree)] = [:]
-	@Published var id: (AnyHashable, Any) = (None(), None())
+	var id: (AnyHashable, Any) = (None(), None())
 	
 	var path: FlowPath {
 		FlowPath(
@@ -22,46 +22,55 @@ final class FlowTree: ObservableObject {
 		)
 	}
 	
-	subscript(_ value: Any?, id: AnyHashable) -> FlowTree {
+	subscript(_ value: Any?, id: AnyHashable) -> (FlowTree, Bool) {
 		if let result = nodes[id]?.1 {
-			return result
+			return (result, false)
 		}
 		let tree = FlowTree()
 		nodes[id] = (value ?? None(), tree)
-		return tree
+		return (tree, true)
 	}
 	
-	func go<P: FlowPathConvertable>(to path: P) -> Bool {
-		let steps = path.asPath().steps
-		guard !steps.isEmpty else { return true }
-		if let pare = nodes[steps[0].id],
-			 pare.1.go(to: path.asPath().dropFirst()) {
-			set(steps[0])
-			return true
+	func way(by path: FlowPath) -> [(FlowTree, FlowStep)] {
+		let steps = path.steps
+		guard !steps.isEmpty else { return [] }
+		
+		if let pare = nodes[steps[0].id] {
+			return [(self, steps[0])] + pare.1.way(by: path.dropFirst())
 		}
-		for (key, value) in nodes where value.1.go(to: path) {
-			set(id: key, value: value.0)
-			return true
+		
+		let result = nodes.map {
+			($0.key, $0.value.0, $0.value.1.way(by: path))
 		}
-		if steps.count == 1 {
-			set(steps[0])
-			return true
+		.sorted(by: { $0.2.count < $1.2.count })
+		.last
+		
+		if let next = result, !next.2.isEmpty {
+			return [(self, FlowStep(id: next.0, data: next.1))] + next.2
+		} else if type(of: id.0.base) == type(of: steps[0].id.base) {
+			return [(self, steps[0])]
+		} else {
+			return []
 		}
-		return false
 	}
 	
 	func set<ID>(id: AnyHashable, value: ID?) {
 		set(FlowStep(id: id, data: value))
 	}
 	
-	private func set(_ step: FlowStep) {
+	func set(_ step: FlowStep) {
 		nodes[step.id]?.0 = step.data ?? None()
 		self.id = (step.id, step.data ?? None())
 	}
 }
 
 extension FlowTree {
-	var recursiveCurrent: (FlowTree, AnyHashable)? { current?.0.recursiveCurrent ?? current }
+	var recursiveCurrent: (FlowTree, AnyHashable)? {
+		if current?.0.nodes.isEmpty == true {
+			return nil
+		}
+		return current?.0.recursiveCurrent ?? current
+	}
 }
 
 struct None: Hashable {}
