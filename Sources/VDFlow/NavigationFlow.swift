@@ -23,11 +23,11 @@ public struct NavigationFlow<Content: IterableView, Selection: Hashable>: FullSc
 	}
 	
 	public init(create: @escaping @autoclosure () -> UINavigationController = .init(), _ selection: Binding<Selection?>, @IterableViewBuilder _ builder: () -> Content) {
-		self = NavigationFlow(create: create, selection, content: builder())
+		self.init(create: create, selection, content: builder())
 	}
 	
 	public init(delegate: UINavigationControllerDelegate, _ selection: Binding<Selection?>, @IterableViewBuilder _ builder: () -> Content) {
-		self = NavigationFlow(create: {
+		self.init(create: {
 			let vc = UINavigationController()
 			vc.delegate = delegate
 			return vc

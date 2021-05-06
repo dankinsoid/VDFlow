@@ -100,7 +100,7 @@ public struct FlowView<Content: View>: View {
 		content.environmentObject(createTree(flow))
 	}
 	
-	public func create() -> UIHostingController<FlowView> {
-		UIHostingController(rootView: self)
+	public func create() -> ObservableHostingController<FlowView> {
+		ObservableHostingController(rootView: self)
 	}
 }

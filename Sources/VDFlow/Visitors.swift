@@ -30,7 +30,7 @@ final class ControllersVisitor: IterableViewVisitor {
 				}
 				new.append(result)
 			} else {
-				let host = UIHostingController(rootView: value)
+				let host = ObservableHostingController(rootView: value)
 				host.setFlowId(tag)
 				new.append(host)
 			}
@@ -52,7 +52,7 @@ final class FirstViewControllerVisitor: IterableViewVisitor {
 	
 	func visit<V: View>(_ value: V) -> Bool {
 		guard vc == nil else { return false }
-		vc = UIHostingController(rootView: value)
+		vc = ObservableHostingController(rootView: value)
 		if let tag = value.viewTag {
 			vc?.setFlowId(tag)
 		}

@@ -17,6 +17,7 @@ public struct PresentFlow<Root: View, Content: IterableView, Selection: Hashable
 	public let style: PresentFlowStyle?
 	public let content: Content
 	let present: PresentClosure
+	private let observingId = "PresentObserve"
 	@Binding private var id: Selection?
 	
 	public init(root: Root, selection: Binding<Selection?>, style: PresentFlowStyle? = nil, present: @escaping PresentClosure = { $0.present($1, animated: $2, completion: $3) }, content: Content) {
@@ -28,29 +29,28 @@ public struct PresentFlow<Root: View, Content: IterableView, Selection: Hashable
 	}
 	
 	public init(root: Root, selection: Binding<Selection?>, style: PresentFlowStyle? = nil, present: @escaping PresentClosure = { $0.present($1, animated: $2, completion: $3) }, @IterableViewBuilder _ builder: () -> Content) {
-		self = PresentFlow(root: root, selection: selection, style: style, present: present, content: builder())
+		self.init(root: root, selection: selection, style: style, present: present, content: builder())
 	}
 	
-	public func create() -> UIHostingController<Root> {
-		let vc = UIHostingController(rootView: root)
-		vc.on {[weak vc] in
+	public func create() -> ObservableHostingController<Root> {
+		let vc = ObservableHostingController(rootView: root)
+		vc.on(.didAppear) {[weak vc] in
 			if let content = vc {
 				update(content)
 			}
-		} disappear: {
 		}
 		return vc
 	}
 	
-	public func makeUIViewController(context: Context) -> UIHostingController<Root> {
+	public func makeUIViewController(context: Context) -> ObservableHostingController<Root> {
 		create()
 	}
 	
-	public func updateUIViewController(_ uiViewController: UIHostingController<Root>, context: Context) {
+	public func updateUIViewController(_ uiViewController: ObservableHostingController<Root>, context: Context) {
 		update(uiViewController)
 	}
 	
-	private func update(_ uiViewController: UIHostingController<Root>) {
+	private func update(_ uiViewController: ObservableHostingController<Root>) {
 		print("present", id)
 		let parent = uiViewController
 		guard let id = self.id, parent.view?.window != nil else {
@@ -67,15 +67,15 @@ public struct PresentFlow<Root: View, Content: IterableView, Selection: Hashable
 		guard visitor.index != nil else { return }
 		
 		let vcs = visitor.new
-//		if let new = component.asVcList.create(from: vcs) {
-//			component.update(content: new, data: nil)
-//		}
-		vcs.forEach { $0.on(appear: {}, disappear: {}) }
+		vcs.forEach {
+			($0 as? ObservableControllerType)?.cancel(observer: observingId, on: .didAppear)
+			($0 as? ObservableControllerType)?.cancel(observer: observingId, on: .didDisappear)
+		}
 		if let vc = vcs.last {
 			update(child: vc)
 		}
 		set(vcs, to: parent, animated: animated) {
-			vcs.forEach { $0.setIdOnAppear(_id, root: parent) }
+			vcs.forEach { ($0 as? ObservableControllerType)?.setIdOnAppear(_id, id: observingId, root: parent) }
 		}
 	}
 	
@@ -109,54 +109,21 @@ extension Array where Element: Equatable {
 	}
 }
 
-private extension UIViewController {
+private extension ObservableControllerType {
 	
-	private var appearDelegate: AppearDelegate? {
-		get { objc_getAssociatedObject(self, &strongDelegateKey) as? AppearDelegate }
-		set {
-			objc_setAssociatedObject(self, &strongDelegateKey, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC) }
-	}
-	
-	func setIdOnAppear<T: Hashable>(_ binding: Binding<T?>, root: UIViewController) {
-		on {[weak self] in
+	func setIdOnAppear<T: Hashable>(_ binding: Binding<T?>, id: AnyHashable, root: UIViewController) {
+		on(.didAppear, id: id) {[weak self] _ in
 			let newId = self?.flowId(of: T.self)
 			if newId != binding.wrappedValue {
 				binding.wrappedValue = newId
 			}
-		} disappear: {[weak root] in
+		}
+		on(.didDisappear, id: id) {[weak root] _ in
 			let newId = root?.vcForPresent.flowId(of: T.self)
 			if newId != binding.wrappedValue {
 				binding.wrappedValue = newId
 			}
 		}
-	}
-	
-	func on(appear: @escaping () -> Void, disappear: @escaping () -> Void ) {
-		if let delegate = appearDelegate {
-			delegate.appear = appear
-			delegate.disappear = disappear
-		} else {
-			let delegate = AppearDelegate(appear, disappear)
-			appearDelegate = delegate
-			_ = try? onMethodInvoked(#selector(viewDidAppear)) { _ in
-				delegate.appear()
-			}
-			_ = try? onMethodInvoked(#selector(viewDidDisappear)) { _ in
-				delegate.disappear()
-			}
-		}
-	}
-}
-
-fileprivate var strongDelegateKey = "strongDelegateKey"
-
-private final class AppearDelegate {
-	var appear: () -> Void
-	var disappear: () -> Void
-	
-	init(_ appear: @escaping () -> Void, _ disappear: @escaping () -> Void) {
-		self.appear = appear
-		self.disappear = disappear
 	}
 }
 
