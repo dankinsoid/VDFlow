@@ -15,8 +15,7 @@ public typealias PresentClosure = (UIViewController, UIViewController, Bool, @es
 public struct PresentFlow<Content: IterableView, Selection: Hashable>: FullScreenUIViewControllerRepresentable {
 	public let style: PresentFlowStyle?
 	public let content: Content
-	let present: PresentClosure
-	private let observingId = "PresentObserve"
+	private let present: PresentClosure
 	@Binding private var id: Selection?
 	
 	init(_ selection: Binding<Selection?>, style: PresentFlowStyle? = nil, present: @escaping PresentClosure = { $0.present($1, animated: $2, completion: $3) }, content: Content) {
@@ -34,97 +33,35 @@ public struct PresentFlow<Content: IterableView, Selection: Hashable>: FullScree
 		self.init(selection, present: present, content: builder())
 	}
 	
-	public func makeUIViewController(context: Context) -> UIViewController {
+	public func makeUIViewController(context: Context) -> PresentViewController {
+		let result = PresentViewController()
 		let visitor = FirstViewControllerVisitor()
 		_ = content.iterate(with: visitor)
-		let vc = visitor.vc ?? ObservableHostingController(rootView: EmptyView())
-		_ = (vc as? ObservableControllerType)?.on(.didAppear, id: UUID()) {[weak vc] _ in
-			if let content = vc {
-				update(content)
+		if let first = visitor.vc as? ObservableControllerType {
+			result.set([first], animated: false)
+		}
+		result.onDidShow = {[_id] in
+			let newId = $0.flowId(of: Selection.self)
+			if newId != id {
+				_id.wrappedValue = newId
 			}
 		}
-		return vc
+		result.style = style
+		result.presentClosure = present
+		return result
 	}
 	
-	public func updateUIViewController(_ uiViewController: UIViewController, context: Context) {
+	public func updateUIViewController(_ uiViewController: PresentViewController, context: Context) {
 		update(uiViewController)
 	}
 	
-	private func update(_ uiViewController: UIViewController) {
-		let parent = uiViewController
-		print("present", parent.isBeingPresented, parent.allPresented.contains(where: { $0.isBeingPresented }))
-		guard let id = self.id, parent.view?.window != nil,
-					!parent.allPresented.contains(where: { $0.isBeingPresented }) else {
-				//component.asVcList.idsChanged(vcs: parent.allPresented)
-			return
-		}
-		let animated = FlowStep.isAnimated
-		if uiViewController.anyFlowId == AnyHashable(id) {
-			parent.dismissPresented(animated: animated) {}
-			return
-		}
-		let visitor = ControllersVisitor(current: parent.allPresented, upTo: id)
+	private func update(_ uiViewController: PresentViewController) {
+		print("present")
+		guard let id = self.id else { return }
+		let visitor = ControllersVisitor(current: uiViewController.viewControllers, upTo: id)
 		_ = self.content.iterate(with: visitor)
 		guard visitor.index != nil else { return }
-		
-		let vcs = visitor.new
-		vcs.forEach {
-			($0 as? ObservableControllerType)?.cancel(observer: observingId, on: .didAppear)
-			($0 as? ObservableControllerType)?.cancel(observer: observingId, on: .didDisappear)
-		}
-		if let vc = vcs.last {
-			update(child: vc)
-		}
-		set(vcs, to: parent, animated: animated) {
-			vcs.forEach { ($0 as? ObservableControllerType)?.setIdOnAppear(_id, id: observingId, root: parent) }
-		}
-	}
-	
-	private func set(_ children: [UIViewController], to parent: UIViewController, animated: Bool, completion: @escaping () -> Void) {
-		parent.present(children.filter { $0 !== parent }, dismiss: true, animated: animated, presentClosure: present) {
-			completion()
-		}
-	}
-	
-	private func update(child: UIViewController) {
-		switch style {
-		case .native(let presentation, let transition):
-			child.modalPresentationStyle = presentation
-			child.modalTransitionStyle = transition
-		case .delegate(let delegate):
-			child.transitioningDelegate = delegate
-		case .none:
-			break
-		}
-	}
-}
-
-extension Array where Element: Equatable {
-	
-	func commonPrefix(with array: [Element]) -> [Element] {
-		var i = 0
-		while i < count, i < array.count, self[i] == array[i] {
-			i += 1
-		}
-		return Array(prefix(i))
-	}
-}
-
-private extension ObservableControllerType {
-	
-	func setIdOnAppear<T: Hashable>(_ binding: Binding<T?>, id: AnyHashable, root: UIViewController) {
-		on(.didAppear, id: id) {[weak root] _ in
-			let newId = root?.vcForPresent.flowId(of: T.self)
-			if newId != binding.wrappedValue {
-				binding.wrappedValue = newId
-			}
-		}
-		on(.didDisappear, id: id) {[weak root] _ in
-			let newId = root?.vcForPresent.flowId(of: T.self)
-			if newId != binding.wrappedValue {
-				binding.wrappedValue = newId
-			}
-		}
+		uiViewController.set(visitor.new.compactMap { $0 as? ObservableControllerType }, animated: FlowStep.isAnimated)
 	}
 }
 

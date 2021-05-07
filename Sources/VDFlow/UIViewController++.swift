@@ -28,7 +28,7 @@ extension UIViewController {
 		let toPresent = Array(viewControllers.dropFirst(common.count))
 		if dismiss, presented.count > common.count {
 			presented[common.count].dismissSelf(animated: animated) {
-				self.present(vcs: toPresent, animated: animated, presentClosure: presentClosure, completion: completion)
+				self.present(vcs: toPresent.filter({ $0.view?.window == nil }), animated: animated, presentClosure: presentClosure, completion: completion)
 			}
 		} else {
 			present(vcs: toPresent, animated: animated, presentClosure: presentClosure, completion: completion)
@@ -46,17 +46,19 @@ extension UIViewController {
 	}
 	
 	public func dismissSelf(animated: Bool, completion: (() -> Void)?) {
-		guard presentedViewController == nil else {
-			if !animated {
-				dismiss(animated: animated) {
-					self.dismiss(animated: animated, completion: completion)
-				}
-				return
-			}
-			presentedViewController?.dismissSelf(animated: animated, completion: completion)
+		guard presentedViewController != nil else {
+			dismiss(animated: animated, completion: completion)
 			return
 		}
-		dismiss(animated: animated, completion: completion)
+		if !animated {
+			dismiss(animated: animated) {
+				self.dismiss(animated: animated, completion: completion)
+			}
+		} else {
+			dismissPresented(animated: animated) {
+				self.dismiss(animated: animated, completion: completion)
+			}
+		}
 	}
 	
 	public func dismissPresented(animated: Bool, completion: (() -> Void)?) {
@@ -104,4 +106,15 @@ extension NSObject {
 	}
 	
 	var anyFlowId: AnyHashable? { (objc_getAssociatedObject(self, &flowIdKey) as? WrapperId)?.id }
+}
+
+extension Array where Element: NSObject {
+	
+	func commonPrefix(with array: [Element]) -> [Element] {
+		var i = 0
+		while i < count, i < array.count, self[i] === array[i] {
+			i += 1
+		}
+		return Array(prefix(i))
+	}
 }

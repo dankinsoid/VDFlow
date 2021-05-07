@@ -56,11 +56,7 @@ public struct NavigationFlow<Content: IterableView, Selection: Hashable>: FullSc
 	}
 	
 	private func update(content: UINavigationController) {
-		guard //content.presentedViewController == nil,
-			let id = self.id else {
-//				component.asVcList.idsChanged(vcs: content.viewControllers),
-			return
-		}
+		guard let id = self.id else { return }
 		let visitor = ControllersVisitor(current: content.viewControllers, upTo: id)
 		_ = self.content.iterate(with: visitor)
 		guard visitor.index != nil else { return }
@@ -69,14 +65,11 @@ public struct NavigationFlow<Content: IterableView, Selection: Hashable>: FullSc
 		if let i = vcs.firstIndex(where: { $0.isDisabledBack }), i > 0 {
 			vcs.removeFirst(i - 1)
 		}
-//		if let new = component.asVcList.create(from: vcs) {
-//			component.update(content: new, data: nil)
-//		}
 		guard vcs != content.viewControllers else { return }
 		let animated = FlowStep.isAnimated && content.view?.window != nil
-//		content.dismissPresented(animated: animated) {
+		content.dismissPresented(animated: animated) {
 			content.set(viewControllers: vcs, animated: animated)
-//		}
+		}
 	}
 }
 

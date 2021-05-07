@@ -14,7 +14,7 @@ public protocol ObservableControllerType: UIViewController {
 	func cancel(observer id: AnyHashable, on type: ControllerObserveType)
 }
 
-open class ObservableHostingController<Root: View>: UIHostingController<Root> {
+open class ObservableHostingController<Root: View>: UIHostingController<Root>, ObservableControllerType {
 	
 	private var observers: [ControllerObserveType: [AnyHashable: (Bool) -> Void]] = [:]
 	
