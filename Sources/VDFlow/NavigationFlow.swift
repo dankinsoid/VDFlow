@@ -22,13 +22,13 @@ public struct NavigationFlow<Content: IterableView, Selection: Hashable>: FullSc
 		_id = selection
 	}
 	
-	public init(create: @escaping @autoclosure () -> UINavigationController = .init(), _ selection: Binding<Selection?>, @IterableViewBuilder _ builder: () -> Content) {
+	public init(create: @escaping @autoclosure () -> UINavigationController = NavigationFlowController(), _ selection: Binding<Selection?>, @IterableViewBuilder _ builder: () -> Content) {
 		self.init(create: create, selection, content: builder())
 	}
 	
 	public init(delegate: UINavigationControllerDelegate, _ selection: Binding<Selection?>, @IterableViewBuilder _ builder: () -> Content) {
 		self.init(create: {
-			let vc = UINavigationController()
+			let vc = NavigationFlowController()
 			vc.delegate = delegate
 			return vc
 		}, selection, content: builder())
@@ -189,5 +189,44 @@ private final class AppearDelegate {
 	init(_ appear: @escaping () -> Void, _ disappear: @escaping () -> Void) {
 		self.appear = appear
 		self.disappear = disappear
+	}
+}
+
+public final class NavigationFlowController: UINavigationController {
+	
+	public override var childForStatusBarStyle: UIViewController? { topViewController }
+	
+	public required init?(coder: NSCoder) {
+		super.init(coder: coder)
+	}
+	
+	public init() {
+		super.init(navigationBarClass: NavigationFlowBar.self, toolbarClass: nil)
+	}
+	
+}
+
+public final class NavigationFlowBar: UINavigationBar {
+	
+	public required init?(coder: NSCoder) {
+		super.init(coder: coder)
+		afterInit()
+	}
+	
+	public override init(frame: CGRect) {
+		super.init(frame: frame)
+		afterInit()
+	}
+	
+	private func afterInit() {
+		self.setBackgroundImage(UIImage(), for: .default)
+		self.shadowImage = UIImage()
+		self.isTranslucent = true
+		self.backgroundColor = .clear
+		if #available(iOS 13.0, *) {
+			self.standardAppearance.backgroundColor = .clear
+			self.standardAppearance.backgroundEffect = .none
+			self.standardAppearance.shadowColor = .clear
+		}
 	}
 }

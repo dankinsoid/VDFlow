@@ -85,12 +85,12 @@ extension View {
 	}
 }
 
-public struct FlowView<Content: View>: View {
+struct FlowView<Content: View>: View {
 	let content: Content
 	var createTree: (FlowTree) -> (FlowTree, Bool)
 	@Environment(\.flowTree) private var flow: FlowTree
 	
-	public var body: some View {
+	var body: some View {
 		content.environment(\.flowTree, tree)
 	}
 	

@@ -32,14 +32,14 @@ public final class PresentViewController: UIViewController {
 			completion?()
 			return
 		}
+		viewControllers.forEach(update)
+		set(root: viewControllers[0])
 		guard view?.window != nil,
-			!isAppear && !(viewControllers + self.viewControllers).contains(where: { $0.isBeingPresented }) else {
+					!isAppear && !(viewControllers + self.viewControllers).contains(where: { $0.isBeingPresented }) else {
 			completion?()
 			return
 		}
-		viewControllers.forEach(update)
 		observe(viewControllers)
-		set(root: viewControllers[0])
 		isPresenting = true
 		if viewControllers.count == 1 {
 			dismissPresented(animated: animated) {[weak self] in

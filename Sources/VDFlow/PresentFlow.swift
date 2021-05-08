@@ -56,7 +56,6 @@ public struct PresentFlow<Content: IterableView, Selection: Hashable>: FullScree
 	}
 	
 	private func update(_ uiViewController: PresentViewController) {
-		print("present")
 		guard let id = self.id else { return }
 		let visitor = ControllersVisitor(current: uiViewController.viewControllers, upTo: id)
 		_ = self.content.iterate(with: visitor)
