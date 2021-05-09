@@ -47,6 +47,37 @@ final class ControllersVisitor: IterableViewVisitor {
 	}
 }
 
+public final class TagIndexVisitor: IterableViewVisitor {
+	var id: AnyHashable
+	private(set) public var index: Int?
+	private var i = 0
+	
+	public init(upTo id: AnyHashable) {
+		self.id = id
+	}
+	
+	public func visit<V: View>(_ value: V) -> Bool {
+		if index == nil {
+			let tag = value.viewTag
+			if tag == id {
+				index = i
+				return false
+			} else {
+				i += 1
+				return true
+			}
+		} else {
+			return false
+		}
+	}
+	
+	public static func index<I: IterableView>(of tag: AnyHashable, for iterable: I) -> Int? {
+		let visitor = TagIndexVisitor(upTo: tag)
+		_ = iterable.iterate(with: visitor)
+		return visitor.index
+	}
+}
+
 final class FirstViewControllerVisitor: IterableViewVisitor {
 	var vc: UIViewController?
 	

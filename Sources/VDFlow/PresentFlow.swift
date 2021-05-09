@@ -46,6 +46,7 @@ public struct PresentFlow<Content: IterableView, Selection: Hashable>: FullScree
 				_id.wrappedValue = newId
 			}
 		}
+		result.onAppear = update
 		result.style = style
 		result.presentClosure = present
 		return result

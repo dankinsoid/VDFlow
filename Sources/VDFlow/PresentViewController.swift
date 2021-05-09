@@ -10,7 +10,7 @@ import UIKit
 public final class PresentViewController: UIViewController {
 	
 	public var viewControllers: [UIViewController] {
-		rootViewController.map { [$0] + allPresented } ?? allPresented
+		rootViewController.map { [$0] + superParent.allPresented } ?? superParent.allPresented
 	}
 	private var rootViewController: UIViewController?
 	public var presentClosure: PresentClosure = { $0.present($1, animated: $2, completion: $3) }
@@ -19,11 +19,18 @@ public final class PresentViewController: UIViewController {
 	private var isPresenting = false
 	private let observingId = "PresentObserve"
 	public var style: PresentFlowStyle?
+	private var needUpdate = true
+	var onAppear: ((PresentViewController) -> Void)?
 	override public var preferredStatusBarStyle: UIStatusBarStyle { rootViewController?.preferredStatusBarStyle ?? .default }
 	
 	override public func viewDidLoad() {
 		super.viewDidLoad()
 		modalPresentationStyle = .overCurrentContext
+	}
+	
+	override public func viewDidAppear(_ animated: Bool) {
+		super.viewDidAppear(animated)
+		onAppear?(self)
 	}
 	
 	public func set(_ viewControllers: [ObservableControllerType], animated: Bool, completion: (() -> Void)? = nil) {
@@ -32,26 +39,44 @@ public final class PresentViewController: UIViewController {
 			completion?()
 			return
 		}
+//		guard viewControllers != self.viewControllers else {
+//			completion?()
+//			return
+//		}
 		viewControllers.forEach(update)
 		set(root: viewControllers[0])
-		guard view?.window != nil,
-					!isAppear && !(viewControllers + self.viewControllers).contains(where: { $0.isBeingPresented }) else {
+		print(view?.window == nil, isAppear, (viewControllers + self.viewControllers).contains(where: { $0.isBeingPresented }))
+		guard view?.window != nil else {
+//					!isAppear && !(viewControllers + self.viewControllers).contains(where: { $0.isBeingPresented }) else {
 			completion?()
 			return
 		}
 		observe(viewControllers)
 		isPresenting = true
 		if viewControllers.count == 1 {
-			dismissPresented(animated: animated) {[weak self] in
+			superParent.dismissPresented(animated: animated) {[weak self] in
 				self?.isPresenting = false
 				completion?()
 			}
 			return
 		}
-		present(Array(viewControllers.dropFirst()), dismiss: true, animated: animated, presentClosure: presentClosure) {[weak self] in
+		superParent.present(Array(viewControllers.dropFirst()), dismiss: true, animated: animated, presentClosure: presentClosure) {[weak self] in
 			self?.isPresenting = false
 			completion?()
 		}
+	}
+	
+	public override func didMove(toParent parent: UIViewController?) {
+		super.didMove(toParent: parent)
+		if needUpdate, parent != nil {
+			needUpdate = false
+			onAppear?(self)
+		}
+	}
+	
+	public override func willMove(toParent parent: UIViewController?) {
+		super.willMove(toParent: parent)
+		needUpdate = view?.window == nil
 	}
 	
 	private func set(root: UIViewController) {
@@ -112,5 +137,11 @@ public final class PresentViewController: UIViewController {
 		_ = vc.on(.willDisappear, id: observingId) {[weak self] _ in
 			self?.isAppear = true
 		}
+	}
+}
+
+extension UIViewController {
+	var superParent: UIViewController {
+		parent?.superParent ?? self
 	}
 }

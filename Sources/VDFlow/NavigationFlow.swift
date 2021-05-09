@@ -36,17 +36,17 @@ public struct NavigationFlow<Content: IterableView, Selection: Hashable>: FullSc
 	
 	public func makeUIViewController(context: Context) -> UINavigationController {
 		let vc = createController()
-		vc.strongDelegate = Delegate<Selection>(_id, delegate: vc.delegate)
+		if let _: (UINavigationController, UIViewControllerAnimatedTransitioning) -> UIViewControllerInteractiveTransitioning? = vc.delegate?.navigationController {
+			vc.strongDelegate = FullDelegate<Selection>(_id, delegate: vc.delegate)
+		} else if let _: (UINavigationController, UINavigationController.Operation, UIViewController, UIViewController) -> UIViewControllerAnimatedTransitioning? = vc.delegate?.navigationController {
+			vc.strongDelegate = FullDelegate<Selection>(_id, delegate: vc.delegate)
+		} else {
+			vc.strongDelegate = Delegate<Selection>(_id, delegate: vc.delegate)
+		}
 		let visitor = FirstViewControllerVisitor()
 		_ = content.iterate(with: visitor)
 		if let first = visitor.vc {
 			vc.setViewControllers([first], animated: false)
-		}
-		vc.on {[weak vc] in
-			if let content = vc {
-				update(content: content)
-			}
-		} disappear: {
 		}
 		return vc
 	}
@@ -67,13 +67,13 @@ public struct NavigationFlow<Content: IterableView, Selection: Hashable>: FullSc
 		}
 		guard vcs != content.viewControllers else { return }
 		let animated = FlowStep.isAnimated && content.view?.window != nil
-		content.dismissPresented(animated: animated) {
+//		content.dismissPresented(animated: animated) {
 			content.set(viewControllers: vcs, animated: animated)
-		}
+//		}
 	}
 }
 
-private final class Delegate<ID: Hashable>: NSObject, UINavigationControllerDelegate {
+private class Delegate<ID: Hashable>: NSObject, UINavigationControllerDelegate {
 	@Binding var id: ID?
 	weak var delegate: UINavigationControllerDelegate?
 	
@@ -89,14 +89,6 @@ private final class Delegate<ID: Hashable>: NSObject, UINavigationControllerDele
 		}
 	}
 	
-	func navigationController(_ navigationController: UINavigationController, interactionControllerFor animationController: UIViewControllerAnimatedTransitioning) -> UIViewControllerInteractiveTransitioning? {
-		delegate?.navigationController?(navigationController, interactionControllerFor: animationController)
-	}
-	
-	func navigationController(_ navigationController: UINavigationController, animationControllerFor operation: UINavigationController.Operation, from fromVC: UIViewController, to toVC: UIViewController) -> UIViewControllerAnimatedTransitioning? {
-		delegate?.navigationController?(navigationController, animationControllerFor: operation, from: fromVC, to: toVC)
-	}
-	
 	func navigationController(_ navigationController: UINavigationController, willShow viewController: UIViewController, animated: Bool) {
 		delegate?.navigationController?(navigationController, willShow: viewController, animated: animated)
 	}
@@ -107,6 +99,17 @@ private final class Delegate<ID: Hashable>: NSObject, UINavigationControllerDele
 	
 	func navigationControllerPreferredInterfaceOrientationForPresentation(_ navigationController: UINavigationController) -> UIInterfaceOrientation {
 		delegate?.navigationControllerPreferredInterfaceOrientationForPresentation?(navigationController) ?? .portrait
+	}
+}
+
+private final class FullDelegate<ID: Hashable>: Delegate<ID> {
+	
+	func navigationController(_ navigationController: UINavigationController, interactionControllerFor animationController: UIViewControllerAnimatedTransitioning) -> UIViewControllerInteractiveTransitioning? {
+		delegate?.navigationController?(navigationController, interactionControllerFor: animationController)
+	}
+	
+	func navigationController(_ navigationController: UINavigationController, animationControllerFor operation: UINavigationController.Operation, from fromVC: UIViewController, to toVC: UIViewController) -> UIViewControllerAnimatedTransitioning? {
+		delegate?.navigationController?(navigationController, animationControllerFor: operation, from: fromVC, to: toVC)
 	}
 }
 
@@ -139,58 +142,8 @@ extension UIViewController {
 	}
 }
 
-private extension UIViewController {
-	
-	var appearDelegate: AppearDelegate? {
-		get { objc_getAssociatedObject(self, &appearDelegateKey) as? AppearDelegate }
-		set {
-			objc_setAssociatedObject(self, &appearDelegateKey, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC) }
-	}
-	
-	func setIdOnAppear<T: Hashable>(_ binding: Binding<T?>, root: UIViewController) {
-		on {[weak self] in
-			let newId = self?.flowId(of: T.self)
-			if newId != binding.wrappedValue {
-				binding.wrappedValue = newId
-			}
-		} disappear: {[weak root] in
-			let newId = root?.vcForPresent.flowId(of: T.self)
-			if newId != binding.wrappedValue {
-				binding.wrappedValue = newId
-			}
-		}
-	}
-	
-	func on(appear: @escaping () -> Void, disappear: @escaping () -> Void ) {
-		if let delegate = appearDelegate {
-			delegate.appear = appear
-			delegate.disappear = disappear
-		} else {
-			let delegate = AppearDelegate(appear, disappear)
-			appearDelegate = delegate
-			_ = try? onMethodInvoked(#selector(viewDidAppear)) { _ in
-				delegate.appear()
-			}
-			_ = try? onMethodInvoked(#selector(viewDidDisappear)) { _ in
-				delegate.disappear()
-			}
-		}
-	}
-}
-
 fileprivate var disableBackKey = "disableBackKey"
 fileprivate var strongDelegateKey = "strongDelegateKey"
-fileprivate var appearDelegateKey = "appearDelegateKey"
-
-private final class AppearDelegate {
-	var appear: () -> Void
-	var disappear: () -> Void
-	
-	init(_ appear: @escaping () -> Void, _ disappear: @escaping () -> Void) {
-		self.appear = appear
-		self.disappear = disappear
-	}
-}
 
 public final class NavigationFlowController: UINavigationController {
 	
@@ -203,7 +156,6 @@ public final class NavigationFlowController: UINavigationController {
 	public init() {
 		super.init(navigationBarClass: NavigationFlowBar.self, toolbarClass: nil)
 	}
-	
 }
 
 public final class NavigationFlowBar: UINavigationBar {

@@ -76,12 +76,8 @@ extension View {
 		FlowView(content: self) { $0[nil, id] }.tag(id)
 	}
 	
-	public func flow<ID: Identifiable>(_ state: FlowState<ID>, for id: ID) -> some View {
-		FlowView(content: self) { $0[id, id.id] }.tag(id.id)
-	}
-	
-	public func flow<ID: Identifiable & Hashable>(_ state: FlowState<ID>, for id: ID) -> some View {
-		FlowView(content: self) { $0[id, id.id] }.tag(id.id)
+	public func flow<ID: Identifiable>(_ state: FlowState<ID>, forIdFrom value: ID) -> some View {
+		FlowView(content: self) { $0[value, value.id] }.tag(value.id)
 	}
 }
 
