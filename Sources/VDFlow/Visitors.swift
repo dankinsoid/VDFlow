@@ -31,7 +31,9 @@ final class ControllersVisitor: IterableViewVisitor {
 				new.append(result)
 			} else {
 				let host = ObservableHostingController(rootView: value)
-				host.setFlowId(tag)
+				if let id = tag {
+					host.setFlowId(id)
+				}
 				new.append(host)
 			}
 			if tag == id {
