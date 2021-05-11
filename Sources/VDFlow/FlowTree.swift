@@ -47,7 +47,7 @@ final class FlowTree {
 		
 		if let next = result, !next.2.isEmpty {
 			return [(self, FlowStep(id: next.0, data: next.1))] + next.2
-		} else if type(of: id.0.base) == type(of: steps[0].id.base) {
+		} else if wrappedType(of: id.0.base) == wrappedType(of: steps[0].id.base) {
 			return [(self, steps[0])]
 		} else {
 			return []
@@ -74,3 +74,21 @@ extension FlowTree {
 }
 
 struct None: Hashable {}
+
+private func wrappedType<T>(of any: T) -> Any.Type {
+	(type(of: any) as? WrapperType.Type)?.recursiveType ?? type(of: any)
+}
+
+private protocol WrapperType {
+	static var wrappedType: Any.Type { get }
+}
+
+extension WrapperType {
+	static var recursiveType: Any.Type {
+		(wrappedType as? WrapperType.Type)?.recursiveType ?? wrappedType
+	}
+}
+
+extension Optional: WrapperType {
+	static var wrappedType: Any.Type { Wrapped.self }
+}
