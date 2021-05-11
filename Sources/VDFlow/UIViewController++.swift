@@ -118,3 +118,7 @@ extension Array where Element: NSObject {
 		return Array(prefix(i))
 	}
 }
+
+extension AnyHashable {
+	var inner: AnyHashable { (base as? AnyHashable)?.inner ?? self }
+}
