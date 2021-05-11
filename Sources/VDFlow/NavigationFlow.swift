@@ -22,13 +22,13 @@ public struct NavigationFlow<Content: IterableView, Selection: Hashable>: FullSc
 		_id = selection
 	}
 	
-	public init(create: @escaping @autoclosure () -> UINavigationController = NavigationFlowController(), _ selection: Binding<Selection?>, @IterableViewBuilder _ builder: () -> Content) {
+	public init(create: @escaping @autoclosure () -> UINavigationController = .init(), _ selection: Binding<Selection?>, @IterableViewBuilder _ builder: () -> Content) {
 		self.init(create: create, selection, content: builder())
 	}
 	
 	public init(delegate: UINavigationControllerDelegate, _ selection: Binding<Selection?>, @IterableViewBuilder _ builder: () -> Content) {
 		self.init(create: {
-			let vc = NavigationFlowController()
+			let vc = UINavigationController()
 			vc.delegate = delegate
 			return vc
 		}, selection, content: builder())
@@ -48,28 +48,40 @@ public struct NavigationFlow<Content: IterableView, Selection: Hashable>: FullSc
 		if let first = visitor.vc {
 			vc.setViewControllers([first], animated: false)
 		}
+		vc.navigationBar.setBackgroundImage(UIImage(), for: .default)
 		return vc
 	}
 	
 	public func updateUIViewController(_ uiViewController: UINavigationController, context: Context) {
-		update(content: uiViewController)
-	}
-	
-	private func update(content: UINavigationController) {
+		updateStyle(uiViewController, context: context)
 		guard let id = self.id else { return }
-		let visitor = ControllersVisitor(current: content.viewControllers, upTo: id)
-		_ = self.content.iterate(with: visitor)
+		let visitor = ControllersVisitor(current: uiViewController.viewControllers, upTo: id)
+		_ = content.iterate(with: visitor)
 		guard visitor.index != nil else { return }
 	
 		var vcs = visitor.new
 		if let i = vcs.firstIndex(where: { $0.isDisabledBack }), i > 0 {
 			vcs.removeFirst(i - 1)
 		}
-		guard vcs != content.viewControllers else { return }
-		let animated = FlowStep.isAnimated && content.view?.window != nil
+		guard vcs != uiViewController.viewControllers else { return }
+		let animated = FlowStep.isAnimated && uiViewController.view?.window != nil
 //		content.dismissPresented(animated: animated) {
-			content.set(viewControllers: vcs, animated: animated)
+		uiViewController.set(viewControllers: vcs, animated: animated)
 //		}
+	}
+	
+	private func updateStyle(_ uiViewController: UINavigationController, context: Context) {
+		uiViewController.navigationBar.set(backgroundColor: context.environment.navigationFlowBarColor.ui)
+		uiViewController.navigationBar.set(shadowColor: context.environment.navigationFlowBarShadowColor.ui)
+		var atts = uiViewController.navigationBar.titleTextAttributes ?? [:]
+		atts[.font] = context.environment.navigationFlowTitleFont
+		atts[.foregroundColor] = context.environment.navigationFlowTitleColor?.ui
+		uiViewController.navigationBar.prefersLargeTitles = context.environment.navigationFlowLargeTitle
+		uiViewController.navigationBar.backIndicatorImage = context.environment.navigationFlowBackImage
+		uiViewController.navigationBar.backIndicatorTransitionMaskImage = context.environment.navigationFlowBackImage
+		if !context.environment.navigationFlowShowBackText {
+			uiViewController.navigationBar.backItem?.title = ""
+		}
 	}
 }
 
@@ -145,40 +157,107 @@ extension UIViewController {
 fileprivate var disableBackKey = "disableBackKey"
 fileprivate var strongDelegateKey = "strongDelegateKey"
 
-public final class NavigationFlowController: UINavigationController {
+extension UINavigationBar {
 	
-	public override var childForStatusBarStyle: UIViewController? { topViewController }
-	
-	public required init?(coder: NSCoder) {
-		super.init(coder: coder)
+	func set(backgroundColor: UIColor) {
+		isTranslucent = backgroundColor == .clear
+		barTintColor = backgroundColor
+		if #available(iOS 13.0, *) {
+			standardAppearance.backgroundColor = backgroundColor
+		}
 	}
 	
-	public init() {
-		super.init(navigationBarClass: NavigationFlowBar.self, toolbarClass: nil)
+	func set(shadowColor: UIColor) {
+		shadowImage = UIImage(color: shadowColor)
+		if #available(iOS 13.0, *) {
+			standardAppearance.shadowColor = shadowColor
+		}
 	}
 }
 
-public final class NavigationFlowBar: UINavigationBar {
-	
-	public required init?(coder: NSCoder) {
-		super.init(coder: coder)
-		afterInit()
+enum NavigationFlowBarColorKey: EnvironmentKey {
+	static var defaultValue: Color { .clear }
+}
+
+enum NavigationFlowShadowColorKey: EnvironmentKey {
+	static var defaultValue: Color { .clear }
+}
+
+enum NavigationFlowTitleFontKey: EnvironmentKey {
+	static var defaultValue: UIFont? { nil }
+}
+
+enum NavigationFlowTitleColorKey: EnvironmentKey {
+	static var defaultValue: Color? { nil }
+}
+
+enum NavigationFlowLargeTitleKey: EnvironmentKey {
+	static var defaultValue: Bool { true }
+}
+
+enum NavigationFlowBackImageKey: EnvironmentKey {
+	static var defaultValue: UIImage? { nil }
+}
+
+enum NavigationFlowShowBackText: EnvironmentKey {
+	static var defaultValue: Bool { false }
+}
+
+extension EnvironmentValues {
+	public var navigationFlowBarColor: Color {
+		get { self[NavigationFlowBarColorKey.self] }
+		set { self[NavigationFlowBarColorKey.self] = newValue }
 	}
 	
-	public override init(frame: CGRect) {
-		super.init(frame: frame)
-		afterInit()
+	public var navigationFlowBarShadowColor: Color {
+		get { self[NavigationFlowShadowColorKey.self] }
+		set { self[NavigationFlowShadowColorKey.self] = newValue }
 	}
 	
-	private func afterInit() {
-		self.setBackgroundImage(UIImage(), for: .default)
-		self.shadowImage = UIImage()
-		self.isTranslucent = true
-		self.backgroundColor = .clear
-		if #available(iOS 13.0, *) {
-			self.standardAppearance.backgroundColor = .clear
-			self.standardAppearance.backgroundEffect = .none
-			self.standardAppearance.shadowColor = .clear
+	public var navigationFlowTitleFont: UIFont? {
+		get { self[NavigationFlowTitleFontKey.self] }
+		set { self[NavigationFlowTitleFontKey.self] = newValue }
+	}
+	
+	public var navigationFlowTitleColor: Color? {
+		get { self[NavigationFlowTitleColorKey.self] }
+		set { self[NavigationFlowTitleColorKey.self] = newValue }
+	}
+	
+	public var navigationFlowLargeTitle: Bool {
+		get { self[NavigationFlowLargeTitleKey.self] }
+		set { self[NavigationFlowLargeTitleKey.self] = newValue }
+	}
+	
+	public var navigationFlowBackImage: UIImage? {
+		get { self[NavigationFlowBackImageKey.self] }
+		set { self[NavigationFlowBackImageKey.self] = newValue }
+	}
+	
+	public var navigationFlowShowBackText: Bool {
+		get { self[NavigationFlowShowBackText.self] }
+		set { self[NavigationFlowShowBackText.self] = newValue }
+	}
+}
+
+extension Color {
+	var ui: UIColor {
+		if #available(iOS 14.0, *) {
+			return UIColor(self)
+		} else {
+			if self == .clear { return .clear }
+			let scanner = Scanner(string: self.description.trimmingCharacters(in: CharacterSet.alphanumerics.inverted))
+			var hexNumber: UInt64 = 0
+			var r: CGFloat = 0.0, g: CGFloat = 0.0, b: CGFloat = 0.0, a: CGFloat = 0.0
+			
+			let result = scanner.scanHexInt64(&hexNumber)
+			if result {
+				r = CGFloat((hexNumber & 0xff000000) >> 24) / 255
+				g = CGFloat((hexNumber & 0x00ff0000) >> 16) / 255
+				b = CGFloat((hexNumber & 0x0000ff00) >> 8) / 255
+				a = CGFloat(hexNumber & 0x000000ff) / 255
+			}
+			return UIColor(red: r, green: g, blue: b, alpha: a)
 		}
 	}
 }
