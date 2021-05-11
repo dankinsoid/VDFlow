@@ -24,7 +24,7 @@ final class ControllersVisitor: IterableViewVisitor {
 	func visit<V: View>(_ value: V) -> Bool {
 		if index == nil {
 			let tag = value.viewTag
-			if tag != nil, let result = current.first(where: { $0.anyFlowId?.inner == tag?.inner }) {
+			if tag != nil, let result = current.first(where: { $0.anyFlowId == tag }) {
 				if let host = result as? UIHostingController<V> {
 					host.rootView = value
 				}

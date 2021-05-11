@@ -76,16 +76,11 @@ extension UIViewController {
 	}
 }
 
-private protocol WrapperId {
-	var id: AnyHashable { get }
-}
-
-private final class Wrapper<T: Hashable>: WrapperId {
-	var value: T
-	var id: AnyHashable { value }
+private final class Wrapper {
+	var id: AnyHashable
 	
-	init(_ value: T) {
-		self.value = value
+	init(_ value: AnyHashable) {
+		id = value
 	}
 }
 
@@ -93,19 +88,11 @@ private var flowIdKey = "flowIdKey"
 
 extension NSObject {
 	
-	func flowId<ID: Hashable>(of type: ID.Type) -> ID? {
-		(objc_getAssociatedObject(self, &flowIdKey) as? WrapperId)?.id.base as? ID
-	}
-	
-	func isFlowId<ID: Hashable>(_ id: ID) -> Bool {
-		flowId(of: ID.self) == id
-	}
-	
-	func setFlowId<ID: Hashable>(_ id: ID) {
+	func setFlowId(_ id: AnyHashable) {
 		objc_setAssociatedObject(self, &flowIdKey, Wrapper(id), .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
 	}
 	
-	var anyFlowId: AnyHashable? { (objc_getAssociatedObject(self, &flowIdKey) as? WrapperId)?.id }
+	var anyFlowId: AnyHashable? { (objc_getAssociatedObject(self, &flowIdKey) as? Wrapper)?.id }
 }
 
 extension Array where Element: NSObject {
@@ -117,8 +104,4 @@ extension Array where Element: NSObject {
 		}
 		return Array(prefix(i))
 	}
-}
-
-extension AnyHashable {
-	var inner: AnyHashable { (base as? AnyHashable)?.inner ?? self }
 }
