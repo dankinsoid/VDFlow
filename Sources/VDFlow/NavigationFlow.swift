@@ -240,6 +240,36 @@ extension EnvironmentValues {
 	}
 }
 
+extension View {
+	public func navigationFlowBarColor(_ color: Color) -> some View {
+		environment(\.navigationFlowBarColor, color)
+	}
+	
+	public func navigationFlowBarShadowColor(_ color: Color) -> some View {
+		environment(\.navigationFlowBarShadowColor, color)
+	}
+	
+	public func navigationFlowTitleFont(_ font: UIFont?) -> some View {
+		environment(\.navigationFlowTitleFont, font)
+	}
+	
+	public func navigationFlowTitleColor(_ color: Color?) -> some View {
+		environment(\.navigationFlowTitleColor, color)
+	}
+	
+	public func navigationFlowLargeTitle(_ large: Bool) -> some View {
+		environment(\.navigationFlowLargeTitle, large)
+	}
+	
+	public func navigationFlowBackImage(_ image: UIImage?) -> some View {
+		environment(\.navigationFlowBackImage, image)
+	}
+	
+	public func navigationFlowShowBackText(_ show: Bool) -> some View {
+		environment(\.navigationFlowShowBackText, show)
+	}
+}
+
 extension Color {
 	var ui: UIColor {
 		if #available(iOS 14.0, *) {
