@@ -83,16 +83,22 @@ public struct NavigationFlow<Content: IterableView, Selection: Hashable>: FullSc
 		attsLarge[.foregroundColor] = context.environment.navigationFlowLargeTitleColor?.ui
 		uiViewController.navigationBar.largeTitleTextAttributes = attsLarge
 		uiViewController.navigationBar.standardAppearance.largeTitleTextAttributes = attsLarge
+		uiViewController.navigationBar.scrollEdgeAppearance?.largeTitleTextAttributes = attsLarge
+		uiViewController.navigationBar.compactAppearance?.largeTitleTextAttributes = attsLarge
 		var atts = uiViewController.navigationBar.titleTextAttributes ?? [:]
 		atts[.font] = context.environment.navigationFlowTitleFont
 		atts[.foregroundColor] = context.environment.navigationFlowTitleColor?.ui
 		uiViewController.navigationBar.titleTextAttributes = atts
 		uiViewController.navigationBar.standardAppearance.titleTextAttributes = atts
+		uiViewController.navigationBar.scrollEdgeAppearance?.titleTextAttributes = atts
+		uiViewController.navigationBar.compactAppearance?.titleTextAttributes = atts
 		uiViewController.navigationBar.prefersLargeTitles = context.environment.navigationFlowLargeTitle
 		let backImage = context.environment.navigationFlowBackImage
 		uiViewController.navigationBar.backIndicatorImage = backImage
 		uiViewController.navigationBar.backIndicatorTransitionMaskImage = backImage
 		uiViewController.navigationBar.standardAppearance.setBackIndicatorImage(backImage, transitionMaskImage: backImage)
+		uiViewController.navigationBar.scrollEdgeAppearance?.setBackIndicatorImage(backImage, transitionMaskImage: backImage)
+		uiViewController.navigationBar.compactAppearance?.setBackIndicatorImage(backImage, transitionMaskImage: backImage)
 		
 		if !context.environment.navigationFlowShowBackText {
 			uiViewController.navigationBar.backItem?.title = ""
@@ -188,6 +194,7 @@ extension UINavigationBar {
 				coloredAppearance.configureWithOpaqueBackground()
 				coloredAppearance.backgroundColor = backgroundColor
 				scrollEdgeAppearance = coloredAppearance
+				compactAppearance = coloredAppearance
 			}
 		}
 	}
@@ -197,6 +204,7 @@ extension UINavigationBar {
 		if #available(iOS 13.0, *) {
 			standardAppearance.shadowColor = shadowColor
 			scrollEdgeAppearance?.shadowColor = shadowColor
+			compactAppearance?.shadowColor = shadowColor
 		}
 	}
 }
