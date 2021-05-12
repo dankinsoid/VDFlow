@@ -49,7 +49,6 @@ public struct NavigationFlow<Content: IterableView, Selection: Hashable>: FullSc
 		if let first = visitor.vc {
 			vc.setViewControllers([first], animated: false)
 		}
-		vc.navigationBar.setBackgroundImage(UIImage(), for: .default)
 		return vc
 	}
 	
@@ -184,18 +183,16 @@ fileprivate var strongDelegateKey = "strongDelegateKey"
 extension UINavigationBar {
 	
 	func set(backgroundColor: UIColor) {
-		isTranslucent = backgroundColor.alpha < 1
+		isTranslucent = true
 		barTintColor = backgroundColor
 		self.backgroundColor = backgroundColor
 		if #available(iOS 13.0, *) {
-			standardAppearance.backgroundColor = backgroundColor
-			if !isTranslucent {
-				let coloredAppearance = UINavigationBarAppearance()
-				coloredAppearance.configureWithOpaqueBackground()
-				coloredAppearance.backgroundColor = backgroundColor
-				scrollEdgeAppearance = coloredAppearance
-				compactAppearance = coloredAppearance
-			}
+			let coloredAppearance = UINavigationBarAppearance()
+			coloredAppearance.configureWithOpaqueBackground()
+			coloredAppearance.backgroundColor = backgroundColor
+			standardAppearance = coloredAppearance
+			scrollEdgeAppearance = coloredAppearance
+			compactAppearance = coloredAppearance
 		}
 	}
 	
