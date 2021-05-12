@@ -53,7 +53,11 @@ enum NavigationFlowShowBackText: EnvironmentKey {
 }
 
 enum NavigationFlowBarPadding: EnvironmentKey {
-	static var defaultValue: EdgeInsets { .init() }
+	static var defaultValue: EdgeInsets? { nil }
+}
+
+enum NavigationFlowLargeTitleMode: EnvironmentKey {
+	static var defaultValue: UINavigationItem.LargeTitleDisplayMode { .automatic }
 }
 
 extension EnvironmentValues {
@@ -102,9 +106,14 @@ extension EnvironmentValues {
 		set { self[NavigationFlowShowBackText.self] = newValue }
 	}
 	
-	public var navigationFlowBarPadding: EdgeInsets {
+	public var navigationFlowBarPadding: EdgeInsets? {
 		get { self[NavigationFlowBarPadding.self] }
 		set { self[NavigationFlowBarPadding.self] = newValue }
+	}
+	
+	public var navigationFlowLargeTitleMode: UINavigationItem.LargeTitleDisplayMode {
+		get { self[NavigationFlowLargeTitleMode.self] }
+		set { self[NavigationFlowLargeTitleMode.self] = newValue }
 	}
 }
 
@@ -137,6 +146,10 @@ extension NavigationFlowModifiers {
 		view.environment(\.navigationFlowLargeTitle, large)
 	}
 	
+	public func largeTitleMode(_ mode: UINavigationItem.LargeTitleDisplayMode) -> some View {
+		view.environment(\.navigationFlowLargeTitleMode, mode)
+	}
+	
 	public func backImage(_ image: UIImage?) -> some View {
 		view.environment(\.navigationFlowBackImage, image)
 	}
@@ -145,7 +158,7 @@ extension NavigationFlowModifiers {
 		view.environment(\.navigationFlowShowBackText, show)
 	}
 	
-	public func barPadding(_ edges: EdgeInsets) -> some View {
+	public func barPadding(_ edges: EdgeInsets?) -> some View {
 		view.environment(\.navigationFlowBarPadding, edges)
 	}
 }

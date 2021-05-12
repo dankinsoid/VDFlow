@@ -63,9 +63,10 @@ public struct NavigationFlow<Content: IterableView, Selection: Hashable>: FullSc
 		if let i = vcs.firstIndex(where: { $0.isDisabledBack }), i > 0 {
 			vcs.removeFirst(i - 1)
 		}
-		vcs.compactMap({ $0 as? ObservableControllerType }).forEach {
-			_ = $0.on(.willAppear, id: observeId) {[weak uiViewController] _ in
+		vcs.compactMap({ $0 as? ObservableControllerType }).forEach { vc in
+			_ = vc.on(.willAppear, id: observeId) {[weak uiViewController, weak vc] _ in
 				guard let nc = uiViewController else { return }
+				vc?.navigationItem.largeTitleDisplayMode = context.environment.navigationFlowLargeTitleMode
 				updateStyle(nc, context: context)
 			}
 		}
@@ -93,8 +94,9 @@ public struct NavigationFlow<Content: IterableView, Selection: Hashable>: FullSc
 		if !context.environment.navigationFlowShowBackText {
 			uiViewController.navigationBar.backItem?.title = ""
 		}
-		let insets = context.environment.navigationFlowBarPadding
-		uiViewController.navigationBar.layoutMargins = UIEdgeInsets(top: insets.top, left: insets.leading, bottom: insets.bottom, right: insets.trailing)
+		if let insets = context.environment.navigationFlowBarPadding {
+			uiViewController.navigationBar.layoutMargins = UIEdgeInsets(top: insets.top, left: insets.leading, bottom: insets.bottom, right: insets.trailing)
+		}
 	}
 }
 
