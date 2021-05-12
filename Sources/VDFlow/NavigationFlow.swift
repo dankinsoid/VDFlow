@@ -14,6 +14,7 @@ public struct NavigationFlow<Content: IterableView, Selection: Hashable>: FullSc
 	
 	public let createController: () -> UINavigationController
 	public let content: Content
+	private let observeId = "navigationFlow"
 	@Binding private var id: Selection?
 	
 	public init(create: @escaping () -> UINavigationController, _ selection: Binding<Selection?>, content: Content) {
@@ -63,11 +64,15 @@ public struct NavigationFlow<Content: IterableView, Selection: Hashable>: FullSc
 		if let i = vcs.firstIndex(where: { $0.isDisabledBack }), i > 0 {
 			vcs.removeFirst(i - 1)
 		}
+		vcs.compactMap({ $0 as? ObservableControllerType }).forEach {
+			_ = $0.on(.willAppear, id: observeId) {[weak uiViewController] _ in
+				guard let nc = uiViewController else { return }
+				updateStyle(nc, context: context)
+			}
+		}
 		guard vcs != uiViewController.viewControllers else { return }
 		let animated = FlowStep.isAnimated && uiViewController.view?.window != nil
-//		content.dismissPresented(animated: animated) {
 		uiViewController.set(viewControllers: vcs, animated: animated)
-//		}
 	}
 	
 	private func updateStyle(_ uiViewController: UINavigationController, context: Context) {
