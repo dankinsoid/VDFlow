@@ -76,21 +76,24 @@ public struct NavigationFlow<Content: IterableView, Selection: Hashable>: FullSc
 	}
 	
 	private func updateStyle(_ uiViewController: UINavigationController, context: Context) {
-		let color = context.environment.navigationFlowBarColor.ui
-//		uiViewController.view?.backgroundColor = color
-		uiViewController.navigationBar.set(backgroundColor: color)
+		uiViewController.navigationBar.set(backgroundColor: context.environment.navigationFlowBarColor.ui)
 		uiViewController.navigationBar.set(shadowColor: context.environment.navigationFlowBarShadowColor.ui)
 		var attsLarge = uiViewController.navigationBar.largeTitleTextAttributes ?? [:]
 		attsLarge[.font] = context.environment.navigationFlowLargeTitleFont
 		attsLarge[.foregroundColor] = context.environment.navigationFlowLargeTitleColor?.ui
 		uiViewController.navigationBar.largeTitleTextAttributes = attsLarge
+		uiViewController.navigationBar.standardAppearance.largeTitleTextAttributes = attsLarge
 		var atts = uiViewController.navigationBar.titleTextAttributes ?? [:]
 		atts[.font] = context.environment.navigationFlowTitleFont
 		atts[.foregroundColor] = context.environment.navigationFlowTitleColor?.ui
 		uiViewController.navigationBar.titleTextAttributes = atts
+		uiViewController.navigationBar.standardAppearance.titleTextAttributes = atts
 		uiViewController.navigationBar.prefersLargeTitles = context.environment.navigationFlowLargeTitle
-		uiViewController.navigationBar.backIndicatorImage = context.environment.navigationFlowBackImage
-		uiViewController.navigationBar.backIndicatorTransitionMaskImage = context.environment.navigationFlowBackImage
+		let backImage = context.environment.navigationFlowBackImage
+		uiViewController.navigationBar.backIndicatorImage = backImage
+		uiViewController.navigationBar.backIndicatorTransitionMaskImage = backImage
+		uiViewController.navigationBar.standardAppearance.setBackIndicatorImage(backImage, transitionMaskImage: backImage)
+		
 		if !context.environment.navigationFlowShowBackText {
 			uiViewController.navigationBar.backItem?.title = ""
 		}
