@@ -54,7 +54,6 @@ public struct NavigationFlow<Content: IterableView, Selection: Hashable>: FullSc
 	}
 	
 	public func updateUIViewController(_ uiViewController: UINavigationController, context: Context) {
-		updateStyle(uiViewController, context: context)
 		guard let id = self.id else { return }
 		let visitor = ControllersVisitor(current: uiViewController.viewControllers, upTo: id)
 		_ = content.iterate(with: visitor)
@@ -76,17 +75,26 @@ public struct NavigationFlow<Content: IterableView, Selection: Hashable>: FullSc
 	}
 	
 	private func updateStyle(_ uiViewController: UINavigationController, context: Context) {
-		uiViewController.navigationBar.set(backgroundColor: context.environment.navigationFlowBarColor.ui)
+		let color = context.environment.navigationFlowBarColor.ui
+//		uiViewController.view?.backgroundColor = color
+		uiViewController.navigationBar.set(backgroundColor: color)
 		uiViewController.navigationBar.set(shadowColor: context.environment.navigationFlowBarShadowColor.ui)
+		var attsLarge = uiViewController.navigationBar.largeTitleTextAttributes ?? [:]
+		attsLarge[.font] = context.environment.navigationFlowLargeTitleFont
+		attsLarge[.foregroundColor] = context.environment.navigationFlowLargeTitleColor?.ui
+		uiViewController.navigationBar.largeTitleTextAttributes = attsLarge
 		var atts = uiViewController.navigationBar.titleTextAttributes ?? [:]
 		atts[.font] = context.environment.navigationFlowTitleFont
 		atts[.foregroundColor] = context.environment.navigationFlowTitleColor?.ui
+		uiViewController.navigationBar.titleTextAttributes = atts
 		uiViewController.navigationBar.prefersLargeTitles = context.environment.navigationFlowLargeTitle
 		uiViewController.navigationBar.backIndicatorImage = context.environment.navigationFlowBackImage
 		uiViewController.navigationBar.backIndicatorTransitionMaskImage = context.environment.navigationFlowBackImage
 		if !context.environment.navigationFlowShowBackText {
 			uiViewController.navigationBar.backItem?.title = ""
 		}
+		let insets = context.environment.navigationFlowBarPadding
+		uiViewController.navigationBar.layoutMargins = UIEdgeInsets(top: insets.top, left: insets.leading, bottom: insets.bottom, right: insets.trailing)
 	}
 }
 
@@ -165,11 +173,17 @@ fileprivate var strongDelegateKey = "strongDelegateKey"
 extension UINavigationBar {
 	
 	func set(backgroundColor: UIColor) {
-		isTranslucent = backgroundColor == .clear
+		isTranslucent = backgroundColor.alpha < 1
 		barTintColor = backgroundColor
 		self.backgroundColor = backgroundColor
 		if #available(iOS 13.0, *) {
 			standardAppearance.backgroundColor = backgroundColor
+			if !isTranslucent {
+				let coloredAppearance = UINavigationBarAppearance()
+				coloredAppearance.configureWithOpaqueBackground()
+				coloredAppearance.backgroundColor = backgroundColor
+				scrollEdgeAppearance = coloredAppearance
+			}
 		}
 	}
 	
@@ -177,102 +191,8 @@ extension UINavigationBar {
 		shadowImage = UIImage(color: shadowColor)
 		if #available(iOS 13.0, *) {
 			standardAppearance.shadowColor = shadowColor
+			scrollEdgeAppearance?.shadowColor = shadowColor
 		}
-	}
-}
-
-enum NavigationFlowBarColorKey: EnvironmentKey {
-	static var defaultValue: Color { .clear }
-}
-
-enum NavigationFlowShadowColorKey: EnvironmentKey {
-	static var defaultValue: Color { .clear }
-}
-
-enum NavigationFlowTitleFontKey: EnvironmentKey {
-	static var defaultValue: UIFont? { nil }
-}
-
-enum NavigationFlowTitleColorKey: EnvironmentKey {
-	static var defaultValue: Color? { nil }
-}
-
-enum NavigationFlowLargeTitleKey: EnvironmentKey {
-	static var defaultValue: Bool { true }
-}
-
-enum NavigationFlowBackImageKey: EnvironmentKey {
-	static var defaultValue: UIImage? { nil }
-}
-
-enum NavigationFlowShowBackText: EnvironmentKey {
-	static var defaultValue: Bool { false }
-}
-
-extension EnvironmentValues {
-	public var navigationFlowBarColor: Color {
-		get { self[NavigationFlowBarColorKey.self] }
-		set { self[NavigationFlowBarColorKey.self] = newValue }
-	}
-	
-	public var navigationFlowBarShadowColor: Color {
-		get { self[NavigationFlowShadowColorKey.self] }
-		set { self[NavigationFlowShadowColorKey.self] = newValue }
-	}
-	
-	public var navigationFlowTitleFont: UIFont? {
-		get { self[NavigationFlowTitleFontKey.self] }
-		set { self[NavigationFlowTitleFontKey.self] = newValue }
-	}
-	
-	public var navigationFlowTitleColor: Color? {
-		get { self[NavigationFlowTitleColorKey.self] }
-		set { self[NavigationFlowTitleColorKey.self] = newValue }
-	}
-	
-	public var navigationFlowLargeTitle: Bool {
-		get { self[NavigationFlowLargeTitleKey.self] }
-		set { self[NavigationFlowLargeTitleKey.self] = newValue }
-	}
-	
-	public var navigationFlowBackImage: UIImage? {
-		get { self[NavigationFlowBackImageKey.self] }
-		set { self[NavigationFlowBackImageKey.self] = newValue }
-	}
-	
-	public var navigationFlowShowBackText: Bool {
-		get { self[NavigationFlowShowBackText.self] }
-		set { self[NavigationFlowShowBackText.self] = newValue }
-	}
-}
-
-extension View {
-	public func navigationFlowBarColor(_ color: Color) -> some View {
-		environment(\.navigationFlowBarColor, color)
-	}
-	
-	public func navigationFlowBarShadowColor(_ color: Color) -> some View {
-		environment(\.navigationFlowBarShadowColor, color)
-	}
-	
-	public func navigationFlowTitleFont(_ font: UIFont?) -> some View {
-		environment(\.navigationFlowTitleFont, font)
-	}
-	
-	public func navigationFlowTitleColor(_ color: Color?) -> some View {
-		environment(\.navigationFlowTitleColor, color)
-	}
-	
-	public func navigationFlowLargeTitle(_ large: Bool) -> some View {
-		environment(\.navigationFlowLargeTitle, large)
-	}
-	
-	public func navigationFlowBackImage(_ image: UIImage?) -> some View {
-		environment(\.navigationFlowBackImage, image)
-	}
-	
-	public func navigationFlowShowBackText(_ show: Bool) -> some View {
-		environment(\.navigationFlowShowBackText, show)
 	}
 }
 
@@ -295,5 +215,11 @@ extension Color {
 			}
 			return UIColor(red: r, green: g, blue: b, alpha: a)
 		}
+	}
+}
+
+extension UIColor {
+	var alpha: CGFloat {
+		cgColor.alpha
 	}
 }
