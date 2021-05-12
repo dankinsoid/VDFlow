@@ -167,6 +167,7 @@ extension UINavigationBar {
 	func set(backgroundColor: UIColor) {
 		isTranslucent = backgroundColor == .clear
 		barTintColor = backgroundColor
+		self.backgroundColor = backgroundColor
 		if #available(iOS 13.0, *) {
 			standardAppearance.backgroundColor = backgroundColor
 		}
