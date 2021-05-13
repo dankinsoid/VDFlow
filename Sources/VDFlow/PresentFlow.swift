@@ -46,22 +46,18 @@ public struct PresentFlow<Content: IterableView, Selection: Hashable>: FullScree
 				_id.wrappedValue = newId
 			}
 		}
-		result.onAppear = update
+//		result.onAppear = update
 		result.style = style
 		result.presentClosure = present
 		return result
 	}
 	
 	public func updateUIViewController(_ uiViewController: PresentViewController, context: Context) {
-		update(uiViewController)
-	}
-	
-	private func update(_ uiViewController: PresentViewController) {
 		guard let id = self.id else { return }
 		let visitor = ControllersVisitor(current: uiViewController.viewControllers, upTo: id)
 		_ = self.content.iterate(with: visitor)
 		guard visitor.index != nil else { return }
-		uiViewController.set(visitor.new.compactMap { $0 as? ObservableControllerType }, animated: FlowStep.isAnimated)
+		uiViewController.set(visitor.new.compactMap { $0 as? ObservableControllerType }, animated: context.transaction.animation != nil)
 	}
 }
 

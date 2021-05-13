@@ -18,7 +18,6 @@ public struct FlowPath: ExpressibleByArrayLiteral, RangeReplaceableCollection, C
 	}
 	
 	public static func set(_ new: FlowPath, animation: Animation?) {
-		FlowStep.isAnimated = animation != nil
 		if let animation = animation {
 			withAnimation(animation) {
 				FlowViewModel.root.go(to: new)

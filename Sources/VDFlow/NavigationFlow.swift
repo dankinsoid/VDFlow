@@ -70,7 +70,7 @@ public struct NavigationFlow<Content: IterableView, Selection: Hashable>: FullSc
 			}
 		}
 		guard vcs != uiViewController.viewControllers else { return }
-		let animated = FlowStep.isAnimated && uiViewController.view?.window != nil
+		let animated = context.transaction.animation != nil && uiViewController.view?.window != nil
 		uiViewController.set(viewControllers: vcs, animated: animated)
 	}
 	

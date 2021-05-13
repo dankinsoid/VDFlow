@@ -24,8 +24,6 @@ public struct FlowStep: CustomStringConvertible {
 		FlowPath.set([new], animation: animation)
 	}
 	
-	internal(set) public static var isAnimated = false
-	
 	public var id: AnyHashable
 	public var data: Any?
 	public var description: String {
