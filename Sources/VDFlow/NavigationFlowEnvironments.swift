@@ -60,6 +60,10 @@ enum NavigationFlowLargeTitleMode: EnvironmentKey {
 	static var defaultValue: UINavigationItem.LargeTitleDisplayMode { .automatic }
 }
 
+enum NavigationFlowBarAccentColorKey: EnvironmentKey {
+	static var defaultValue: Color { .accentColor }
+}
+
 extension EnvironmentValues {
 	public var navigationFlowBarColor: Color {
 		get { self[NavigationFlowBarColorKey.self] }
@@ -115,6 +119,11 @@ extension EnvironmentValues {
 		get { self[NavigationFlowLargeTitleMode.self] }
 		set { self[NavigationFlowLargeTitleMode.self] = newValue }
 	}
+	
+	public var navigationFlowBarAccentColor: Color {
+		get { self[NavigationFlowBarAccentColorKey.self] }
+		set { self[NavigationFlowBarAccentColorKey.self] = newValue }
+	}
 }
 
 extension NavigationFlowModifiers {
@@ -160,5 +169,9 @@ extension NavigationFlowModifiers {
 	
 	public func barPadding(_ edges: EdgeInsets?) -> some View {
 		view.environment(\.navigationFlowBarPadding, edges)
+	}
+	
+	public func barAccentColor(_ color: Color) -> some View {
+		view.environment(\.navigationFlowBarAccentColor, color)
 	}
 }

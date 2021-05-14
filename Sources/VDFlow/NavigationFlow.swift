@@ -98,6 +98,7 @@ public struct NavigationFlow<Content: IterableView, Selection: Hashable>: FullSc
 		uiViewController.navigationBar.standardAppearance.setBackIndicatorImage(backImage, transitionMaskImage: backImage)
 		uiViewController.navigationBar.scrollEdgeAppearance?.setBackIndicatorImage(backImage, transitionMaskImage: backImage)
 		uiViewController.navigationBar.compactAppearance?.setBackIndicatorImage(backImage, transitionMaskImage: backImage)
+		uiViewController.navigationBar.tintColor = context.environment.navigationFlowBarAccentColor.ui
 		
 		if !context.environment.navigationFlowShowBackText {
 			uiViewController.navigationBar.backItem?.title = ""
