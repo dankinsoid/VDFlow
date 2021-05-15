@@ -8,14 +8,6 @@
 import UIKit
 import SwiftUI
 
-public struct NavigationFlowModifiers<T: View> {
-	let view: T
-}
-
-extension View {
-	public var navigationFlow: NavigationFlowModifiers<Self> { .init(view: self) }
-}
-
 enum NavigationFlowBarColorKey: EnvironmentKey {
 	static var defaultValue: Color { .clear }
 }
@@ -126,52 +118,53 @@ extension EnvironmentValues {
 	}
 }
 
-extension NavigationFlowModifiers {
-	public func barColor(_ color: Color) -> some View {
-		view.environment(\.navigationFlowBarColor, color)
+extension View {
+	
+	public func navigationFlow(barColor color: Color) -> some View {
+		environment(\.navigationFlowBarColor, color)
 	}
 	
-	public func barShadowColor(_ color: Color) -> some View {
-		view.environment(\.navigationFlowBarShadowColor, color)
+	public func navigationFlow(barShadowColor color: Color) -> some View {
+		environment(\.navigationFlowBarShadowColor, color)
 	}
 	
-	public func largeTitleFont(_ font: UIFont?) -> some View {
-		view.environment(\.navigationFlowLargeTitleFont, font)
+	public func navigationFlow(largeTitleFont font: UIFont?) -> some View {
+		environment(\.navigationFlowLargeTitleFont, font)
 	}
 	
-	public func largeTitleColor(_ color: Color?) -> some View {
-		view.environment(\.navigationFlowLargeTitleColor, color)
+	public func navigationFlow(largeTitleColor color: Color?) -> some View {
+		environment(\.navigationFlowLargeTitleColor, color)
 	}
 	
-	public func titleFont(_ font: UIFont?) -> some View {
-		view.environment(\.navigationFlowTitleFont, font)
+	public func navigationFlow(titleFont font: UIFont?) -> some View {
+		environment(\.navigationFlowTitleFont, font)
 	}
 	
-	public func titleColor(_ color: Color?) -> some View {
-		view.environment(\.navigationFlowTitleColor, color)
+	public func navigationFlow(titleColor color: Color?) -> some View {
+		environment(\.navigationFlowTitleColor, color)
 	}
 	
-	public func prefersLargeTitle(_ large: Bool) -> some View {
-		view.environment(\.navigationFlowLargeTitle, large)
+	public func navigationFlow(prefersLargeTitle large: Bool) -> some View {
+		environment(\.navigationFlowLargeTitle, large)
 	}
 	
-	public func largeTitleMode(_ mode: UINavigationItem.LargeTitleDisplayMode) -> some View {
-		view.environment(\.navigationFlowLargeTitleMode, mode)
+	public func navigationFlow(largeTitleMode mode: UINavigationItem.LargeTitleDisplayMode) -> some View {
+		environment(\.navigationFlowLargeTitleMode, mode)
 	}
 	
-	public func backImage(_ image: UIImage?) -> some View {
-		view.environment(\.navigationFlowBackImage, image)
+	public func navigationFlow(backImage image: UIImage?) -> some View {
+		environment(\.navigationFlowBackImage, image)
 	}
 	
-	public func showBackText(_ show: Bool) -> some View {
-		view.environment(\.navigationFlowShowBackText, show)
+	public func navigationFlow(showBackText show: Bool) -> some View {
+		environment(\.navigationFlowShowBackText, show)
 	}
 	
-	public func barPadding(_ edges: EdgeInsets?) -> some View {
-		view.environment(\.navigationFlowBarPadding, edges)
+	public func navigationFlow(barPadding edges: EdgeInsets?) -> some View {
+		environment(\.navigationFlowBarPadding, edges)
 	}
 	
-	public func barAccentColor(_ color: Color) -> some View {
-		view.environment(\.navigationFlowBarAccentColor, color)
+	public func navigationFlow(barAccentColor color: Color) -> some View {
+		environment(\.navigationFlowBarAccentColor, color)
 	}
 }
