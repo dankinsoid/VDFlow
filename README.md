@@ -33,6 +33,9 @@ struct Tab0View: View {
     }
   }
 }
+...
+
+FlowPath.current = [.id(0), .id("1")]
 ```
 ## Usage
 //TODO
