@@ -13,7 +13,7 @@ let package = Package(
 		.library(name: "VDFlow", targets: ["VDFlow"]),
 	],
 	dependencies: [
-		.package(url: "https://github.com/dankinsoid/VDKit.git", from: "1.48.0"),
+		.package(url: "https://github.com/dankinsoid/VDKit.git", from: "1.62.0"),
 	],
 	targets: [
 		.target(name: "VDFlow", dependencies: ["VDKit"])

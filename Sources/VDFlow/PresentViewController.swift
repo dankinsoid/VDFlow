@@ -45,7 +45,6 @@ public final class PresentViewController: UIViewController {
 //		}
 		viewControllers.forEach(update)
 		set(root: viewControllers[0])
-		print(view?.window == nil, isAppear, (viewControllers + self.viewControllers).contains(where: { $0.isBeingPresented }))
 		guard view?.window != nil else {
 //					!isAppear && !(viewControllers + self.viewControllers).contains(where: { $0.isBeingPresented }) else {
 			completion?()
