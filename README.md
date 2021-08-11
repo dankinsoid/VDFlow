@@ -9,16 +9,33 @@ struct AppFlow: View {
   @FlowState var flowId = 0
 
   var body: some View {
-    TabView(selection: $page) {
+    TabView(selection: $flowId) {
       Tab0View()
-	.flow(_page, for: 0)
+	.flow(_flowId, for: 0)
       Tab1View()
 	.tag(1)
       Tab1View()
-	.flow(_page, for: 2)
+	.flow(_flowId, for: 2)
     }
   }
 }
+
+struct Tab0View: View {
+  
+  @FlowState var flowId = "1"
+
+  var body: some View {
+    NavigationFlow($flowId) {
+      View1()
+	.flow(_flowId, for: "0")
+      View2()
+	.tag("1")
+    }
+  }
+}
+...
+
+FlowPath.current = [.id(0), .id("1")]
 ```
 ## Usage
 //TODO
