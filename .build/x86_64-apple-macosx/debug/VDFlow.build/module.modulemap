@@ -1,0 +1,4 @@
+module VDFlow {
+    header "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDFlow.build/VDFlow-Swift.h"
+    requires objc
+}

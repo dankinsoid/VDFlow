@@ -1,1 +1,1 @@
-{"object": {"artifacts": [], "dependencies": []}, "version": 4}
+{"object": {"artifacts": [], "dependencies": [{"basedOn": null, "packageRef": {"identity": "vdkit", "kind": "remote", "name": "VDKit", "path": "https://github.com/dankinsoid/VDKit.git"}, "state": {"checkoutState": {"branch": null, "revision": "ca03d97530559356663a7a6d716914dfebc15067", "version": "1.83.0"}, "name": "checkout"}, "subpath": "VDKit"}]}, "version": 4}

@@ -1,0 +1,461 @@
+{
+  "": {
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/master.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/ArrayBuilder.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/ArrayBuilder.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/ArrayBuilder.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/ArrayBuilder~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/ArrayBuilder.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/Bool++.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/Bool++.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/Bool++.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/Bool++~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/Bool++.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/Chaining.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/Chaining.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/Chaining.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/Chaining~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/Chaining.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/Clojures.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/Clojures.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/Clojures.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/Clojures~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/Clojures.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/Collection++.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/Collection++.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/Collection++.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/Collection++~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/Collection++.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/CollectionDifference++.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/CollectionDifference++.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/CollectionDifference++.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/CollectionDifference++~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/CollectionDifference++.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/ComposeBuilder.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/ComposeBuilder.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/ComposeBuilder.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/ComposeBuilder~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/ComposeBuilder.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/Date++.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/Date++.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/Date++.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/Date++~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/Date++.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/Decimal++.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/Decimal++.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/Decimal++.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/Decimal++~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/Decimal++.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/GetterSetter.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/GetterSetter.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/GetterSetter.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/GetterSetter~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/GetterSetter.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/Lazy.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/Lazy.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/Lazy.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/Lazy~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/Lazy.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/Locale++.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/Locale++.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/Locale++.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/Locale++~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/Locale++.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/Lock++.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/Lock++.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/Lock++.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/Lock++~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/Lock++.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/Mirror++.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/Mirror++.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/Mirror++.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/Mirror++~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/Mirror++.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/OffsetBounds.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/OffsetBounds.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/OffsetBounds.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/OffsetBounds~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/OffsetBounds.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/Pair.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/Pair.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/Pair.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/Pair~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/Pair.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/Pattern.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/Pattern.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/Pattern.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/Pattern~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/Pattern.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/Range++.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/Range++.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/Range++.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/Range++~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/Range++.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/Result++.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/Result++.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/Result++.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/Result++~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/Result++.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/Runtime++.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/Runtime++.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/Runtime++.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/Runtime++~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/Runtime++.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/SingleBuilder.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SingleBuilder.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SingleBuilder.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SingleBuilder~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SingleBuilder.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/String++.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/String++.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/String++.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/String++~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/String++.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/SwiftUIExtensions/ArrayView.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/ArrayView.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/ArrayView.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/ArrayView~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/ArrayView.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/SwiftUIExtensions/Backdrop.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/Backdrop.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/Backdrop.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/Backdrop~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/Backdrop.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/SwiftUIExtensions/Binding++.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/Binding++.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/Binding++.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/Binding++~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/Binding++.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/SwiftUIExtensions/Blur.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/Blur.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/Blur.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/Blur~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/Blur.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/SwiftUIExtensions/Color++.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/Color++.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/Color++.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/Color++~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/Color++.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/SwiftUIExtensions/EdgeInsets++.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/EdgeInsets++.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/EdgeInsets++.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/EdgeInsets++~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/EdgeInsets++.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/SwiftUIExtensions/EmptyViewIterable.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/EmptyViewIterable.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/EmptyViewIterable.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/EmptyViewIterable~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/EmptyViewIterable.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/SwiftUIExtensions/Envionment++.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/Envionment++.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/Envionment++.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/Envionment++~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/Envionment++.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/SwiftUIExtensions/EnvironmentViewBuilder.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/EnvironmentViewBuilder.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/EnvironmentViewBuilder.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/EnvironmentViewBuilder~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/EnvironmentViewBuilder.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/SwiftUIExtensions/Field.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/Field.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/Field.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/Field~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/Field.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/SwiftUIExtensions/Font++.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/Font++.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/Font++.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/Font++~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/Font++.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/SwiftUIExtensions/Geometry++.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/Geometry++.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/Geometry++.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/Geometry++~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/Geometry++.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/SwiftUIExtensions/Hosting++.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/Hosting++.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/Hosting++.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/Hosting++~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/Hosting++.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/SwiftUIExtensions/IfView.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/IfView.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/IfView.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/IfView~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/IfView.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/SwiftUIExtensions/Image++.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/Image++.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/Image++.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/Image++~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/Image++.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/SwiftUIExtensions/IterableView.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/IterableView.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/IterableView.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/IterableView~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/IterableView.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/SwiftUIExtensions/IterableViewBuilder.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/IterableViewBuilder.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/IterableViewBuilder.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/IterableViewBuilder~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/IterableViewBuilder.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/SwiftUIExtensions/IterableViewVisitor.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/IterableViewVisitor.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/IterableViewVisitor.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/IterableViewVisitor~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/IterableViewVisitor.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/SwiftUIExtensions/KeyInput.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/KeyInput.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/KeyInput.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/KeyInput~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/KeyInput.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/SwiftUIExtensions/OptionalView.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/OptionalView.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/OptionalView.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/OptionalView~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/OptionalView.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/SwiftUIExtensions/Pair+Iterable.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/Pair+Iterable.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/Pair+Iterable.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/Pair+Iterable~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/Pair+Iterable.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/SwiftUIExtensions/SingleView.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/SingleView.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/SingleView.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/SingleView~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/SingleView.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/SwiftUIExtensions/TextAlignment++.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/TextAlignment++.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/TextAlignment++.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/TextAlignment++~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/TextAlignment++.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/SwiftUIExtensions/View++.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/View++.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/View++.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/View++~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/View++.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/SwiftUIExtensions/ViewTag.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/ViewTag.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/ViewTag.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/ViewTag~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/SwiftUIExtensions/ViewTag.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/UIKitExtensions/Alerts.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/Alerts.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/Alerts.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/Alerts~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/Alerts.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/UIKitExtensions/Animation++.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/Animation++.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/Animation++.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/Animation++~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/Animation++.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/UIKitExtensions/AttributedString++.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/AttributedString++.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/AttributedString++.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/AttributedString++~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/AttributedString++.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/UIKitExtensions/BlurView.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/BlurView.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/BlurView.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/BlurView~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/BlurView.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/UIKitExtensions/Bundle++.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/Bundle++.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/Bundle++.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/Bundle++~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/Bundle++.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/UIKitExtensions/CA++.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/CA++.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/CA++.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/CA++~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/CA++.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/UIKitExtensions/CALayer++.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/CALayer++.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/CALayer++.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/CALayer++~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/CALayer++.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/UIKitExtensions/CG++.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/CG++.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/CG++.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/CG++~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/CG++.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/UIKitExtensions/CGAffineTransform++.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/CGAffineTransform++.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/CGAffineTransform++.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/CGAffineTransform++~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/CGAffineTransform++.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/UIKitExtensions/Edges.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/Edges.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/Edges.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/Edges~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/Edges.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/UIKitExtensions/Reusable.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/Reusable.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/Reusable.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/Reusable~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/Reusable.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/UIKitExtensions/ShadowInView.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/ShadowInView.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/ShadowInView.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/ShadowInView~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/ShadowInView.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/UIKitExtensions/UIBackdropView.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/UIBackdropView.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/UIBackdropView.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/UIBackdropView~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/UIBackdropView.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/UIKitExtensions/UIButton++.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/UIButton++.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/UIButton++.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/UIButton++~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/UIButton++.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/UIKitExtensions/UIColor++.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/UIColor++.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/UIColor++.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/UIColor++~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/UIColor++.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/UIKitExtensions/UIFont++.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/UIFont++.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/UIFont++.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/UIFont++~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/UIFont++.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/UIKitExtensions/UIRectCorner++.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/UIRectCorner++.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/UIRectCorner++.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/UIRectCorner++~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/UIRectCorner++.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/UIKitExtensions/UIScreen++.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/UIScreen++.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/UIScreen++.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/UIScreen++~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/UIScreen++.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/UIKitExtensions/UIScrollView++.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/UIScrollView++.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/UIScrollView++.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/UIScrollView++~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/UIScrollView++.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/UIKitExtensions/UIStackView++.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/UIStackView++.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/UIStackView++.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/UIStackView++~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/UIStackView++.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/UIKitExtensions/UISwitch++.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/UISwitch++.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/UISwitch++.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/UISwitch++~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/UISwitch++.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/UIKitExtensions/UITextField++.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/UITextField++.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/UITextField++.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/UITextField++~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/UITextField++.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/UIKitExtensions/UIView++.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/UIView++.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/UIView++.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/UIView++~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/UIView++.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/UIKitExtensions/UIViewEnvironment+Ext.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/UIViewEnvironment+Ext.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/UIViewEnvironment+Ext.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/UIViewEnvironment+Ext~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/UIViewEnvironment+Ext.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/UIKitExtensions/UIViewEnvironment.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/UIViewEnvironment.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/UIViewEnvironment.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/UIViewEnvironment~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/UIViewEnvironment.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/UIKitExtensions/UIWindow++.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/UIWindow++.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/UIWindow++.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/UIWindow++~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/UIWindow++.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/UIKitExtensions/XibView.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/XibView.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/XibView.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/XibView~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UIKitExtensions/XibView.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/Union.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/Union.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/Union.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/Union~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/Union.swiftdeps"
+  },
+  "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKit/UnwrapOperator.swift": {
+    "dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UnwrapOperator.d",
+    "object": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UnwrapOperator.swift.o",
+    "swiftmodule": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UnwrapOperator~partial.swiftmodule",
+    "swift-dependencies": "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/UnwrapOperator.swiftdeps"
+  }
+}

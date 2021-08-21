@@ -1,0 +1,4 @@
+module VDKitRuntime {
+    umbrella header "/Users/danil/VDFlow/.build/checkouts/VDKit/Sources/VDKitRuntime/include/VDKitRuntime.h"
+    export *
+}
