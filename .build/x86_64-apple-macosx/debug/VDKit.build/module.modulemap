@@ -1,4 +1,0 @@
-module VDKit {
-    header "/Users/danil/VDFlow/.build/x86_64-apple-macosx/debug/VDKit.build/VDKit-Swift.h"
-    requires objc
-}
