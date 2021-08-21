@@ -22,7 +22,6 @@ struct FSModifier: ViewModifier {
         index(for: Double(count - index) - (back ? 0 : 0.5))
     }
     
-    @ViewBuilder
     func body(content: Content) -> some View {
         content
             .zIndex(zIndex)
