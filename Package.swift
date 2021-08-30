@@ -6,14 +6,13 @@ import PackageDescription
 let package = Package(
 	name: "VDFlow",
 	platforms: [
-		.macOS(.v10_13),
 		.iOS(.v13)
 	],
 	products: [
 		.library(name: "VDFlow", targets: ["VDFlow"]),
 	],
 	dependencies: [
-		.package(url: "https://github.com/dankinsoid/VDKit.git", from: "1.80.0"),
+		.package(url: "https://github.com/dankinsoid/VDKit.git", from: "1.95.0"),
 	],
 	targets: [
 		.target(name: "VDFlow", dependencies: ["VDKit"])
