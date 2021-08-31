@@ -8,11 +8,11 @@
 import Foundation
 import SwiftUI
 
-public struct FlowStep: CustomStringConvertible {
-	public static let empty = FlowStep(id: NoneID(), data: nil)
+public struct FlowStep: CustomStringConvertible, Equatable {
+    public static let empty = FlowStep.id(NoneID())
 	
 	public static var current: FlowStep {
-		get { (FlowTree.root.recursiveCurrent?.1).map { FlowStep(id: $0, data: nil) } ?? .empty }
+		get { (FlowTree.root.recursiveCurrent?.1).map { FlowStep(id: $0) } ?? .empty }
 		set { set(newValue) }
 	}
 	
@@ -25,15 +25,15 @@ public struct FlowStep: CustomStringConvertible {
 	}
 	
 	public var id: AnyHashable
-	public var data: Any?
-	public var description: String {
-		if let value = data, value as? None == nil {
-			return "(\(id): \(value))"
-		} else {
-			return id.description
-		}
+    
+    public var description: String {
+		id.description
 	}
-	
+    
+    init(id: AnyHashable) {
+        self.id = id
+    }
+    
 	public func isNode<ID: Hashable>(_ id: ID) -> Bool {
 		self.id == AnyHashable(id)
 	}
@@ -53,21 +53,25 @@ public struct FlowStep: CustomStringConvertible {
 	public func through(_ steps: FlowStep...) -> FlowPath {
 		through(steps)
 	}
+    
+//    public func encode(to encoder: Encoder) throws {
+//        if let encodable = id.base as? Encodable {
+//            try encodable.encode(to: encoder)
+//        } else {
+//            throw EncodingError.invalidValue(id.base, .init(codingPath: encoder.codingPath, debugDescription: "Non codable"))
+//        }
+//    }
 	
 	public static func id<ID: Hashable>(_ id: ID) -> FlowStep {
-		FlowStep(id: id, data: nil)
-	}
-	
-	public static func value<Data: Identifiable>(_ data: Data) -> FlowStep {
-		FlowStep(id: data.id, data: data)
-	}
+        FlowStep(id: id)
+    }
 	
 	public static func type<Content>(_ type: Content.Type) -> FlowStep {
 		id(String(reflecting: Content.self))
 	}
 }
 
-struct RootID: Hashable {
+struct RootID: Hashable, Codable, Equatable {
 	var file: String
 	var line: Int
 }

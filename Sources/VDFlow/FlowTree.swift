@@ -12,22 +12,22 @@ final class FlowTree {
 	
 	static let root = FlowTree()
 	
-	var current: (FlowTree, AnyHashable)? { nodes[id.0].map { ($0.1, id.0) } }
-	private var nodes: [AnyHashable: (Any, FlowTree)] = [:]
-	var id: (AnyHashable, Any) = (None(), None())
+	var current: (FlowTree, AnyHashable)? { nodes[id].map { ($0, id) } }
+	private var nodes: [AnyHashable: FlowTree] = [:]
+	var id: AnyHashable = None()
 	
 	var path: FlowPath {
 		FlowPath(
-			[FlowStep(id: id.0, data: id.1)] + (nodes[id.0]?.1.path.steps ?? [])
+			[FlowStep(id: id)] + (nodes[id]?.path.steps ?? [])
 		)
 	}
 	
-	subscript(_ value: Any?, id: AnyHashable) -> (FlowTree, Bool) {
-		if let result = nodes[id]?.1 {
+	subscript(_ id: AnyHashable) -> (FlowTree, Bool) {
+		if let result = nodes[id] {
 			return (result, false)
 		}
 		let tree = FlowTree()
-		nodes[id] = (value ?? None(), tree)
+		nodes[id] = tree
 		return (tree, true)
 	}
 	
@@ -36,31 +36,30 @@ final class FlowTree {
 		guard !steps.isEmpty else { return [] }
 		
 		if let pare = nodes[steps[0].id] {
-			return [(self, steps[0])] + pare.1.way(by: path.dropFirst())
+			return [(self, steps[0])] + pare.way(by: path.dropFirst())
 		}
 		
 		let result = nodes.map {
-			($0.key, $0.value.0, $0.value.1.way(by: path))
+			($0.key, $0.value.way(by: path))
 		}
-		.sorted(by: { $0.2.count < $1.2.count })
+		.sorted(by: { $0.1.count < $1.1.count })
 		.last
 		
-		if let next = result, !next.2.isEmpty {
-			return [(self, FlowStep(id: next.0, data: next.1))] + next.2
-		} else if wrappedType(of: id.0.base) == wrappedType(of: steps[0].id.base) {
+		if let next = result, !next.1.isEmpty {
+			return [(self, FlowStep(id: next.0))] + next.1
+		} else if wrappedType(of: id.base) == wrappedType(of: steps[0].id.base) {
 			return [(self, steps[0])]
 		} else {
 			return []
 		}
 	}
 	
-	func set<ID>(id: AnyHashable, value: ID?) {
-		set(FlowStep(id: id, data: value))
+	func set(id: AnyHashable) {
+		set(FlowStep(id: id))
 	}
 	
 	func set(_ step: FlowStep) {
-		nodes[step.id]?.0 = step.data ?? None()
-		self.id = (step.id, step.data ?? None())
+		self.id = step.id
 	}
 }
 

@@ -75,7 +75,7 @@ public struct FlowPath: ExpressibleByArrayLiteral, RangeReplaceableCollection, C
 	}
 }
 
-public struct NoneID: Hashable { public init() {} }
+public struct NoneID: Hashable, Codable { public init() {} }
 	
 public protocol FlowPathConvertable {
 	func asPath() -> FlowPath
