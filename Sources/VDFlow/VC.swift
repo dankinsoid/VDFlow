@@ -24,7 +24,9 @@ public struct VC<Content> {
 	}
 }
 
-extension VC: View where Content: UIViewController {}
+extension VC: View where Content: UIViewController {
+    public typealias Body = FullScreenViewControllerView<FullScreenUIViewControllerRepresentableProxy<Self>>
+}
 
 extension VC: FullScreenUIViewControllerRepresentable where Content: UIViewController {
 	
