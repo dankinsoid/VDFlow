@@ -11,22 +11,25 @@ import VDKit
 
 @available(iOS 13.0.0, *)
 @propertyWrapper
-public struct FlowState<Value: Hashable>: DynamicProperty {
+public struct FlowState<Value>: DynamicProperty {
 	
 	public var wrappedValue: Value {
 		get {
-			let current = node.id.base as? Value
+            let current = (node.id.1 as? Value) ?? (node.id.0.base as? Value)
 			if current == nil {
-				node.set(id: defaultValue)
+                let pair = map(defaultValue)
+                node.set(id: pair.0, value: pair.1)
 			}
 			return current ?? defaultValue
 		}
 		nonmutating set {
-			node.set(id: newValue)
+            let pair = map(newValue)
+            node.set(id: pair.0, value: pair.1)
 			updater.toggle()
 		}
 	}
 	private let defaultValue: Value
+    private let map: (Value) -> (AnyHashable, Value?)
 	
 	@Environment(\.flowTree) private var node: FlowTree
 	@StateObject var viewModel = FlowViewModel.root
@@ -42,16 +45,53 @@ public struct FlowState<Value: Hashable>: DynamicProperty {
 	public var binding: Binding<Value> {
 		Binding(get: { wrappedValue }, set: { wrappedValue = $0 })
 	}
-	
-	public init(wrappedValue: Value) {
-		self.defaultValue = wrappedValue
-	}
+}
+
+extension FlowState where Value: Hashable {
+    
+    public init(wrappedValue: Value) {
+        self.defaultValue = wrappedValue
+        self.map = { ($0, nil) }
+    }
+}
+
+extension FlowState where Value: Identifiable {
+    
+    public init(wrappedValue: Value) {
+        self.defaultValue = wrappedValue
+        self.map = { ($0.id, $0) }
+    }
+}
+
+extension FlowState where Value: Identifiable & Hashable {
+    
+    public init(wrappedValue: Value) {
+        self.defaultValue = wrappedValue
+        self.map = { ($0.id, $0) }
+    }
 }
 
 extension View {
-	public func flow<ID: Hashable>(_ state: FlowState<ID>, for id: ID) -> some View {
-		FlowView(content: self) { $0[id] }.tag(id)
-	}
+    
+    public func flow<ID: Hashable>(_ state: FlowState<ID>, for id: ID) -> some View {
+        FlowView(content: self) { $0[nil, id] }.tag(id)
+    }
+    
+    public func flow<ID: Identifiable>(_ state: FlowState<ID>, forIdFrom value: ID) -> some View {
+        FlowView(content: self) { $0[value, value.id] }.tag(value.id)
+    }
+    
+    public func flow<ID: Identifiable & Hashable>(_ state: FlowState<ID>, forIdFrom value: ID) -> some View {
+        FlowView(content: self) { $0[value, value.id] }.tag(value.id)
+    }
+    
+    public func flow<ID: Identifiable>(_ state: FlowState<ID>, for id: ID.ID) -> some View {
+        FlowView(content: self) { $0[nil, id] }.tag(id)
+    }
+    
+    public func flow<ID: Identifiable & Hashable>(_ state: FlowState<ID>, for id: ID.ID) -> some View {
+        FlowView(content: self) { $0[nil, id] }.tag(id)
+    }
 }
 
 struct FlowView<Content: View>: View {
