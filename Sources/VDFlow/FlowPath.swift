@@ -60,6 +60,11 @@ public struct FlowPath: ExpressibleByArrayLiteral, RangeReplaceableCollection, C
 	public func dropFirst(_ count: Int = 1) -> FlowPath {
 		FlowPath(steps.dropFirst(count))
 	}
+    
+    public subscript(bounds: Range<Int>) -> Array<FlowStep>.SubSequence {
+        get { steps[bounds] }
+        set { steps[bounds] = newValue }
+    }
 	
 	public subscript(position: Int) -> FlowStep {
 		get { steps[position] }
