@@ -8,11 +8,11 @@
 import Foundation
 import SwiftUI
 
-public struct FlowStep: CustomStringConvertible {
-    public static let empty = FlowStep(id: NoneID(), data: nil)
+public struct FlowStep: CustomStringConvertible, Equatable, Hashable {
+	public static let empty = FlowStep.id(NoneID())
 	
 	public static var current: FlowStep {
-        get { (FlowTree.root.recursiveCurrent?.1).map { FlowStep(id: $0, data: nil) } ?? .empty }
+		get { (FlowTree.root.recursiveCurrent?.1).map { FlowStep(id: $0, _data: nil) } ?? .empty }
 		set { set(newValue) }
 	}
 	
@@ -24,16 +24,23 @@ public struct FlowStep: CustomStringConvertible {
 		FlowPath.set([new], animation: animation)
 	}
 	
-    public var id: AnyHashable
-    public var data: Any?
-    public var description: String {
-        if let value = data, value as? None == nil {
-            return "(\(id): \(value))"
-        } else {
-            return id.description
-        }
-    }
-    
+	public var id: AnyHashable
+	public var data: Any? { _data?.base }
+	var _data: AnyEquatable?
+	
+	public var description: String {
+		if let value = data, value as? None == nil {
+			return "(\(id): \(value))"
+		} else {
+			return id.description
+		}
+	}
+	
+	init(id: AnyHashable, _data: AnyEquatable? = nil) {
+		self.id = id
+		self._data = _data
+	}
+	
 	public func isNode<ID: Hashable>(_ id: ID) -> Bool {
 		self.id == AnyHashable(id)
 	}
@@ -53,14 +60,18 @@ public struct FlowStep: CustomStringConvertible {
 	public func through(_ steps: FlowStep...) -> FlowPath {
 		through(steps)
 	}
-	    
-    public static func id<ID: Hashable>(_ id: ID) -> FlowStep {
-        FlowStep(id: id, data: nil)
-    }
-    
-    public static func value<Data: Identifiable>(_ data: Data) -> FlowStep {
-        FlowStep(id: data.id, data: data)
-    }
+	
+	public func hash(into hasher: inout Hasher) {
+		id.hash(into: &hasher)
+	}
+	
+	public static func id<ID: Hashable>(_ id: ID) -> FlowStep {
+		FlowStep(id: id)
+	}
+	
+	public static func value<Data: Identifiable & Equatable>(_ data: Data) -> FlowStep {
+		FlowStep(id: data.id, _data: AnyEquatable(data))
+	}
 	
 	public static func type<Content>(_ type: Content.Type) -> FlowStep {
 		id(String(reflecting: Content.self))

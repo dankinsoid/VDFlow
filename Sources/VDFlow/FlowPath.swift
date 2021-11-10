@@ -7,7 +7,7 @@
 import Foundation
 import SwiftUI
 
-public struct FlowPath: ExpressibleByArrayLiteral, RangeReplaceableCollection, CustomStringConvertible {
+public struct FlowPath: ExpressibleByArrayLiteral, RangeReplaceableCollection, CustomStringConvertible, Equatable, Hashable {
 	public typealias Element = FlowStep
 	public typealias Index = Int
 	public typealias SubSequence = Array<FlowStep>.SubSequence

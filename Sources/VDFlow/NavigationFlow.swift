@@ -152,9 +152,17 @@ private final class FullDelegate<ID: Hashable>: Delegate<ID> {
 extension UINavigationController {
 	
 	public func set(viewControllers: [UIViewController], animated: Bool, completion: @escaping () -> Void = {}) {
+    guard viewControllers != self.viewControllers, !isSetting else {
+      completion()
+      return
+    }
 		if animated, view?.window != nil {
+      isSetting = true
 			CATransaction.begin()
-			CATransaction.setCompletionBlock(completion)
+      CATransaction.setCompletionBlock {
+        self.isSetting = false
+        completion()
+      }
 			setViewControllers(viewControllers, animated: true)
 			CATransaction.commit()
 		} else {
@@ -178,6 +186,14 @@ extension UIViewController {
 	}
 }
 
+private extension UINavigationController {
+  var isSetting: Bool {
+    get { (objc_getAssociatedObject(self, &isSettingKey) as? Bool) ?? false }
+    set { objc_setAssociatedObject(self, &isSettingKey, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC) }
+  }
+}
+
+fileprivate var isSettingKey = "isSettingKey"
 fileprivate var disableBackKey = "disableBackKey"
 fileprivate var strongDelegateKey = "strongDelegateKey"
 
