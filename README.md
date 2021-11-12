@@ -5,19 +5,19 @@ This repository provides a new declarative way to describe flows
 ## Usage
 Describe your flow steps as struct via `Step` property wrapper
 ```swift
-struct TabSteps: Equatable {
+struct TabSteps {
   @Step() var tab1
   @Step var tab2 = SomeData()
   @Step var tab3 = NavigationSteps()
 }
 
-struct NavigationSteps: Equatable {
+struct NavigationSteps {
   @Step var screen1
   var screen2 = Step() //it works too
   @Step(\.$view1) var screen3 = PickerSteps()
 }
 
-struct PickerSteps: Equatable {
+struct PickerSteps {
   @Step() var view1
   @Step() var view2
 }
@@ -106,7 +106,7 @@ import PackageDescription
 let package = Package(
   name: "SomeProject",
   dependencies: [
-    .package(url: "https://github.com/dankinsoid/VDFlow.git", from: "2.3.0")
+    .package(url: "https://github.com/dankinsoid/VDFlow.git", from: "2.4.0")
   ],
   targets: [
     .target(name: "SomeProject", dependencies: ["VDFlow"])

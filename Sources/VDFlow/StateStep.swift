@@ -12,23 +12,17 @@ import VDBuilders
 
 @dynamicMemberLookup
 @propertyWrapper
-public struct StateStep<Value: Equatable>: DynamicProperty {
+public struct StateStep<Value>: DynamicProperty {
 	public var wrappedValue: Value {
 		get { projectedValue.wrappedValue.wrappedValue }
 		nonmutating set {
-			let binding = projectedValue
-			if binding.wrappedValue.wrappedValue != newValue {
-				binding.wrappedValue.wrappedValue = newValue
-			}
+			projectedValue.wrappedValue.wrappedValue = newValue
 		}
 	}
 	public var step: Step<Value> {
 		get { projectedValue.wrappedValue }
 		nonmutating set {
-			let binding = projectedValue
-			if binding.wrappedValue != newValue {
-				binding.wrappedValue = newValue
-			}
+			projectedValue.wrappedValue = newValue
 		}
 	}
 	@StateOrBinding private var defaultValue: Step<Value>
@@ -57,7 +51,7 @@ public struct StateStep<Value: Equatable>: DynamicProperty {
 	}
 	
 	public subscript<T>(dynamicMember keyPath: WritableKeyPath<Value, Step<T>>) -> Tag<T> {
-		Tag(selected: step.tag(keyPath), binding: (stepBinding ?? $defaultValue)[dynamicMember: (\Step<Value>.wrappedValue).appending(path: keyPath)])
+		Tag(selected: step.tag(keyPath), binding: projectedValue[dynamicMember: (\Step<Value>.wrappedValue).appending(path: keyPath)])
 	}
 	
 	public func select<T>(_ keyPath: WritableKeyPath<Value, Step<T>>) {
@@ -102,15 +96,15 @@ extension EnvironmentValues {
 
 extension View {
 	
-	public func step<Root: Equatable, Value: Equatable>(_ tag: StateStep<Root>.Tag<Value>) -> some View {
+	public func step<Root, Value>(_ tag: StateStep<Root>.Tag<Value>) -> some View {
 		stepEnvironment(tag.binding).tag(tag.selected)
 	}
 	
-	public func step<Root: Equatable, Value: Equatable>(_ binding: Binding<Step<Root>>, _ keyPath: WritableKeyPath<Root, Step<Value>>) -> some View {
+	public func step<Root, Value>(_ binding: Binding<Step<Root>>, _ keyPath: WritableKeyPath<Root, Step<Value>>) -> some View {
 		stepEnvironment(binding[dynamicMember: (\Step<Root>.wrappedValue).appending(path: keyPath)]).tag(binding.wrappedValue.tag(keyPath))
 	}
 	
-	public func stepEnvironment<Value: Equatable>(_ binding: Binding<Step<Value>>) -> some View {
+	public func stepEnvironment<Value>(_ binding: Binding<Step<Value>>) -> some View {
 		environment(\.[StateStep<Value>.StepKey()], binding)
 	}
 }
