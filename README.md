@@ -6,7 +6,7 @@ This repository provides a new declarative way to describe flows
 Describe your flow steps as struct via `Step` property wrapper
 ```swift
 struct TabSteps: Equatable {
-  @Step var tab1
+  @Step() var tab1
   @Step var tab2 = SomeData()
   @Step var tab3 = NavigationSteps()
 }
@@ -18,8 +18,8 @@ struct NavigationSteps: Equatable {
 }
 
 struct PickerSteps: Equatable {
-  @Step var view1
-  @Step var view2
+  @Step() var view1
+  @Step() var view2
 }
 ```
 Use structs in a `View` with `StateStep` property wrapper
