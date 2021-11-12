@@ -7,6 +7,7 @@
 
 import Foundation
 import QuartzCore
+import VDBuilders
 
 protocol StepProtocol {
 	var id: UUID { get }
@@ -135,6 +136,20 @@ public struct Step<Base>: StepProtocol, Identifiable, CustomStringConvertible {
 		public static func ==(lhs: Selected, rhs: Selected) -> Bool {
 			lhs.id == rhs.id
 		}
+	}
+	
+	@discardableResult
+	public mutating func move(_ offset: Int = 1, @TagsBuilder in steps: () -> [(Step) -> Selected]) -> Bool {
+		move(offset, in: steps().map { $0(self) })
+	}
+	
+	@discardableResult
+	public mutating func move(_ offset: Int = 1, in steps: [Selected]) -> Bool {
+		guard let i = steps.firstIndex(of: selected), i + offset < steps.count, i + offset >= 0 else {
+			return false
+		}
+		selected = steps[i + offset]
+		return true
 	}
 }
 

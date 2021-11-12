@@ -8,26 +8,24 @@
 import Foundation
 import SwiftUI
 import VDSwiftUICommon
+import VDBuilders
 
 @dynamicMemberLookup
 @propertyWrapper
 public struct StateStep<Value: Equatable>: DynamicProperty {
 	public var wrappedValue: Value {
-		get { stepBinding?.wrappedValue.wrappedValue ?? defaultValue.wrappedValue }
+		get { projectedValue.wrappedValue.wrappedValue }
 		nonmutating set {
-			let binding = stepBinding ?? $defaultValue
+			let binding = projectedValue
 			if binding.wrappedValue.wrappedValue != newValue {
 				binding.wrappedValue.wrappedValue = newValue
 			}
 		}
 	}
-	public var projectedValue: Binding<Step<Value>> {
-		stepBinding ?? $defaultValue
-	}
 	public var step: Step<Value> {
-		get { stepBinding?.wrappedValue ?? defaultValue }
+		get { projectedValue.wrappedValue }
 		nonmutating set {
-			let binding = stepBinding ?? $defaultValue
+			let binding = projectedValue
 			if binding.wrappedValue != newValue {
 				binding.wrappedValue = newValue
 			}
@@ -35,18 +33,27 @@ public struct StateStep<Value: Equatable>: DynamicProperty {
 	}
 	@StateOrBinding private var defaultValue: Step<Value>
 	@Environment(\.[StepKey()]) private var stepBinding
-	
+	public var projectedValue: Binding<Step<Value>> {
+		if case .binding(let binding) = _defaultValue {
+			return binding
+		}
+		return stepBinding ?? $defaultValue
+	}
 	
 	public init<T>(wrappedValue: Value, _ selected: WritableKeyPath<Value, Step<T>>) {
-		_defaultValue = .state(Step(wrappedValue, selected: selected))
+		self.init(binding: .state(Step(wrappedValue, selected: selected)))
 	}
 	
 	public init(wrappedValue: Value) {
-		_defaultValue = .state(Step(wrappedValue))
+		self.init(binding: .state(Step(wrappedValue)))
 	}
 	
 	public init(_ binding: Binding<Step<Value>>) {
-		_defaultValue = .binding(binding)
+		self.init(binding: .binding(binding))
+	}
+	
+	private init(binding: StateOrBinding<Step<Value>>) {
+		_defaultValue = binding
 	}
 	
 	public subscript<T>(dynamicMember keyPath: WritableKeyPath<Value, Step<T>>) -> Tag<T> {
@@ -55,6 +62,20 @@ public struct StateStep<Value: Equatable>: DynamicProperty {
 	
 	public func select<T>(_ keyPath: WritableKeyPath<Value, Step<T>>) {
 		step.select(keyPath)
+	}
+	
+	public func tag<T>(_ keyPath: WritableKeyPath<Value, Step<T>>) -> Step<Value>.Selected {
+		step.tag(keyPath)
+	}
+	
+	@discardableResult
+	public func move(_ offset: Int = 1, in steps: [Step<Value>.Selected]) -> Bool {
+		step.move(offset, in: steps)
+	}
+	
+	@discardableResult
+	public func move(_ offset: Int = 1, @Step<Value>.TagsBuilder in steps: () -> [(Step<Value>) -> Step<Value>.Selected]) -> Bool {
+		step.move(offset, in: steps)
 	}
 	
 	public struct Tag<T> {

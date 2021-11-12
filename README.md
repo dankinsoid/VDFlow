@@ -56,16 +56,21 @@ struct EmbededNavigation: View {
         .navigationTitle("1")
         .step(_step.$screen2)
       
-      EmbededPicker()
+      //you can use Binding<Step<...>> and tag(...) instead of .step(...) to guarantee 
+      EmbededPicker(step: $step.$screen)
         .navigationTitle("2")
-        .step(_step.$screen3)
+        .tag(_step.tag(\.$screen3))
     }
   }
 }
 
 struct EmbededPicker: View {
   
-  @StateStep var step = PickerSteps()
+  @StateStep var step: PickerSteps
+
+  init(step: Binding<Step<PickerSteps>>) {
+    _step = StateStep(step)
+  }
   
   var body: some View {
     Picker("3", selection: $step.selected) {
@@ -80,8 +85,9 @@ struct EmbededPicker: View {
 ```
 Just change value of any property or call `select` to update flow
 ```swift
+//step is Step or StateStep 
 step.tab2 = SomeData()
-step.$tab1.select()                  //you have to use $ to call select
+step.$tab1.select()                 //you have to use $ to call select
 step.tab3.screen3.view2.select()    //except for empty steps
 step.tab3.screen3.$view2.select()  
 _step.select(\.tab3.screen3.$view2) //or you can use KeyPath to any Step property
@@ -100,7 +106,7 @@ import PackageDescription
 let package = Package(
   name: "SomeProject",
   dependencies: [
-    .package(url: "https://github.com/dankinsoid/VDFlow.git", from: "2.0.0")
+    .package(url: "https://github.com/dankinsoid/VDFlow.git", from: "2.1.0")
   ],
   targets: [
     .target(name: "SomeProject", dependencies: ["VDFlow"])
