@@ -6,84 +6,84 @@ This repository provides a new declarative way to describe flows
 Describe your flow steps as struct via `Step` property wrapper
 ```swift
 struct TabSteps: Equatable {
-	@Step() var tab1
-	@Step var tab2 = SomeData()
-	@Step var tab3 = NavigationSteps()
+  @Step() var tab1
+  @Step var tab2 = SomeData()
+  @Step var tab3 = NavigationSteps()
 }
 
 struct NavigationSteps: Equatable {
-	@Step() var screen1
-	var screen2 = Step() //it works too
-	@Step(\.$view1) var screen3 = PickerSteps()
+  @Step() var screen1
+  var screen2 = Step() //it works too
+  @Step(\.$view1) var screen3 = PickerSteps()
 }
 
 struct PickerSteps: Equatable {
-	@Step() var view1
-	@Step() var view2
+  @Step() var view1
+  @Step() var view2
 }
 ```
 Use structs in a `View` with `StateStep` property wrapper
 ```swift
 struct RootTabView: View {
-	
-	@StateStep(\.$tab1) var step = TabSteps()
-	
-	var body: some View {
-		TabView(selection: $step.selected) {
-			Text("0")
-				.step(_step.$tab1)
-			
-			Text("1")
-				.step(_step.$tab2)
-			
-			EmbededNavigation()
-				.step(_step.$tab3)
-		}.tabViewStyle(PageTabViewStyle(indexDisplayMode: .always))
-	}
+  
+  @StateStep(\.$tab1) var step = TabSteps()
+  
+  var body: some View {
+    TabView(selection: $step.selected) {
+      Text("0")
+        .step(_step.$tab1)
+      
+      Text("1")
+        .step(_step.$tab2)
+      
+      EmbededNavigation()
+        .step(_step.$tab3)
+    }.tabViewStyle(PageTabViewStyle(indexDisplayMode: .always))
+  }
 }
 
 struct EmbededNavigation: View {
-	
-	@StateStep var step = NavigationSteps()
-	
-	var body: some View {
-		NavigationFlow($step.selected) {
-			Text("0")
-				.navigationTitle("0")
-				.step(_step.$screen1)
-			
-			Text("1")
-				.navigationTitle("1")
-				.step(_step.$screen2)
-			
-			EmbededPicker()
-				.navigationTitle("2")
-				.step(_step.$screen3)
-		}
-	}
+  
+  @StateStep var step = NavigationSteps()
+  
+  var body: some View {
+    NavigationFlow($step.selected) {
+      Text("0")
+        .navigationTitle("0")
+        .step(_step.$screen1)
+      
+      Text("1")
+        .navigationTitle("1")
+        .step(_step.$screen2)
+      
+      EmbededPicker()
+        .navigationTitle("2")
+        .step(_step.$screen3)
+    }
+  }
 }
 
 struct EmbededPicker: View {
-	
-	@StateStep var step = PickerSteps()
-	
-	var body: some View {
-		Picker("3", selection: $step.selected) {
-			Text("0")
-				.step(_step.$view1)
-			
-			Text("1")
-				.step(_step.$view2)
-		}.pickerStyle(WheelPickerStyle())
-	}
+  
+  @StateStep var step = PickerSteps()
+  
+  var body: some View {
+    Picker("3", selection: $step.selected) {
+      Text("0")
+        .step(_step.$view1)
+      
+      Text("1")
+        .step(_step.$view2)
+    }.pickerStyle(WheelPickerStyle())
+  }
 }
 ```
 Just change value of any property or call `select` to update flow
 ```swift
 step.tab2 = SomeData()
-step.$tab1.select()  								//you have to use $ to call select
-step.tab3.screen3.view2.select()		//except for empty steps
-step.tab3.screen3.$view2.select()	
+step.$tab1.select()                  //you have to use $ to call select
+step.tab3.screen3.view2.select()    //except for empty steps
+step.tab3.screen3.$view2.select()  
 _step.select(\.tab3.screen3.$view2) //or you can use KeyPath to any Step property
 
 //TODO: add next() and previuos() methods
