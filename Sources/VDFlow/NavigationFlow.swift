@@ -15,19 +15,23 @@ public struct NavigationFlow<Content: IterableView, Selection: Hashable>: FullSc
 	public let createController: () -> UINavigationController
 	public let content: Content
 	private let observeId = "navigationFlow"
-	@Binding private var id: Selection?
+	@StateOrBinding private var id: Selection
 	
-	public init(create: @escaping () -> UINavigationController, _ selection: Binding<Selection?>, content: Content) {
+	fileprivate init(create: @escaping () -> UINavigationController, _ selection: StateOrBinding<Selection>, content: Content) {
 		createController = create
 		self.content = content
 		_id = selection
 	}
 	
-	public init(create: @escaping @autoclosure () -> UINavigationController = .init(), _ selection: Binding<Selection?>, @IterableViewBuilder _ builder: () -> Content) {
+	public init(create: @escaping () -> UINavigationController, _ selection: Binding<Selection>, content: Content) {
+		self.init(create: create, .binding(selection), content: content)
+	}
+	
+	public init(create: @escaping @autoclosure () -> UINavigationController = .init(), _ selection: Binding<Selection>, @IterableViewBuilder _ builder: () -> Content) {
 		self.init(create: create, selection, content: builder())
 	}
 	
-	public init(delegate: UINavigationControllerDelegate, _ selection: Binding<Selection?>, @IterableViewBuilder _ builder: () -> Content) {
+	public init(delegate: UINavigationControllerDelegate, _ selection: Binding<Selection>, @IterableViewBuilder _ builder: () -> Content) {
 		self.init(create: {
 			let vc = UINavigationController()
 			vc.delegate = delegate
@@ -38,11 +42,11 @@ public struct NavigationFlow<Content: IterableView, Selection: Hashable>: FullSc
 	public func makeUIViewController(context: Context) -> UINavigationController {
 		let vc = createController()
 		if let _: (UINavigationController, UIViewControllerAnimatedTransitioning) -> UIViewControllerInteractiveTransitioning? = vc.delegate?.navigationController {
-			vc.strongDelegate = FullDelegate<Selection>(_id, delegate: vc.delegate)
+			vc.strongDelegate = FullDelegate<Selection>($id, delegate: vc.delegate)
 		} else if let _: (UINavigationController, UINavigationController.Operation, UIViewController, UIViewController) -> UIViewControllerAnimatedTransitioning? = vc.delegate?.navigationController {
-			vc.strongDelegate = FullDelegate<Selection>(_id, delegate: vc.delegate)
+			vc.strongDelegate = FullDelegate<Selection>($id, delegate: vc.delegate)
 		} else {
-			vc.strongDelegate = Delegate<Selection>(_id, delegate: vc.delegate)
+			vc.strongDelegate = Delegate<Selection>($id, delegate: vc.delegate)
 		}
 		let visitor = FirstViewControllerVisitor()
 		_ = content.iterate(with: visitor)
@@ -53,7 +57,6 @@ public struct NavigationFlow<Content: IterableView, Selection: Hashable>: FullSc
 	}
 	
 	public func updateUIViewController(_ uiViewController: UINavigationController, context: Context) {
-		guard let id = self.id else { return }
 		let visitor = ControllersVisitor(current: uiViewController.viewControllers, upTo: id)
 		_ = content.iterate(with: visitor)
 		guard visitor.index != nil else { return }
@@ -109,17 +112,36 @@ public struct NavigationFlow<Content: IterableView, Selection: Hashable>: FullSc
 	}
 }
 
+extension NavigationFlow where Selection == Int {
+	
+	public init(create: @escaping () -> UINavigationController, content: Content) {
+		self.init(create: create, .state(0), content: content)
+	}
+	
+	public init(create: @escaping @autoclosure () -> UINavigationController = .init(), @IterableViewBuilder _ builder: () -> Content) {
+		self.init(create: create, content: builder())
+	}
+	
+	public init(delegate: UINavigationControllerDelegate, @IterableViewBuilder _ builder: () -> Content) {
+		self.init(create: {
+			let vc = UINavigationController()
+			vc.delegate = delegate
+			return vc
+		}, .state(0), content: builder())
+	}
+}
+
 private class Delegate<ID: Hashable>: NSObject, UINavigationControllerDelegate {
-	@Binding var id: ID?
+	@Binding var id: ID
 	weak var delegate: UINavigationControllerDelegate?
 	
-	init(_ id: Binding<ID?>, delegate: UINavigationControllerDelegate?) {
+	init(_ id: Binding<ID>, delegate: UINavigationControllerDelegate?) {
 		self._id = id
 		self.delegate = delegate
 	}
 	
 	func navigationController(_ navigationController: UINavigationController, didShow viewController: UIViewController, animated: Bool) {
-		let newId = viewController.anyFlowId?.base as? ID
+		let newId = (viewController.anyFlowId?.base as? ID) ?? id
 		if newId != id {
 			id = newId
 		}
