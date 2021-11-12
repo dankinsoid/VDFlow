@@ -43,7 +43,8 @@ public struct Step<Base>: StepProtocol, Identifiable, CustomStringConvertible {
 					.children
 					.compactMap { $0.value as? StepProtocol }
 					.sorted(by: { $0.mutateID < $1.mutateID })
-					.last?.id ?? .none
+					.last?.id ?? .none,
+				base: value
 			)
 		}
 		set {
@@ -116,17 +117,23 @@ public struct Step<Base>: StepProtocol, Identifiable, CustomStringConvertible {
 	}
 	
 	public struct Selected: Hashable {
-		public static var none: Selected { Selected(id: .none) }
+		public static var none: Selected { Selected() }
 		public let id: UUID
 		var keyPath: WritableKeyPath<Base, UInt64>?
+		var base: (() -> Base)?
 		
 		init(id: UUID, keyPath: WritableKeyPath<Base, UInt64>) {
 			self.id = id
 			self.keyPath = keyPath
 		}
 		
-		public init(id: UUID) {
+		init(id: UUID, base: Base) {
 			self.id = id
+			self.base = { base }
+		}
+		
+		init() {
+			id = .none
 		}
 		
 		public func hash(into hasher: inout Hasher) {
@@ -135,6 +142,14 @@ public struct Step<Base>: StepProtocol, Identifiable, CustomStringConvertible {
 		
 		public static func ==(lhs: Selected, rhs: Selected) -> Bool {
 			lhs.id == rhs.id
+		}
+		
+		public func match<T>(_ keyPath: WritableKeyPath<Base, Step<T>>) -> Bool {
+			if let kp = self.keyPath {
+				return kp == keyPath.appending(path: \.mutateID)
+			}
+			let idKeyPath = keyPath.appending(path: \.id)
+			return base?()[keyPath: idKeyPath] == id
 		}
 	}
 	
@@ -151,6 +166,10 @@ public struct Step<Base>: StepProtocol, Identifiable, CustomStringConvertible {
 		selected = steps[i + offset]
 		return true
 	}
+}
+
+public func ~=<Base, T>(lhs: WritableKeyPath<Base, Step<T>>, rhs: Step<Base>.Selected) -> Bool {
+	rhs.match(lhs)
 }
 
 extension Step where Base == EmptyStep {

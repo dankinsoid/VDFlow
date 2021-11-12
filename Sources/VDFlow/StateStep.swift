@@ -78,9 +78,14 @@ public struct StateStep<Value: Equatable>: DynamicProperty {
 		step.move(offset, in: steps)
 	}
 	
+	@dynamicMemberLookup
 	public struct Tag<T> {
 		var selected: Step<Value>.Selected
 		var binding: Binding<Step<T>>
+		
+		public subscript<A>(dynamicMember keyPath: WritableKeyPath<T, Step<A>>) -> StateStep<T>.Tag<A> {
+			StateStep<T>.Tag<A>(selected: binding.wrappedValue.tag(keyPath), binding: binding[dynamicMember: (\Step<T>.wrappedValue).appending(path: keyPath)])
+		}
 	}
 	
 	struct StepKey: EnvironmentKey, Hashable {
