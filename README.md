@@ -14,7 +14,7 @@ struct TabSteps {
 struct NavigationSteps {
   var screen1 = Step()
   var screen2 = Step()
-  @Step(\.$view1) var screen3 = PickerSteps()
+  @Step(\.view1) var screen3 = PickerSteps()
 }
 
 struct PickerSteps {
