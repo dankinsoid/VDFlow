@@ -99,9 +99,9 @@ case \.tab2: ...
 default: ...
 }
 ```
+but not nested: `case \.tab3.screen1:` doesn't matched 
 ## FlowNavigation
 ## FlowStack
-but not nested: `case \.tab3.screen1:` doesn't matched 
 ## Installation
 
 1. [Swift Package Manager](https://github.com/apple/swift-package-manager)
