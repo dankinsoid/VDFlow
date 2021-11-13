@@ -3,7 +3,7 @@
 ## Description
 This repository provides a new declarative way to describe flows
 ## Usage
-Describe your flow steps as struct with `Step`s
+Describe your flow as struct with `Step`s
 ```swift
 struct TabSteps {
   var tab1 = Step()
