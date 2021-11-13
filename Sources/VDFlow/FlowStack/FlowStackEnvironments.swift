@@ -15,32 +15,22 @@ public enum FlowStackBackTransitionKey: EnvironmentKey {
     public static var defaultValue: InteractiveTransition { .identity }
 }
 
-extension EnvironmentValues {
-    public var flowStackFrontTransition: InteractiveTransition {
-        get { self[FlowStackFrontTransitionKey.self] }
-        set { self[FlowStackFrontTransitionKey.self] = newValue }
-    }
-}
-
-extension EnvironmentValues {
-    public var flowStackBackTransition: InteractiveTransition {
-        get { self[FlowStackBackTransitionKey.self] }
-        set { self[FlowStackBackTransitionKey.self] = newValue }
-    }
-}
-
-extension View {
-    public func flowStackTransition(front: InteractiveTransition, back: InteractiveTransition = .identity) -> some View {
-        environment(\.flowStackFrontTransition, front)
-            .environment(\.flowStackBackTransition, back)
-    }
-}
-
 public enum FlowStackInteractiveKey: EnvironmentKey {
     public static var defaultValue: FlowStackInteractive? { nil }
 }
 
 extension EnvironmentValues {
+    
+    public var flowStackFrontTransition: InteractiveTransition {
+        get { self[FlowStackFrontTransitionKey.self] }
+        set { self[FlowStackFrontTransitionKey.self] = newValue }
+    }
+    
+    public var flowStackBackTransition: InteractiveTransition {
+        get { self[FlowStackBackTransitionKey.self] }
+        set { self[FlowStackBackTransitionKey.self] = newValue }
+    }
+    
     public var flowStackInteractive: FlowStackInteractive? {
         get { self[FlowStackInteractiveKey.self] }
         set { self[FlowStackInteractiveKey.self] = newValue }
@@ -48,6 +38,11 @@ extension EnvironmentValues {
 }
 
 extension View {
+    
+    public func flowStackTransition(front: InteractiveTransition, back: InteractiveTransition = .identity) -> some View {
+        environment(\.flowStackFrontTransition, front)
+            .environment(\.flowStackBackTransition, back)
+    }
     
     public func flowStackInteractive(_ interactive: FlowStackInteractive?) -> some View {
         environment(\.flowStackInteractive, interactive)
