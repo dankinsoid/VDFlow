@@ -99,6 +99,8 @@ case \.tab2: ...
 default: ...
 }
 ```
+## FlowNavigation
+## FlowStack
 but not nested: `case \.tab3.screen1:` doesn't matched 
 ## Installation
 
