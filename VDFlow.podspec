@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'VDFlow'
-  s.version          = '2.7.0'
+  s.version          = '2.8.0'
   s.summary          = 'A short description of VDFlow.'
   s.description      = <<-DESC
 TODO: Add long description of the pod here.
@@ -23,6 +23,5 @@ TODO: Add long description of the pod here.
   s.macos.deployment_target = '10.15'
   s.swift_versions = '5.5'
   s.source_files = 'Sources/VDFlow/**/*'
-  s.frameworks = 'UIKit'
   s.dependency 'IterableView', '~> 1.0.0'
 end
