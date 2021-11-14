@@ -1,7 +1,7 @@
 # VDFlow
 
 ## Description
-This repository provides a new declarative way to describe flows
+This repository provides a new simple way to describe routers
 ## Usage
 Describe your flow as struct with `Step`s
 ```swift
@@ -21,6 +21,14 @@ struct PickerSteps {
   var view1 = Step()
   var view2 = Step()
 }
+```
+Just change value of any property or call `select` to update flow
+```swift
+//step is Step or StateStep 
+step.tab2 = SomeData()
+step.tab1.select()                 
+step.tab3.screen3.view2.select()   
+_step.select(\.tab3.screen3.view2) //or you can use KeyPath to any Step property
 ```
 Use flow structs in a `View` with `StateStep` property wrapper. `StateStep` updates view, stores your flow struct or binds it from parent view. To bind flow down the view hierarchy you need use `.step(...)`, `.stepEnvironment(...)` view modifiers or create `StateView` with `Binding`. 
 ```swift
@@ -83,15 +91,7 @@ struct EmbededPicker: View {
   }
 }
 ```
-Just change value of any property or call `select` to update flow
-```swift
-//step is Step or StateStep 
-step.tab2 = SomeData()
-step.tab1.select()                 
-step.tab3.screen3.view2.select()   
-_step.select(\.tab3.screen3.view2) //or you can use KeyPath to any Step property
-```
-You can switch selected with `KeyPath`es
+You can switch `.selected` with `KeyPath`es
 ```swift
 switch step.selected {
 case \.tab1: ...
@@ -114,7 +114,7 @@ import PackageDescription
 let package = Package(
   name: "SomeProject",
   dependencies: [
-    .package(url: "https://github.com/dankinsoid/VDFlow.git", from: "2.5.0")
+    .package(url: "https://github.com/dankinsoid/VDFlow.git", from: "2.6.0")
   ],
   targets: [
     .target(name: "SomeProject", dependencies: ["VDFlow"])

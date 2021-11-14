@@ -5,6 +5,7 @@
 //  Created by Данил Войдилов on 07.05.2021.
 //
 
+#if canImport(UIKit)
 import UIKit
 
 public final class PresentViewController: UIViewController {
@@ -144,3 +145,4 @@ extension UIViewController {
 		parent?.superParent ?? self
 	}
 }
+#endif

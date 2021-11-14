@@ -5,6 +5,7 @@
 //  Created by Данил Войдилов on 21.08.2021.
 //
 
+#if canImport(UIKit)
 import SwiftUI
 
 public enum FlowStackFrontTransitionKey: EnvironmentKey {
@@ -52,3 +53,4 @@ extension View {
         flowStackInteractive(FlowStackInteractive(hide: .init(hide, fromEdgeOnly: fromEdgeOnly), show:  .init(show, fromEdgeOnly: fromEdgeOnly)))
     }
 }
+#endif

@@ -5,6 +5,7 @@
 //  Created by Данил Войдилов on 06.05.2021.
 //
 
+#if canImport(UIKit)
 import UIKit
 import SwiftUI
 
@@ -61,3 +62,4 @@ open class ObservableHostingController<Root: View>: UIHostingController<Root>, O
 public enum ControllerObserveType: Hashable {
 	case willAppear, didAppear, willDisappear, didDisappear
 }
+#endif

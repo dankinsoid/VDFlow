@@ -5,6 +5,7 @@
 //  Created by Данил Войдилов on 12.05.2021.
 //
 
+#if canImport(UIKit)
 import UIKit
 import SwiftUI
 
@@ -168,3 +169,4 @@ extension View {
 		environment(\.navigationFlowBarAccentColor, color)
 	}
 }
+#endif

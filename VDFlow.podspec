@@ -8,8 +8,8 @@
 
 Pod::Spec.new do |s|
   s.name             = 'VDFlow'
-  s.version          = '2.5.0'
-  s.summary          = 'A short description of VDAnimation.'
+  s.version          = '2.6.0'
+  s.summary          = 'A short description of VDFlow.'
   s.description      = <<-DESC
 TODO: Add long description of the pod here.
                        DESC
@@ -20,8 +20,9 @@ TODO: Add long description of the pod here.
   s.source           = { :git => 'https://github.com/dankinsoid/VDFlow.git', :tag => s.version.to_s }
 
   s.ios.deployment_target = '13.0'
-  s.swift_versions = '5.4'
+  s.macos.deployment_target = '10.15'
+  s.swift_versions = '5.5'
   s.source_files = 'Sources/VDFlow/**/*'
   s.frameworks = 'UIKit'
-  s.dependency 'VD', '~> 1.80.0'
+  s.dependency 'IterableView', '~> 1.0.0'
 end

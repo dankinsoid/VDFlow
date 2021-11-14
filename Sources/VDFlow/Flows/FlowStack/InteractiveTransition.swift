@@ -5,8 +5,8 @@
 //  Created by Данил Войдилов on 16.08.2021.
 //
 
+#if canImport(UIKit)
 import Foundation
-import VDKit
 import SwiftUI
 
 public struct InteractiveTransition {
@@ -228,3 +228,4 @@ extension View {
         environment(\.interactivePosition, position)
     }
 }
+#endif

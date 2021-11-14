@@ -5,8 +5,9 @@
 //  Created by Данил Войдилов on 06.05.2021.
 //
 
+#if canImport(UIKit)
 import UIKit
-import VDKit
+import IterableView
 import SwiftUI
 
 final class ControllersVisitor: IterableViewVisitor {
@@ -92,3 +93,4 @@ final class FirstViewControllerVisitor: IterableViewVisitor {
 		return false
 	}
 }
+#endif

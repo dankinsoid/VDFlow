@@ -5,10 +5,11 @@
 //  Created by Daniil on 02.11.2020.
 //
 
+#if canImport(UIKit)
 import Foundation
 import UIKit
 import SwiftUI
-import VDKit
+import IterableView
 
 public struct NavigationFlow<Content: IterableView, Selection: Hashable>: FullScreenUIViewControllerRepresentable {
 	
@@ -250,3 +251,4 @@ extension UIColor {
 		cgColor.alpha
 	}
 }
+#endif

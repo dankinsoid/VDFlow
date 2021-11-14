@@ -5,9 +5,9 @@
 //  Created by Данил Войдилов on 21.08.2021.
 //
 
+#if canImport(UIKit)
 import SwiftUI
 import UIKit
-import VDKit
 
 struct SwipeView: UIViewRepresentable {
     
@@ -339,3 +339,4 @@ public enum FlowChangeType {
         }
     }
 }
+#endif

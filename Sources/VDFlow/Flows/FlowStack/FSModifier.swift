@@ -5,6 +5,7 @@
 //  Created by Данил Войдилов on 21.08.2021.
 //
 
+#if canImport(UIKit)
 import SwiftUI
 
 struct FSModifier: ViewModifier {
@@ -72,4 +73,4 @@ struct FSModifier: ViewModifier {
         }
     }
 }
-
+#endif

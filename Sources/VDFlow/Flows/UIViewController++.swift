@@ -5,6 +5,7 @@
 //  Created by Данил Войдилов on 23.04.2021.
 //
 
+#if canImport(UIKit)
 import Foundation
 import UIKit
 
@@ -105,3 +106,4 @@ extension Array where Element: NSObject {
 		return Array(prefix(i))
 	}
 }
+#endif

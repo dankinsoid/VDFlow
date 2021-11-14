@@ -5,8 +5,9 @@
 //  Created by Данил Войдилов on 14.08.2021.
 //
 
+#if canImport(UIKit)
 import SwiftUI
-import VDKit
+import IterableView
 
 public struct FlowStack<Content: IterableView, Background: View, Overlay: View, Selection: Hashable>: View {
     
@@ -45,8 +46,8 @@ public struct FlowStack<Content: IterableView, Background: View, Overlay: View, 
                     .zIndex(-1.1)
                 }
                 
-                for (index, view) in subviews[range(tagIndex: i)].enumerated() {
-                    
+							ForEach(Array(subviews[range(tagIndex: i)].enumerated()), id: \.offset) {
+								let (index, view) = $0
                     if index >= i - 1 {
                         background
                             .edgesIgnoringSafeArea(.all)
@@ -210,3 +211,4 @@ extension FlowStack where Selection == String, Background == EmptyView, Overlay 
         self.init(content: content())
     }
 }
+#endif

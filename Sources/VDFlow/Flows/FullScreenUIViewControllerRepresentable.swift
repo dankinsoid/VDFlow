@@ -5,6 +5,7 @@
 //  Created by Данил Войдилов on 04.05.2021.
 //
 
+#if canImport(UIKit)
 import SwiftUI
 
 public protocol FullScreenUIViewControllerRepresentable: View {
@@ -61,3 +62,4 @@ public struct FullScreenViewControllerView<Content: UIViewControllerRepresentabl
 		content.edgesIgnoringSafeArea(.all)
 	}
 }
+#endif
