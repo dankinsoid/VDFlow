@@ -100,8 +100,80 @@ default: ...
 }
 ```
 but not nested: `case \.tab3.screen1:` doesn't matched 
-## FlowNavigation
+## NavigationFlow
+`UINavigationController` wrapper implementing stack like navigation.
+```swift
+@State private var step = NavigationScreen.default
+
+var body: some View {
+  NavigationFlow($selection) {
+    Screen1()
+      .tag(.screen1)
+
+    Screen2()
+      .tag(.screen2)
+
+    Screen3()
+      .tag(.screen3)
+
+    ...
+  }
+  .navigationFlow(barColor: .black)
+  .navigationFlow(barShadowColor: .blue)
+  .navigationFlow(largeTitleFont: someUIFont)
+  .navigationFlow(largeTitleColor: .white)
+  .navigationFlow(titleFont: someUIFont)
+  .navigationFlow(titleColor: .white)
+  .navigationFlow(prefersLargeTitle: true)
+  .navigationFlow(largeTitleMode: .always)
+  .navigationFlow(backImage: someUIImage)
+  .navigationFlow(showBackText: false)
+  .navigationFlow(barPadding: EdgeInsets())
+  .navigationFlow(barAccentColor: .red)
+}
+```
+## PresentFlow
+`UIViewController` wrapper implementing stack like present flow.
+```swift
+@State private var step = PresentScreen.default
+
+var body: some View {
+  PresentFlow($selection, style: .native(.formSheet, .crossDissolve)) {
+    Screen1()
+      .tag(.screen1)
+
+    Screen2()
+      .tag(.screen2)
+
+    Screen3()
+      .tag(.screen3)
+
+    ...
+  }
+}
+```
 ## FlowStack
+`ZStack` wrapper implementing selection of current view and interactive animations
+```swift
+@State private var step = FlowStep.default
+
+var body: some View {
+  FlowStack($selection) {
+    Screen1()
+      .tag(.screen1)
+
+    Screen2()
+      .tag(.screen2)
+
+    Screen3()
+      .tag(.screen3)
+
+    ...
+  }
+  .flowStackTransition(front: .move(edge: .top), back: .identity)
+  .flowStackInteractive(hide: .top)
+}
+```
 ## Installation
 
 1. [Swift Package Manager](https://github.com/apple/swift-package-manager)
@@ -114,7 +186,7 @@ import PackageDescription
 let package = Package(
   name: "SomeProject",
   dependencies: [
-    .package(url: "https://github.com/dankinsoid/VDFlow.git", from: "2.8.0")
+    .package(url: "https://github.com/dankinsoid/VDFlow.git", from: "2.9.0")
   ],
   targets: [
     .target(name: "SomeProject", dependencies: ["VDFlow"])
@@ -124,7 +196,13 @@ let package = Package(
 ```ruby
 $ swift build
 ```
+2. [CocoaPods](https://cocoapods.org)
 
+Add the following line to your Podfile:
+```ruby
+pod 'VDFlow'
+```
+and run `pod update` from the podfile directory first.
 ## Author
 
 dankinsoid, voidilov@gmail.com
