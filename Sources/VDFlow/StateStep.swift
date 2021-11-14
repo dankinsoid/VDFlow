@@ -106,4 +106,8 @@ extension View {
 	public func stepEnvironment<Value>(_ binding: Binding<Step<Value>>) -> some View {
 		environment(\.[StateStep<Value>.StepKey()], binding)
 	}
+	
+	public func tag<Root, Value>(_ tag: StateStep<Root>.Tag<Value>) -> some View {
+		self.tag(tag.selected)
+	}
 }

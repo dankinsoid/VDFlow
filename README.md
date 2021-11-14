@@ -38,11 +38,11 @@ struct RootTabView: View {
   
   var body: some View {
     TabView(selection: $step.selected) {
-      Text("0")
+      SomeView("0")
         .step(_step.tab1)
       
       Text("1")
-        .step(_step.$tab2)
+        .tag(_step.$tab2)
       
       EmbededNavigation()
         .step(_step.$tab3)
@@ -56,13 +56,13 @@ struct EmbededNavigation: View {
   
   var body: some View {
     NavigationFlow($step.selected) {
-      Text("0")
+      SomeView("0")
         .navigationTitle("0")
         .step(_step.screen1)
       
       Text("1")
         .navigationTitle("1")
-        .step(_step.screen2)
+        .tag(_step.screen2)
       
       //you can use Binding<Step<...>> and tag(...) instead of .step(...)
       EmbededPicker(step: $step.$screen3)
@@ -186,7 +186,7 @@ import PackageDescription
 let package = Package(
   name: "SomeProject",
   dependencies: [
-    .package(url: "https://github.com/dankinsoid/VDFlow.git", from: "2.9.0")
+    .package(url: "https://github.com/dankinsoid/VDFlow.git", from: "2.10.0")
   ],
   targets: [
     .target(name: "SomeProject", dependencies: ["VDFlow"])
