@@ -99,7 +99,8 @@ extension View {
 	}
 	
 	public func step<Root, Value>(_ binding: Binding<Step<Root>>, _ keyPath: WritableKeyPath<Root, Step<Value>>) -> some View {
-		stepEnvironment(binding[dynamicMember: (\Step<Root>.wrappedValue).appending(path: keyPath)]).tag(binding.wrappedValue.tag(keyPath))
+		stepEnvironment(binding[dynamicMember: (\Step<Root>.wrappedValue).appending(path: keyPath)])
+			.tag(binding.wrappedValue.tag(keyPath))
 	}
 	
 	public func stepEnvironment<Value>(_ binding: Binding<Step<Value>>) -> some View {
