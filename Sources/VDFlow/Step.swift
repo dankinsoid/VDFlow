@@ -34,9 +34,9 @@ public struct Step<Base>: StepProtocol, Identifiable, CustomStringConvertible {
 	public var id = UUID()
 	var mutateID: UInt64 = 0
 	
-	public var selected: Selected {
+	public var selected: Key {
 		get {
-			Selected(
+			Key(
 				id: Mirror(reflecting: wrappedValue)
 					.children
 					.compactMap { $0.value as? StepProtocol }
@@ -93,8 +93,8 @@ public struct Step<Base>: StepProtocol, Identifiable, CustomStringConvertible {
 		self.init(value)
 	}
 	
-	public func tag<T>(_ keyPath: WritableKeyPath<Base, Step<T>>) -> Selected {
-		Selected(id: wrappedValue[keyPath: keyPath].id, keyPath: keyPath.appending(path: \.mutateID))
+	public func key<T>(_ keyPath: WritableKeyPath<Base, Step<T>>) -> Key {
+		Key(id: wrappedValue[keyPath: keyPath].id, keyPath: keyPath.appending(path: \.mutateID))
 	}
 	
 	public subscript<T>(dynamicMember keyPath: WritableKeyPath<Base, T>) -> T {
@@ -114,8 +114,8 @@ public struct Step<Base>: StepProtocol, Identifiable, CustomStringConvertible {
 		wrappedValue[keyPath: keyPath].select()
 	}
 	
-	public struct Selected: Hashable {
-		public static var none: Selected { Selected() }
+	public struct Key: Hashable {
+		public static var none: Key { Key() }
 		public let id: UUID
 		var keyPath: WritableKeyPath<Base, UInt64>?
 		var base: (() -> Base)?
@@ -138,7 +138,7 @@ public struct Step<Base>: StepProtocol, Identifiable, CustomStringConvertible {
 			id.hash(into: &hasher)
 		}
 		
-		public static func ==(lhs: Selected, rhs: Selected) -> Bool {
+		public static func ==(lhs: Key, rhs: Key) -> Bool {
 			lhs.id == rhs.id
 		}
 		
@@ -152,12 +152,12 @@ public struct Step<Base>: StepProtocol, Identifiable, CustomStringConvertible {
 	}
 	
 	@discardableResult
-	public mutating func move(_ offset: Int = 1, @TagsBuilder in steps: () -> [(Step) -> Selected]) -> Bool {
+	public mutating func move(_ offset: Int = 1, @TagsBuilder in steps: () -> [(Step) -> Key]) -> Bool {
 		move(offset, in: steps().map { $0(self) })
 	}
 	
 	@discardableResult
-	public mutating func move(_ offset: Int = 1, in steps: [Selected]) -> Bool {
+	public mutating func move(_ offset: Int = 1, in steps: [Key]) -> Bool {
 		guard let i = steps.firstIndex(of: selected), i + offset < steps.count, i + offset >= 0 else {
 			return false
 		}
@@ -166,7 +166,7 @@ public struct Step<Base>: StepProtocol, Identifiable, CustomStringConvertible {
 	}
 }
 
-public func ~=<Base, T>(lhs: WritableKeyPath<Base, Step<T>>, rhs: Step<Base>.Selected) -> Bool {
+public func ~=<Base, T>(lhs: WritableKeyPath<Base, Step<T>>, rhs: Step<Base>.Key) -> Bool {
 	rhs.match(lhs)
 }
 

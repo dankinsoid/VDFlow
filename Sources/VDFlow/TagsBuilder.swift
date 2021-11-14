@@ -13,43 +13,43 @@ extension Step {
 	public struct TagsBuilder {
 		
 		@inlinable
-		public static func buildBlock(_ components: [(Step) -> Selected]...) -> [(Step) -> Selected] {
+		public static func buildBlock(_ components: [(Step) -> Key]...) -> [(Step) -> Key] {
 			Array(components.joined())
 		}
 		
 		@inlinable
-		public static func buildArray(_ components: [[(Step) -> Selected]]) -> [(Step) -> Selected] {
+		public static func buildArray(_ components: [[(Step) -> Key]]) -> [(Step) -> Key] {
 			Array(components.joined())
 		}
 		
 		@inlinable
-		public static func buildEither(first component: [(Step) -> Selected]) -> [(Step) -> Selected] {
+		public static func buildEither(first component: [(Step) -> Key]) -> [(Step) -> Key] {
 			component
 		}
 		
 		@inlinable
-		public static func buildEither(second component: [(Step) -> Selected]) -> [(Step) -> Selected] {
+		public static func buildEither(second component: [(Step) -> Key]) -> [(Step) -> Key] {
 			component
 		}
 		
 		@inlinable
-		public static func buildOptional(_ component: [(Step) -> Selected]?) -> [(Step) -> Selected] {
+		public static func buildOptional(_ component: [(Step) -> Key]?) -> [(Step) -> Key] {
 			component ?? []
 		}
 		
 		@inlinable
-		public static func buildLimitedAvailability(_ component: [(Step) -> Selected]) -> [(Step) -> Selected] {
+		public static func buildLimitedAvailability(_ component: [(Step) -> Key]) -> [(Step) -> Key] {
 			component
 		}
 		
 		@inlinable
-		public static func buildExpression(_ expression: Selected) -> [(Step) -> Selected] {
+		public static func buildExpression(_ expression: Key) -> [(Step) -> Key] {
 			[{ _ in expression }]
 		}
 		
 		@inlinable
-		public static func buildExpression<T>(_ expression: WritableKeyPath<Base, Step<T>>) -> [(Step) -> Selected] {
-			[{ $0.tag(expression) }]
+		public static func buildExpression<T>(_ expression: WritableKeyPath<Base, Step<T>>) -> [(Step) -> Key] {
+			[{ $0.key(expression) }]
 		}
 	}
 }

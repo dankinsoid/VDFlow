@@ -48,35 +48,45 @@ public struct StateStep<Value>: DynamicProperty {
 		_defaultValue = binding
 	}
 	
-	public subscript<T>(dynamicMember keyPath: WritableKeyPath<Value, Step<T>>) -> Tag<T> {
-		Tag(selected: step.tag(keyPath), binding: projectedValue[dynamicMember: (\Step<Value>.wrappedValue).appending(path: keyPath)])
+	public subscript<T>(dynamicMember keyPath: WritableKeyPath<Value, Step<T>>) -> StepBinding<T> {
+		stepBinding(keyPath)
+	}
+	
+	public func stepBinding<T>(_ keyPath: WritableKeyPath<Value, Step<T>>) -> StepBinding<T> {
+		StepBinding(
+			selected: step.key(keyPath),
+			binding: projectedValue[dynamicMember: (\Step<Value>.wrappedValue).appending(path: keyPath)]
+		)
 	}
 	
 	public func select<T>(_ keyPath: WritableKeyPath<Value, Step<T>>) {
 		step.select(keyPath)
 	}
 	
-	public func tag<T>(_ keyPath: WritableKeyPath<Value, Step<T>>) -> Step<Value>.Selected {
-		step.tag(keyPath)
+	public func key<T>(_ keyPath: WritableKeyPath<Value, Step<T>>) -> Step<Value>.Key {
+		step.key(keyPath)
 	}
 	
 	@discardableResult
-	public func move(_ offset: Int = 1, in steps: [Step<Value>.Selected]) -> Bool {
+	public func move(_ offset: Int = 1, in steps: [Step<Value>.Key]) -> Bool {
 		step.move(offset, in: steps)
 	}
 	
 	@discardableResult
-	public func move(_ offset: Int = 1, @Step<Value>.TagsBuilder in steps: () -> [(Step<Value>) -> Step<Value>.Selected]) -> Bool {
+	public func move(_ offset: Int = 1, @Step<Value>.TagsBuilder in steps: () -> [(Step<Value>) -> Step<Value>.Key]) -> Bool {
 		step.move(offset, in: steps)
 	}
 	
 	@dynamicMemberLookup
-	public struct Tag<T> {
-		var selected: Step<Value>.Selected
+	public struct StepBinding<T> {
+		var selected: Step<Value>.Key
 		var binding: Binding<Step<T>>
 		
-		public subscript<A>(dynamicMember keyPath: WritableKeyPath<T, Step<A>>) -> StateStep<T>.Tag<A> {
-			StateStep<T>.Tag<A>(selected: binding.wrappedValue.tag(keyPath), binding: binding[dynamicMember: (\Step<T>.wrappedValue).appending(path: keyPath)])
+		public subscript<A>(dynamicMember keyPath: WritableKeyPath<T, Step<A>>) -> StateStep<T>.StepBinding<A> {
+			StateStep<T>.StepBinding<A>(
+				selected: binding.wrappedValue.key(keyPath),
+				binding: binding[dynamicMember: (\Step<T>.wrappedValue).appending(path: keyPath)]
+			)
 		}
 	}
 	
@@ -94,20 +104,21 @@ extension EnvironmentValues {
 
 extension View {
 	
-	public func step<Root, Value>(_ tag: StateStep<Root>.Tag<Value>) -> some View {
-		stepEnvironment(tag.binding).tag(tag.selected)
+	public func step<Root, Value>(_ stepBinding: StateStep<Root>.StepBinding<Value>) -> some View {
+		stepEnvironment(stepBinding.binding)
+			.tag(stepBinding)
 	}
 	
 	public func step<Root, Value>(_ binding: Binding<Step<Root>>, _ keyPath: WritableKeyPath<Root, Step<Value>>) -> some View {
 		stepEnvironment(binding[dynamicMember: (\Step<Root>.wrappedValue).appending(path: keyPath)])
-			.tag(binding.wrappedValue.tag(keyPath))
+			.tag(binding.wrappedValue.key(keyPath))
 	}
 	
 	public func stepEnvironment<Value>(_ binding: Binding<Step<Value>>) -> some View {
 		environment(\.[StateStep<Value>.StepKey()], binding)
 	}
 	
-	public func tag<Root, Value>(_ tag: StateStep<Root>.Tag<Value>) -> some View {
-		self.tag(tag.selected)
+	public func tag<Root, Value>(_ stepBinding: StateStep<Root>.StepBinding<Value>) -> some View {
+		tag(stepBinding.selected)
 	}
 }
