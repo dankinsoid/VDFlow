@@ -67,7 +67,7 @@ struct EmbededNavigation: View {
       //you can use Binding<Step<...>> and tag(...) instead of .step(...)
       EmbededPicker(step: $step.$screen3)
         .navigationTitle("2")
-        .tag(_step.tag(\.$screen3))
+        .tag(_step.$screen3)
     }
   }
 }
