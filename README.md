@@ -106,7 +106,7 @@ but not nested: `case \.tab3.screen1:` doesn't matched
 @State private var step = NavigationScreen.default
 
 var body: some View {
-  NavigationFlow($selection) {
+  NavigationFlow($step) {
     Screen1()
       .tag(.screen1)
 
@@ -138,7 +138,7 @@ var body: some View {
 @State private var step = PresentScreen.default
 
 var body: some View {
-  PresentFlow($selection, style: .native(.formSheet, .crossDissolve)) {
+  PresentFlow($step, style: .native(.formSheet, .crossDissolve)) {
     Screen1()
       .tag(.screen1)
 
@@ -158,7 +158,7 @@ var body: some View {
 @State private var step = FlowStep.default
 
 var body: some View {
-  FlowStack($selection) {
+  FlowStack($step) {
     Screen1()
       .tag(.screen1)
 
