@@ -7,11 +7,6 @@
 
 import Foundation
 
-protocol StepProtocol {
-	var id: UUID { get }
-	var mutateID: UInt64 { get set }
-}
-
 @dynamicMemberLookup
 @propertyWrapper
 public struct Step<Base>: StepProtocol, Identifiable, CustomStringConvertible {
@@ -32,16 +27,15 @@ public struct Step<Base>: StepProtocol, Identifiable, CustomStringConvertible {
 	}
 	
 	public var id = UUID()
+	var stepID: UUID { id }
 	var mutateID: UInt64 = 0
 	
 	public var selected: Key {
 		get {
 			Key(
-				id: Mirror(reflecting: wrappedValue)
-					.children
-					.compactMap { $0.value as? StepProtocol }
+				id: children
 					.sorted(by: { $0.mutateID < $1.mutateID })
-					.last?.id ?? .none,
+					.last?.stepID ?? .none,
 				base: value
 			)
 		}
@@ -75,6 +69,16 @@ public struct Step<Base>: StepProtocol, Identifiable, CustomStringConvertible {
 		return "none"
 	}
 	
+	public var allKeys: [Key] {
+		children.map {
+			Key(id: $0.stepID, base: value)
+		}
+	}
+	
+	private var children: [StepProtocol] {
+		(value as? StepCollection)?.elements ?? Mirror(reflecting: value).children.compactMap { $0.value as? StepProtocol }
+	}
+	
 	public init<T>(wrappedValue: Base, _ selected: WritableKeyPath<Base, Step<T>>) {
 		self.init(wrappedValue, selected: selected)
 	}
@@ -93,8 +97,9 @@ public struct Step<Base>: StepProtocol, Identifiable, CustomStringConvertible {
 		self.init(value)
 	}
 	
+	/// - Warning: Don't pass nested key path and only stored property's key path
 	public func key<T>(_ keyPath: WritableKeyPath<Base, Step<T>>) -> Key {
-		Key(id: wrappedValue[keyPath: keyPath].id, keyPath: keyPath.appending(path: \.mutateID))
+		Key(id: wrappedValue[keyPath: keyPath].stepID, keyPath: keyPath.appending(path: \.mutateID))
 	}
 	
 	public subscript<T>(dynamicMember keyPath: WritableKeyPath<Base, T>) -> T {
@@ -110,11 +115,7 @@ public struct Step<Base>: StepProtocol, Identifiable, CustomStringConvertible {
 		wrappedValue[keyPath: keyPath].select()
 	}
 	
-	public mutating func select(_ keyPath: WritableKeyPath<Base, EmptyStep>) {
-		wrappedValue[keyPath: keyPath].select()
-	}
-	
-	public struct Key: Hashable {
+	public struct Key: Hashable, Identifiable {
 		public static var none: Key { Key() }
 		public let id: UUID
 		var keyPath: WritableKeyPath<Base, UInt64>?
@@ -146,7 +147,7 @@ public struct Step<Base>: StepProtocol, Identifiable, CustomStringConvertible {
 			if let kp = self.keyPath {
 				return kp == keyPath.appending(path: \.mutateID)
 			}
-			let idKeyPath = keyPath.appending(path: \.id)
+			let idKeyPath = keyPath.appending(path: \.stepID)
 			return base?()[keyPath: idKeyPath] == id
 		}
 	}
@@ -180,4 +181,3 @@ extension Step: Equatable where Base: Equatable {}
 extension Step: Hashable where Base: Hashable {}
 extension Step: Decodable where Base: Decodable {}
 extension Step: Encodable where Base: Encodable {}
-private extension UUID { static let none = UUID() }

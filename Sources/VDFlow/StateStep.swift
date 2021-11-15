@@ -8,28 +8,38 @@
 import Foundation
 import SwiftUI
 
+/// A property wrapper type that stores or binds a ``VDFlow/Step``  and invalidates a view whenever the step changes.
+///
+///     @StateStep var router = StepsStruct()
+///     @StateStep(\.defaultStep) var router = StepsStruct()
+///     let stepState = StateStep(stepBinding)
 @dynamicMemberLookup
 @propertyWrapper
 public struct StateStep<Value>: DynamicProperty {
+	
 	public var wrappedValue: Value {
 		get { projectedValue.wrappedValue.wrappedValue }
 		nonmutating set {
 			projectedValue.wrappedValue.wrappedValue = newValue
 		}
 	}
+	
 	public var step: Step<Value> {
 		get { projectedValue.wrappedValue }
 		nonmutating set {
 			projectedValue.wrappedValue = newValue
 		}
 	}
+	
 	@StateOrBinding private var defaultValue: Step<Value>
+	
 	@Environment(\.[StepKey()]) private var stepBinding
+	
 	public var projectedValue: Binding<Step<Value>> {
-		if case .binding(let binding) = _defaultValue {
-			return binding
+		switch _defaultValue {
+		case .binding(let binding): return binding
+		case .state(let state): return stepBinding ?? state.projectedValue
 		}
-		return stepBinding ?? $defaultValue
 	}
 	
 	public init<T>(wrappedValue: Value, _ selected: WritableKeyPath<Value, Step<T>>) {
@@ -78,7 +88,8 @@ public struct StateStep<Value>: DynamicProperty {
 	}
 	
 	@dynamicMemberLookup
-	public struct StepBinding<T> {
+	public struct StepBinding<T>: Identifiable {
+		public var id: UUID { selected.id }
 		var selected: Step<Value>.Key
 		var binding: Binding<Step<T>>
 		
@@ -92,6 +103,15 @@ public struct StateStep<Value>: DynamicProperty {
 	
 	struct StepKey: EnvironmentKey, Hashable {
 		static var defaultValue: Binding<Step<Value>>? { nil }
+	}
+}
+
+extension StateStep where Value: MutableCollection, Value.Index: Hashable {
+	
+	public func allStepBindings<T>() -> [StepBinding<T>] where Value.Element == Step<T> {
+		wrappedValue.indices.map {
+			stepBinding(\.[$0])
+		}
 	}
 }
 
@@ -118,6 +138,27 @@ extension View {
 		environment(\.[StateStep<Value>.StepKey()], binding)
 	}
 	
+	/// Sets the unique tag value of this view.
+	///
+	///     struct FlowerPicker: View {
+	///
+	///         @StateStep private var selectedFlower = FlowerSteps()
+	///
+	///	            var body: some View {
+	///                 Picker("Flower", selection: $selectedFlower.selected) {
+	///                     Text("Rose")
+	///                         .tag(_selectedFlower.rose)
+	///                     Text("Lily")
+	///                         .tag(_selectedFlower.lily)
+	///                     Text("Dandelion")
+	///                         .tag(_selectedFlower.stepBinding(\.dandelion))
+	///             }
+	///         }
+	///     }
+	///
+	/// - Parameter stepBinding: A `StepBinding` value to create the view's tag.
+	///
+	/// - Returns: A view with the specified tag set.
 	public func tag<Root, Value>(_ stepBinding: StateStep<Root>.StepBinding<Value>) -> some View {
 		tag(stepBinding.selected)
 	}
