@@ -119,7 +119,7 @@ public struct Step<Base>: StepProtocol, Identifiable, CustomStringConvertible {
 		public static var none: Key { Key() }
 		
 		public let id: UUID
-		public var nilIfNone: Key? {
+		public var optional: Key? {
 			get { id == .none ? nil : self }
 			set { self = newValue ?? .none }
 		}
