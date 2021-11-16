@@ -117,7 +117,12 @@ public struct Step<Base>: StepProtocol, Identifiable, CustomStringConvertible {
 	
 	public struct Key: Hashable, Identifiable {
 		public static var none: Key { Key() }
+		
 		public let id: UUID
+		public var nilIfNone: Key? {
+			get { id == .none ? nil : self }
+			set { self = newValue ?? .none }
+		}
 		var keyPath: WritableKeyPath<Base, UInt64>?
 		var base: (() -> Base)?
 		
