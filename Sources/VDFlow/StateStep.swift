@@ -31,6 +31,11 @@ public struct StateStep<Value>: DynamicProperty {
 		}
 	}
 	
+	public var selected: Step<Value>.Key {
+		get { step.selected }
+		nonmutating set { step.selected = newValue }
+	}
+	
 	@StateOrBinding private var defaultValue: Step<Value>
 	
 	@Environment(\.[StepKey()]) private var stepBinding
