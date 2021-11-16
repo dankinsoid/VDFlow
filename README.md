@@ -30,7 +30,7 @@ step.tab1.select()
 step.tab3.screen3.view2.select()   
 _step.select(\.tab3.screen3.view2) //or you can use KeyPath to any Step property
 ```
-Use flow structs in a `View` with `StateStep` property wrapper. `StateStep` updates view, stores your flow struct or binds it from parent view. To bind flow down the view hierarchy you need use `.step(...)`, `.stepEnvironment(...)` view modifiers or create `StateView` with `Binding`. 
+Use flow structs in a `View` with `StateStep` property wrapper. `StateStep` updates view, stores your flow struct or binds it from parent view. To bind flow down the view hierarchy you need use `.step(...)`, `.stepEnvironment(...)` view modifiers or create `StateStep` with `Binding`. 
 ```swift
 struct RootTabView: View {
   
