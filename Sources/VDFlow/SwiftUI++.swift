@@ -6,6 +6,18 @@
 //
 
 import SwiftUI
+
+extension NavigationLink {
+	
+	public init<Dest: View, T, D>(step: StateStep<T>.StepBinding<D>, @ViewBuilder destination: () -> Dest, @ViewBuilder label: () -> Label) where Destination == NavigationStepDestionation<Dest, T, D> {
+		self.init(tag: step.selected, selection: step.rootBinding.selected.optional) {
+			NavigationStepDestionation(content: destination(), stepBinding: step)
+		} label: {
+			label()
+		}
+	}
+}
+
 #if canImport(UIKit)
 import UIKit
 
