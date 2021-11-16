@@ -32,12 +32,14 @@ public struct Step<Base>: StepProtocol, Identifiable, CustomStringConvertible {
 	
 	public var selected: Key {
 		get {
-			Key(
-				id: children
+			(
+				children
+					.filter { $0.mutateID != 0 }
 					.sorted(by: { $0.mutateID < $1.mutateID })
-					.last?.stepID ?? .none,
-				base: value
-			)
+					.last?.stepID
+			).map {
+				Key(id: $0, base: value)
+			} ?? .none
 		}
 		set {
 			let time = DispatchTime.now().uptimeNanoseconds
