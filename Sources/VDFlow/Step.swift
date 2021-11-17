@@ -29,23 +29,24 @@ public struct Step<Base>: StepProtocol, Identifiable, CustomStringConvertible {
 	public var id = UUID()
 	var stepID: UUID { id }
 	var mutateID: UInt64 = 0
+	var noneSelectedId: UInt64?
 	
 	public var selected: Key {
 		get {
-			(
-				children
-					.filter { $0.mutateID != 0 }
-					.sorted(by: { $0.mutateID < $1.mutateID })
-					.last?.stepID
-			).map {
-				Key(id: $0, base: value)
-			} ?? .none
+			let last = children
+				.filter { $0.mutateID != 0 }
+				.sorted(by: { $0.mutateID < $1.mutateID })
+				.last
+			let id = (last?.mutateID ?? 0) > (noneSelectedId ?? 0) ? last?.stepID ?? .none : .none
+			return Key(id: id, base: value)
 		}
 		set {
 			let time = DispatchTime.now().uptimeNanoseconds
 			mutateID = time
 			if let new = newValue.keyPath {
 				wrappedValue[keyPath: new] = time
+			} else if newValue == .none {
+				noneSelectedId = time
 			}
 		}
 	}
