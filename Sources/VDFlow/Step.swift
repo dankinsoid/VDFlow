@@ -110,6 +110,11 @@ public struct Step<Base>: StepProtocol, Identifiable, CustomStringConvertible {
 		set { wrappedValue[keyPath: keyPath] = newValue }
 	}
 	
+	public subscript<T>(_ keyPath: WritableKeyPath<Base, Step<T>>) -> Bool {
+		get { selected == key(keyPath) }
+		set { selected = newValue ? key(keyPath) : .none }
+	}
+	
 	public mutating func select() {
 		mutateID = DispatchTime.now().uptimeNanoseconds
 	}
