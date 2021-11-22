@@ -52,21 +52,25 @@ public struct Step<Base>: StepProtocol, Identifiable, CustomStringConvertible {
 	}
 	
 	public var description: String {
-		let children = Mirror(reflecting: wrappedValue)
+		let children = (value as? StepCollection)?.elements.enumerated().map { ($0.element, "\($0.offset)") } ?? Mirror(reflecting: wrappedValue)
 			.children
-			.compactMap { ch in (ch.value as? StepProtocol).map { ($0, ch.label) } }
+			.compactMap { ch in (ch.value as? StepProtocol).map { ($0, ch.label ?? "") } }
 		
 		var selected = children
 			.sorted(by: { $0.0.mutateID < $1.0.mutateID })
 			.filter { $0.0.mutateID != 0 }
 			.last
 		
-		if selected?.1?.hasPrefix("_") == true {
-			selected?.1?.removeFirst()
+		if (noneSelectedId ?? 0) > (selected?.0.mutateID ?? 0) {
+			selected = nil
+		}
+		
+		if selected?.1.hasPrefix("_") == true {
+			selected?.1.removeFirst()
 		}
 		if let selected = selected {
 			let str = "\(selected.0)"
-			let result = "\(selected.1 ?? "nil")"
+			let result = "\(selected.1)"
 			return str == "none" ? result : "\(result).\(str)"
 		}
 		return "none"
