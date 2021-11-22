@@ -126,6 +126,10 @@ public struct Step<Base>: StepProtocol, Identifiable, CustomStringConvertible {
 		mutateID.update()
 	}
 	
+	public mutating func select(_ action: StepAction<Base>) {
+		action.set(&self)
+	}
+	
 	public mutating func select<T>(_ keyPath: WritableKeyPath<Base, Step<T>>) {
 		wrappedValue[keyPath: keyPath].select()
 	}
