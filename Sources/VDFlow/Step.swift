@@ -28,8 +28,8 @@ public struct Step<Base>: StepProtocol, Identifiable, CustomStringConvertible {
 	
 	public var id = UUID()
 	var stepID: UUID { id }
-	var mutateID: UInt64 = 0
-	var noneSelectedId: UInt64?
+	var mutateID = MutateID()
+	var noneSelectedId = MutateID()
 	
 	public var selected: Key {
 		get {
@@ -37,16 +37,18 @@ public struct Step<Base>: StepProtocol, Identifiable, CustomStringConvertible {
 				.filter { $0.mutateID != 0 }
 				.sorted(by: { $0.mutateID < $1.mutateID })
 				.last
-			let id = (last?.mutateID ?? 0) > (noneSelectedId ?? 0) ? last?.stepID ?? .none : .none
+			let id = (last?.mutateID ?? 0) > noneSelectedId ? last?.stepID ?? .none : .none
 			return Key(id: id, base: value)
 		}
 		set {
-			let time = DispatchTime.now().uptimeNanoseconds
-			mutateID = time
+			mutateID.update()
 			if let new = newValue.keyPath {
-				wrappedValue[keyPath: new] = time
+				wrappedValue[keyPath: new].value = mutateID.value
 			} else if newValue == .none {
-				noneSelectedId = time
+				noneSelectedId.value = mutateID.value
+				allChildren.forEach {
+					$0.noneSelectedId.value = mutateID.value
+				}
 			}
 		}
 	}
@@ -61,7 +63,7 @@ public struct Step<Base>: StepProtocol, Identifiable, CustomStringConvertible {
 			.filter { $0.0.mutateID != 0 }
 			.last
 		
-		if (noneSelectedId ?? 0) > (selected?.0.mutateID ?? 0) {
+		if noneSelectedId > (selected?.0.mutateID ?? 0) {
 			selected = nil
 		}
 		
@@ -82,7 +84,7 @@ public struct Step<Base>: StepProtocol, Identifiable, CustomStringConvertible {
 		}
 	}
 	
-	private var children: [StepProtocol] {
+	var children: [StepProtocol] {
 		(value as? StepCollection)?.elements ?? Mirror(reflecting: value).children.compactMap { $0.value as? StepProtocol }
 	}
 	
@@ -99,9 +101,9 @@ public struct Step<Base>: StepProtocol, Identifiable, CustomStringConvertible {
 	}
 	
 	public init<T>(_ wrappedValue: Base, selected: WritableKeyPath<Base, Step<T>>) {
-		var value = wrappedValue
-		value[keyPath: selected].mutateID = DispatchTime.now().uptimeNanoseconds
-		self.init(value)
+		self.init(wrappedValue)
+		self.wrappedValue[keyPath: selected].mutateID = MutateID()
+		self.wrappedValue[keyPath: selected].mutateID.update()
 	}
 	
 	/// - Warning: Don't pass nested key path and only stored property's key path
@@ -120,7 +122,8 @@ public struct Step<Base>: StepProtocol, Identifiable, CustomStringConvertible {
 	}
 	
 	public mutating func select() {
-		mutateID = DispatchTime.now().uptimeNanoseconds
+		mutateID = MutateID()
+		mutateID.update()
 	}
 	
 	public mutating func select<T>(_ keyPath: WritableKeyPath<Base, Step<T>>) {
@@ -135,10 +138,10 @@ public struct Step<Base>: StepProtocol, Identifiable, CustomStringConvertible {
 			get { id == .none ? nil : self }
 			set { self = newValue ?? .none }
 		}
-		var keyPath: WritableKeyPath<Base, UInt64>?
+		var keyPath: KeyPath<Base, MutateID>?
 		var base: (() -> Base)?
 		
-		init(id: UUID, keyPath: WritableKeyPath<Base, UInt64>) {
+		init(id: UUID, keyPath: KeyPath<Base, MutateID>) {
 			self.id = id
 			self.keyPath = keyPath
 		}
