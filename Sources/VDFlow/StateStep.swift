@@ -39,6 +39,7 @@ public struct StateStep<Value>: DynamicProperty {
 	@StateOrBinding private var defaultValue: Step<Value>
 	
 	@Environment(\.[StepKey()]) private var stepBinding
+	@Environment(\.unselectStep) private var unselectClosure
 	
 	public var projectedValue: Binding<Step<Value>> {
 		switch _defaultValue {
@@ -69,7 +70,6 @@ public struct StateStep<Value>: DynamicProperty {
 	
 	public func stepBinding<T>(_ keyPath: WritableKeyPath<Value, Step<T>>) -> StepBinding<T> {
 		StepBinding(
-			selected: step.key(keyPath),
 			rootBinding: projectedValue,
 			keyPath: keyPath
 		)
@@ -93,17 +93,21 @@ public struct StateStep<Value>: DynamicProperty {
 		step.move(offset, in: steps)
 	}
 	
+	public func unselect(stepsCount: Int = 1) {
+		guard !unselectClosure.isEmpty else { return }
+		unselectClosure[min(unselectClosure.count - 1, max(0, stepsCount - 1))]()
+	}
+	
 	@dynamicMemberLookup
 	public struct StepBinding<T>: Identifiable {
 		public var id: UUID { selected.id }
-		var selected: Step<Value>.Key
+		var selected: Step<Value>.Key { rootBinding.wrappedValue.key(keyPath) }
 		var rootBinding: Binding<Step<Value>>
 		var keyPath: WritableKeyPath<Value, Step<T>>
 		var binding: Binding<Step<T>> { rootBinding[dynamicMember: (\Step<Value>.wrappedValue).appending(path: keyPath)] }
 		
 		public subscript<A>(dynamicMember keyPath: WritableKeyPath<T, Step<A>>) -> StateStep<T>.StepBinding<A> {
 			StateStep<T>.StepBinding<A>(
-				selected: binding.wrappedValue.key(keyPath),
 				rootBinding: binding,
 				keyPath: keyPath
 			)
@@ -129,17 +133,28 @@ extension EnvironmentValues {
 		get { self[StateStep<T>.StepKey.self] }
 		set { self[StateStep<T>.StepKey.self] = newValue }
 	}
+	
+	var unselectStep: [() -> Void] {
+		get { self[UnselectKey.self] }
+		set { self[UnselectKey.self] = newValue }
+	}
+}
+
+private enum UnselectKey: EnvironmentKey {
+	static var defaultValue: [() -> Void] { [] }
 }
 
 extension View {
 	
 	public func step<Root, Value>(_ stepBinding: StateStep<Root>.StepBinding<Value>) -> some View {
-		stepEnvironment(stepBinding.binding)
-			.tag(stepBinding)
+		step(stepBinding.rootBinding, stepBinding.keyPath)
 	}
 	
 	public func step<Root, Value>(_ binding: Binding<Step<Root>>, _ keyPath: WritableKeyPath<Root, Step<Value>>) -> some View {
 		stepEnvironment(binding[dynamicMember: (\Step<Root>.wrappedValue).appending(path: keyPath)])
+			.transformEnvironment(\.unselectStep) {
+				$0.insert({ binding.wrappedValue.selected = .none }, at: 0)
+			}
 			.tag(binding.wrappedValue.key(keyPath))
 	}
 	
