@@ -142,7 +142,7 @@ private class Delegate<ID: Hashable>: NSObject, UINavigationControllerDelegate {
 	}
 	
 	func navigationController(_ navigationController: UINavigationController, didShow viewController: UIViewController, animated: Bool) {
-		let newId = (viewController.anyFlowId?.base as? ID) ?? (id as? Int).flatMap { ($0 + 1) as? ID } ?? id
+		let newId = (viewController.anyFlowId?.base as? ID) ?? (navigationController.viewControllers.count - 1 as? ID) ?? id
 		if newId != id {
 			id = newId
 		}
