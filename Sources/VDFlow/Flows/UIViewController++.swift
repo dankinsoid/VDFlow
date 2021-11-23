@@ -8,6 +8,7 @@
 #if canImport(UIKit)
 import Foundation
 import UIKit
+import SwiftUI
 
 extension UIViewController {
 	
@@ -94,6 +95,10 @@ extension NSObject {
 	}
 	
 	var anyFlowId: AnyHashable? { (objc_getAssociatedObject(self, &flowIdKey) as? Wrapper)?.id }
+	
+	func flowId<T: Hashable>(of type: T.Type) -> T? {
+		(anyFlowId?.base ?? (self as? HostingController)?.rootAnyView.viewTag?.base) as? T
+	}
 }
 
 extension Array where Element: NSObject {
@@ -105,5 +110,13 @@ extension Array where Element: NSObject {
 		}
 		return Array(prefix(i))
 	}
+}
+
+protocol HostingController: UIViewController {
+	var rootAnyView: AnyView { get }
+}
+
+extension UIHostingController: HostingController {
+	var rootAnyView: AnyView { AnyView(rootView) }
 }
 #endif

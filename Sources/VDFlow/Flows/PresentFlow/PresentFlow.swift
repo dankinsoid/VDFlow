@@ -42,7 +42,7 @@ public struct PresentFlow<Content: IterableView, Selection: Hashable>: FullScree
 			result.set([first], animated: false)
 		}
 		result.onDidShow = {[weak result, _id] in
-			let newId = ($0.anyFlowId?.base as? Selection) ?? (result?.allPresented.count as? Selection) ?? _id.wrappedValue
+			let newId = $0.flowId(of: Selection.self) ?? (result?.allPresented.count as? Selection) ?? _id.wrappedValue
 			if newId != _id.wrappedValue {
 				_id.wrappedValue = newId
 			}

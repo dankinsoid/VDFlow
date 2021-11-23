@@ -19,7 +19,7 @@ extension View {
 	}
 	
 	var viewTag: AnyHashable? {
-		guard Self.bodyString.contains("TagValueTraitKey") else { return nil }
+		guard Self.self == AnyView.self || Self.bodyString.contains("TagValueTraitKey") else { return nil }
 		return _tag
 	}
 	
