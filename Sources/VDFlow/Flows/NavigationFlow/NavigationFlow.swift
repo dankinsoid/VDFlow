@@ -64,6 +64,7 @@ public struct NavigationFlow<Content: IterableView, Selection: Hashable>: FullSc
 		(uiViewController.strongDelegate as? Delegate<Selection>)?.updateStyle = {
 			updateStyle($0, context: context)
 		}
+		guard case .binding = _id else { return }
 		let visitor = ControllersVisitor(current: uiViewController.viewControllers, upTo: id)
 		_ = content.iterate(with: visitor)
 		var vcs = visitor.new
@@ -144,10 +145,10 @@ private class Delegate<ID: Hashable>: NSObject, UINavigationControllerDelegate {
 	
 	func navigationController(_ navigationController: UINavigationController, didShow viewController: UIViewController, animated: Bool) {
 		isAnimaing = false
-//		if ID.self == Int.self, viewController.anyFlowId == nil {
-//			viewController.setFlowId(AnyHashable(navigationController.viewControllers.count - 1))
-//		}
-		let newId = viewController.flowId(of: ID.self) ?? (navigationController.viewControllers.count - 1 as? ID) ?? id
+		if ID.self == Int.self, viewController.anyFlowId == nil {
+			viewController.setFlowId(AnyHashable(navigationController.viewControllers.count - 1))
+		}
+		let newId = viewController.flowId(of: ID.self) ?? id
 		if newId != id {
 			id = newId
 		}
