@@ -103,16 +103,16 @@ public struct FlowStack<Content: IterableView, Background: View, Overlay: View, 
         switch type {
         case .show:
             if let i = currentIndex, i < subviews.count - 1 {
-                if let tag = subviews[i + 1].viewTag?.base as? Selection {
+                if let tag = (subviews[i + 1].viewTag?.base as? Selection) ?? ((i + 1) as? Selection) {
                     selection = tag
-                }
+								}
             }
         case .hide:
             if let i = currentIndex, i > 0 {
-                if let tag = subviews[i - 1].viewTag?.base as? Selection {
+                if let tag = (subviews[i - 1].viewTag?.base as? Selection) ?? ((i - 1) as? Selection) {
                     selection = tag
-                }
-            }
+								}
+						}
         }
     }
     
@@ -135,10 +135,10 @@ extension FlowStack {
     }
 }
 
-extension FlowStack where Selection == String {
+extension FlowStack where Selection == Int {
     
     public init(content: Content, background: Background, overlay: @escaping (CGFloat) -> Overlay) {
-        self.init(.state(content.subrange(at: 0..<1).viewTag?.base as? Selection), content: content, background: background, overlay: overlay)
+        self.init(.state((content.subrange(at: 0..<1).viewTag?.base as? Selection) ?? 0), content: content, background: background, overlay: overlay)
     }
     
     public init(@IterableViewBuilder _ content: () -> Content, @ViewBuilder background: () -> Background, @ViewBuilder overlay: @escaping (CGFloat) -> Overlay) {
@@ -157,7 +157,7 @@ extension FlowStack where Background == EmptyView {
     }
 }
 
-extension FlowStack where Selection == String, Background == EmptyView {
+extension FlowStack where Selection == Int, Background == EmptyView {
     
     public init(content: Content, overlay: @escaping (CGFloat) -> Overlay) {
         self.init(content: content, background: EmptyView(), overlay: overlay)
@@ -179,10 +179,10 @@ extension FlowStack where Overlay == EmptyView {
     }
 }
 
-extension FlowStack where Selection == String, Overlay == EmptyView {
+extension FlowStack where Selection == Int, Overlay == EmptyView {
     
     public init(content: Content, background: Background) {
-        self.init(.state(content.subrange(at: 0..<1).viewTag?.base as? Selection), content: content, background: background, overlay: { _ in EmptyView() })
+        self.init(.state((content.subrange(at: 0..<1).viewTag?.base as? Selection) ?? 0), content: content, background: background, overlay: { _ in EmptyView() })
     }
     
     public init(@IterableViewBuilder _ content: () -> Content, @ViewBuilder background: () -> Background) {
@@ -201,7 +201,7 @@ extension FlowStack where Background == EmptyView, Overlay == EmptyView {
     }
 }
 
-extension FlowStack where Selection == String, Background == EmptyView, Overlay == EmptyView {
+extension FlowStack where Selection == Int, Background == EmptyView, Overlay == EmptyView {
     
     public init(content: Content) {
         self.init(content: content, background: EmptyView(), overlay: { _ in EmptyView() })

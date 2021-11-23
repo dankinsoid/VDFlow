@@ -24,17 +24,15 @@ final class ControllersVisitor: IterableViewVisitor {
 	
 	func visit<V: View>(_ value: V) -> Bool {
 		if index == nil {
-			let tag = value.viewTag
-			if tag != nil, let result = current.first(where: { $0.anyFlowId == tag }) {
+			let tag = value.viewTag ?? AnyHashable(i)
+			if let result = current.first(where: { $0.anyFlowId == tag }) {
 				if let host = result as? UIHostingController<V> {
 					host.rootView = value
 				}
 				new.append(result)
 			} else {
 				let host = ObservableHostingController(rootView: value)
-				if let id = tag {
-					host.setFlowId(id)
-				}
+				host.setFlowId(tag)
 				new.append(host)
 			}
 			if tag == id {
@@ -61,7 +59,7 @@ public final class TagIndexVisitor: IterableViewVisitor {
 	
 	public func visit<V: View>(_ value: V) -> Bool {
 		if index == nil {
-			let tag = value.viewTag
+			let tag = value.viewTag ?? AnyHashable(i)
 			if tag == id {
 				index = i
 				return false
@@ -87,9 +85,8 @@ final class FirstViewControllerVisitor: IterableViewVisitor {
 	func visit<V: View>(_ value: V) -> Bool {
 		guard vc == nil else { return false }
 		vc = ObservableHostingController(rootView: value)
-		if let tag = value.viewTag {
-			vc?.setFlowId(tag)
-		}
+		let tag = value.viewTag ?? AnyHashable(0)
+		vc?.setFlowId(tag)
 		return false
 	}
 }
