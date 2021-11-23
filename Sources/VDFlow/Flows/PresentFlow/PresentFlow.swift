@@ -41,8 +41,8 @@ public struct PresentFlow<Content: IterableView, Selection: Hashable>: FullScree
 		if let first = visitor.vc as? ObservableControllerType {
 			result.set([first], animated: false)
 		}
-		result.onDidShow = {[_id] in
-			let newId = ($0.anyFlowId?.base as? Selection) ?? _id.wrappedValue
+		result.onDidShow = {[weak result _id] in
+			let newId = ($0.anyFlowId?.base as? Selection) ?? (result?.allPresented.count as? Selection) ?? _id.wrappedValue
 			if newId != _id.wrappedValue {
 				_id.wrappedValue = newId
 			}
