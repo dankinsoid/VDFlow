@@ -119,6 +119,12 @@ public struct StateStep<Value>: DynamicProperty {
 	}
 }
 
+extension StateStep where Value == EmptyStep {
+	public init() {
+		self.init(wrappedValue: EmptyStep())
+	}
+}
+
 extension StateStep where Value: MutableCollection, Value.Index: Hashable {
 	
 	public func allStepBindings<T>() -> [StepBinding<T>] where Value.Element == Step<T> {
