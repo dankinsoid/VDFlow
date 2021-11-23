@@ -97,7 +97,7 @@ extension NSObject {
 	var anyFlowId: AnyHashable? { (objc_getAssociatedObject(self, &flowIdKey) as? Wrapper)?.id }
 	
 	func flowId<T: Hashable>(of type: T.Type) -> T? {
-		(anyFlowId?.base ?? (self as? HostingController)?.rootAnyView.viewTag?.base) as? T
+		anyFlowId?.base as? T
 	}
 }
 
