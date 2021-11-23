@@ -67,10 +67,10 @@ public struct NavigationFlow<Content: IterableView, Selection: Hashable>: FullSc
 		let visitor = ControllersVisitor(current: uiViewController.viewControllers, upTo: id)
 		_ = content.iterate(with: visitor)
 		var vcs = visitor.new
-		guard visitor.index != nil, vcs != uiViewController.viewControllers else { return }
 		if let i = vcs.firstIndex(where: { $0.isDisabledBack }), i > 0 {
 			vcs.removeFirst(i - 1)
 		}
+		guard visitor.index != nil, vcs != uiViewController.viewControllers else { return }
 		let animated = context.transaction.animation != nil && uiViewController.view?.window != nil
 		if (uiViewController.strongDelegate as? Delegate<Selection>)?.isAnimaing != true, uiViewController.interactivePopGestureRecognizer?.state != .changed {
 			uiViewController.set(viewControllers: vcs, animated: animated)
@@ -147,7 +147,7 @@ private class Delegate<ID: Hashable>: NSObject, UINavigationControllerDelegate {
 		if ID.self == Int.self, viewController.anyFlowId == nil {
 			viewController.setFlowId(AnyHashable(navigationController.viewControllers.count - 1))
 		}
-		let newId = viewController.flowId(of: ID.self) ?? id
+		let newId = viewController.flowId(of: ID.self) ?? (navigationController.viewControllers.count - 1 as? ID) ?? id
 		if newId != id {
 			id = newId
 		}
