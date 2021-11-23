@@ -144,9 +144,9 @@ private class Delegate<ID: Hashable>: NSObject, UINavigationControllerDelegate {
 	
 	func navigationController(_ navigationController: UINavigationController, didShow viewController: UIViewController, animated: Bool) {
 		isAnimaing = false
-		if ID.self == Int.self, viewController.anyFlowId == nil {
-			viewController.setFlowId(AnyHashable(navigationController.viewControllers.count - 1))
-		}
+//		if ID.self == Int.self, viewController.anyFlowId == nil {
+//			viewController.setFlowId(AnyHashable(navigationController.viewControllers.count - 1))
+//		}
 		let newId = viewController.flowId(of: ID.self) ?? (navigationController.viewControllers.count - 1 as? ID) ?? id
 		if newId != id {
 			id = newId
