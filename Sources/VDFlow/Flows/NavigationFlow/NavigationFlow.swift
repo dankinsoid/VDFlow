@@ -75,7 +75,9 @@ public struct NavigationFlow<Content: IterableView, Selection: Hashable>: FullSc
 		}
 		guard vcs != uiViewController.viewControllers else { return }
 		let animated = context.transaction.animation != nil && uiViewController.view?.window != nil
-		uiViewController.set(viewControllers: vcs, animated: animated)
+		if (uiViewController.strongDelegate as? Delegate<Selection>)?.isAnimaing != true, uiViewController.interactivePopGestureRecognizer?.state != .changed {
+			uiViewController.set(viewControllers: vcs, animated: animated)
+		}
 	}
 	
 	private func updateStyle(_ uiViewController: UINavigationController, context: Context) {
@@ -134,6 +136,7 @@ extension NavigationFlow where Selection == Int {
 
 private class Delegate<ID: Hashable>: NSObject, UINavigationControllerDelegate {
 	@Binding var id: ID
+	var isAnimaing = false
 	weak var delegate: UINavigationControllerDelegate?
 	
 	init(_ id: Binding<ID>, delegate: UINavigationControllerDelegate?) {
@@ -142,6 +145,7 @@ private class Delegate<ID: Hashable>: NSObject, UINavigationControllerDelegate {
 	}
 	
 	func navigationController(_ navigationController: UINavigationController, didShow viewController: UIViewController, animated: Bool) {
+		isAnimaing = false
 		let newId = viewController.flowId(of: ID.self) ?? (navigationController.viewControllers.count - 1 as? ID) ?? id
 		if newId != id {
 			id = newId
@@ -149,6 +153,9 @@ private class Delegate<ID: Hashable>: NSObject, UINavigationControllerDelegate {
 	}
 	
 	func navigationController(_ navigationController: UINavigationController, willShow viewController: UIViewController, animated: Bool) {
+		if animated, navigationController.interactivePopGestureRecognizer?.state == .possible {
+			isAnimaing = true
+		}
 		delegate?.navigationController?(navigationController, willShow: viewController, animated: animated)
 	}
 	
