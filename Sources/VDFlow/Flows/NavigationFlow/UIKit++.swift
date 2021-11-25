@@ -7,6 +7,19 @@
 #if canImport(UIKit)
 import UIKit
 
+extension UIViewController {
+	var isDisabledBack: Bool {
+		get { (objc_getAssociatedObject(self, &disableBackKey) as? Bool) ?? false }
+		set { objc_setAssociatedObject(self, &disableBackKey, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC) }
+	}
+}
+
+private final class Weak<T: AnyObject> {
+	weak var value: T?
+	
+	init(_ value: T?) { self.value = value }
+}
+
 extension UIImage {
 	
 	convenience init?(color: UIColor, size: CGSize = CGSize(width: 1, height: 1)) {
@@ -27,4 +40,12 @@ extension CGPoint {
 		CGPoint(x: lhs.x - rhs.x, y: lhs.y - rhs.y)
 	}
 }
+
+extension UIColor {
+	var alpha: CGFloat {
+		cgColor.alpha
+	}
+}
+
+fileprivate var disableBackKey = "disableBackKey"
 #endif

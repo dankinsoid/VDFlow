@@ -9,164 +9,85 @@
 import UIKit
 import SwiftUI
 
-enum NavigationFlowBarColorKey: EnvironmentKey {
-	static var defaultValue: Color { .clear }
+extension EnvironmentValues {
+	public struct NavigationFlow {
+		public var createController: () -> UINavigationController = UINavigationController.init
+		public var barColor = Color.clear
+		public var barShadowColor = Color.clear
+		public var largeTitleFont: UIFont?
+		public var largeTitleColor: Color?
+		public var largeTitleMode: UINavigationItem.LargeTitleDisplayMode = .automatic
+		public var prefersLargeTitle = true
+		public var titleFont: UIFont?
+		public var titleColor: Color?
+		public var backImage: UIImage?
+		public var showBackText = false
+		public var barPadding: EdgeInsets?
+		public var barAccentColor = Color.accentColor
+		public var hidesBarsWhenVerticallyCompact = false
+		public var hidesBarsOnTap = false
+		public var hidesBarsOnSwipe = false
+		public var hidesBarsWhenKeyboardAppears = false
+		public var hidesBottomBarWhenPushed = false
+		
+		public init() {}
+	}
 }
 
-enum NavigationFlowShadowColorKey: EnvironmentKey {
-	static var defaultValue: Color { .clear }
+private enum NavigationFlowKey: EnvironmentKey {
+	static var defaultValue: EnvironmentValues.NavigationFlow { .init() }
 }
 
-enum NavigationFlowLargeTitleFontKey: EnvironmentKey {
-	static var defaultValue: UIFont? { nil }
-}
-
-enum NavigationFlowLargeTitleColorKey: EnvironmentKey {
-	static var defaultValue: Color? { nil }
-}
-
-enum NavigationFlowLargeTitleKey: EnvironmentKey {
-	static var defaultValue: Bool { true }
-}
-
-enum NavigationFlowTitleFontKey: EnvironmentKey {
-	static var defaultValue: UIFont? { nil }
-}
-
-enum NavigationFlowTitleColorKey: EnvironmentKey {
-	static var defaultValue: Color? { nil }
-}
-
-enum NavigationFlowBackImageKey: EnvironmentKey {
-	static var defaultValue: UIImage? { nil }
-}
-
-enum NavigationFlowShowBackText: EnvironmentKey {
+private enum InsideNavigationFlowKey: EnvironmentKey {
 	static var defaultValue: Bool { false }
 }
 
-enum NavigationFlowBarPadding: EnvironmentKey {
-	static var defaultValue: EdgeInsets? { nil }
-}
-
-enum NavigationFlowLargeTitleMode: EnvironmentKey {
-	static var defaultValue: UINavigationItem.LargeTitleDisplayMode { .automatic }
-}
-
-enum NavigationFlowBarAccentColorKey: EnvironmentKey {
-	static var defaultValue: Color { .accentColor }
+private enum TagEnvironmentKey: EnvironmentKey {
+	static let defaultValue: AnyHashable = UUID()
 }
 
 extension EnvironmentValues {
-	public var navigationFlowBarColor: Color {
-		get { self[NavigationFlowBarColorKey.self] }
-		set { self[NavigationFlowBarColorKey.self] = newValue }
+	public var navigationFlow: NavigationFlow {
+		get { self[NavigationFlowKey.self] }
+		set { self[NavigationFlowKey.self] = newValue }
 	}
 	
-	public var navigationFlowBarShadowColor: Color {
-		get { self[NavigationFlowShadowColorKey.self] }
-		set { self[NavigationFlowShadowColorKey.self] = newValue }
+	var isInsideNavigationFlow: Bool {
+		get { self[InsideNavigationFlowKey.self] }
+		set { self[InsideNavigationFlowKey.self] = newValue }
 	}
 	
-	public var navigationFlowLargeTitleFont: UIFont? {
-		get { self[NavigationFlowLargeTitleFontKey.self] }
-		set { self[NavigationFlowLargeTitleFontKey.self] = newValue }
+	var navigationFlowEnvironment: NavigationFlowEnvironment {
+		get { self[NavigationFlowEnvironment.Key.self] }
+		set { self[NavigationFlowEnvironment.Key.self] = newValue }
 	}
 	
-	public var navigationFlowLargeTitleColor: Color? {
-		get { self[NavigationFlowLargeTitleColorKey.self] }
-		set { self[NavigationFlowLargeTitleColorKey.self] = newValue }
-	}
-	
-	public var navigationFlowTitleFont: UIFont? {
-		get { self[NavigationFlowTitleFontKey.self] }
-		set { self[NavigationFlowTitleFontKey.self] = newValue }
-	}
-	
-	public var navigationFlowTitleColor: Color? {
-		get { self[NavigationFlowTitleColorKey.self] }
-		set { self[NavigationFlowTitleColorKey.self] = newValue }
-	}
-	
-	public var navigationFlowLargeTitle: Bool {
-		get { self[NavigationFlowLargeTitleKey.self] }
-		set { self[NavigationFlowLargeTitleKey.self] = newValue }
-	}
-	
-	public var navigationFlowBackImage: UIImage? {
-		get { self[NavigationFlowBackImageKey.self] }
-		set { self[NavigationFlowBackImageKey.self] = newValue }
-	}
-	
-	public var navigationFlowShowBackText: Bool {
-		get { self[NavigationFlowShowBackText.self] }
-		set { self[NavigationFlowShowBackText.self] = newValue }
-	}
-	
-	public var navigationFlowBarPadding: EdgeInsets? {
-		get { self[NavigationFlowBarPadding.self] }
-		set { self[NavigationFlowBarPadding.self] = newValue }
-	}
-	
-	public var navigationFlowLargeTitleMode: UINavigationItem.LargeTitleDisplayMode {
-		get { self[NavigationFlowLargeTitleMode.self] }
-		set { self[NavigationFlowLargeTitleMode.self] = newValue }
-	}
-	
-	public var navigationFlowBarAccentColor: Color {
-		get { self[NavigationFlowBarAccentColorKey.self] }
-		set { self[NavigationFlowBarAccentColorKey.self] = newValue }
+	var tag: AnyHashable {
+		get { self[TagEnvironmentKey.self] }
+		set { self[TagEnvironmentKey.self] = newValue }
 	}
 }
 
 extension View {
 	
-	public func navigationFlow(barColor color: Color) -> some View {
-		environment(\.navigationFlowBarColor, color)
+	public func navigationFlow(transform: @escaping (inout EnvironmentValues.NavigationFlow) -> Void) -> some View {
+		transformEnvironment(\.navigationFlow, transform: transform)
 	}
 	
-	public func navigationFlow(barShadowColor color: Color) -> some View {
-		environment(\.navigationFlowBarShadowColor, color)
+	public func navigationFlow<T>(_ keyPath: WritableKeyPath<EnvironmentValues.NavigationFlow, T>, _ value: T) -> some View {
+		navigationFlow {
+			$0[keyPath: keyPath] = value
+		}
 	}
+}
+
+final class NavigationFlowEnvironment {
 	
-	public func navigationFlow(largeTitleFont font: UIFont?) -> some View {
-		environment(\.navigationFlowLargeTitleFont, font)
-	}
+	var children: [AnyHashable: ([UIViewController]) -> [UIViewController]] = [:]
+	var update: (EnvironmentValues, Transaction) -> Void = { _, _ in }
 	
-	public func navigationFlow(largeTitleColor color: Color?) -> some View {
-		environment(\.navigationFlowLargeTitleColor, color)
-	}
-	
-	public func navigationFlow(titleFont font: UIFont?) -> some View {
-		environment(\.navigationFlowTitleFont, font)
-	}
-	
-	public func navigationFlow(titleColor color: Color?) -> some View {
-		environment(\.navigationFlowTitleColor, color)
-	}
-	
-	public func navigationFlow(prefersLargeTitle large: Bool) -> some View {
-		environment(\.navigationFlowLargeTitle, large)
-	}
-	
-	public func navigationFlow(largeTitleMode mode: UINavigationItem.LargeTitleDisplayMode) -> some View {
-		environment(\.navigationFlowLargeTitleMode, mode)
-	}
-	
-	public func navigationFlow(backImage image: UIImage?) -> some View {
-		environment(\.navigationFlowBackImage, image)
-	}
-	
-	public func navigationFlow(showBackText show: Bool) -> some View {
-		environment(\.navigationFlowShowBackText, show)
-	}
-	
-	public func navigationFlow(barPadding edges: EdgeInsets?) -> some View {
-		environment(\.navigationFlowBarPadding, edges)
-	}
-	
-	public func navigationFlow(barAccentColor color: Color) -> some View {
-		environment(\.navigationFlowBarAccentColor, color)
+	enum Key: EnvironmentKey {
+		static let defaultValue = NavigationFlowEnvironment()
 	}
 }
 #endif
