@@ -124,7 +124,7 @@ public struct StateStep<Value>: DynamicProperty {
 
 extension Binding {
 	
-	public subscript<Base, T>(isSelected keyPath: WritableKeyPath<Base, Step<T>>, _ value: T) -> Binding<Bool> where Value == Step<Base> {
+	public subscript<Base, T>(isSelected keyPath: WritableKeyPath<Base, Step<T>>, set value: T) -> Binding<Bool> where Value == Step<Base> {
 		Binding<Bool> {
 			wrappedValue[isSelected: keyPath, value]
 		} set: {

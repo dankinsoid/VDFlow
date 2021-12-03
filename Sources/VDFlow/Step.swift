@@ -121,7 +121,7 @@ public struct Step<Base>: StepProtocol, Identifiable, CustomStringConvertible {
 		set { selected = newValue ? key(keyPath) : .none }
 	}
 	
-	public subscript<T>(isSelected keyPath: WritableKeyPath<Base, Step<T>>, _ value: T) -> Bool {
+	public subscript<T>(isSelected keyPath: WritableKeyPath<Base, Step<T>>, set value: T) -> Bool {
 		get { selected == key(keyPath) }
 		set {
 			if newValue {
