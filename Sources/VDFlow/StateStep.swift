@@ -94,7 +94,10 @@ public struct StateStep<Value>: DynamicProperty {
 	}
 	
 	public func unselect(stepsCount: Int = 1) {
-		guard !unselectClosure.isEmpty else { return }
+		guard !unselectClosure.isEmpty else {
+			Environment(\.presentationMode).wrappedValue.wrappedValue.dismiss()
+			return
+		}
 		unselectClosure[min(unselectClosure.count - 1, max(0, stepsCount - 1))]()
 	}
 	
@@ -116,6 +119,17 @@ public struct StateStep<Value>: DynamicProperty {
 	
 	struct StepKey: EnvironmentKey, Hashable {
 		static var defaultValue: Binding<Step<Value>>? { nil }
+	}
+}
+
+extension Binding {
+	
+	public subscript<Base, T>(isSelected keyPath: WritableKeyPath<Base, Step<T>>, _ value: T) -> Binding<Bool> where Value == Step<Base> {
+		Binding<Bool> {
+			wrappedValue[isSelected: keyPath, value]
+		} set: {
+			wrappedValue[isSelected: keyPath, value] = $0
+		}
 	}
 }
 

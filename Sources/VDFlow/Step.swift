@@ -121,6 +121,17 @@ public struct Step<Base>: StepProtocol, Identifiable, CustomStringConvertible {
 		set { selected = newValue ? key(keyPath) : .none }
 	}
 	
+	public subscript<T>(isSelected keyPath: WritableKeyPath<Base, Step<T>>, _ value: T) -> Bool {
+		get { selected == key(keyPath) }
+		set {
+			if newValue {
+				wrappedValue[keyPath: keyPath].wrappedValue = value
+			} else {
+				selected = .none
+			}
+		}
+	}
+	
 	public mutating func select() {
 		mutateID = MutateID()
 		mutateID.update()
