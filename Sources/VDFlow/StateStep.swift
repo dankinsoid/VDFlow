@@ -126,9 +126,9 @@ extension Binding {
 	
 	public subscript<Base, T>(isSelected keyPath: WritableKeyPath<Base, Step<T>>, set value: T) -> Binding<Bool> where Value == Step<Base> {
 		Binding<Bool> {
-			wrappedValue[isSelected: keyPath, value]
+			wrappedValue[isSelected: keyPath, set: value]
 		} set: {
-			wrappedValue[isSelected: keyPath, value] = $0
+			wrappedValue[isSelected: keyPath, set: value] = $0
 		}
 	}
 }
