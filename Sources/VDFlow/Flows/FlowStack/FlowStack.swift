@@ -14,7 +14,7 @@ public struct FlowStack<Content: IterableView, Background: View, Overlay: View, 
     private let content: Content
     private let background: Background
     private let overlay: (CGFloat) -> Overlay
-    @StateOrBinding private var selection: Selection?
+    @StateOrBinding private var selection: Selection
     @Environment(\.flowStackFrontTransition) private var showTransition
     @Environment(\.flowStackBackTransition) private var hideTransition
     @Environment(\.flowStackInteractive) private var interactive
@@ -23,7 +23,7 @@ public struct FlowStack<Content: IterableView, Background: View, Overlay: View, 
     @State private var frame: CGRect = .zero
     private var subviews: [Content.Subview] { content.subviews }
     private var currentIndex: Int? {
-        selection.flatMap { TagIndexVisitor.index(of: $0, for: content) } ?? (content.count > 0 ? 0 : nil)
+        TagIndexVisitor.index(of: selection, for: content) ?? (content.count > 0 ? 0 : nil)
     }
     private var fractionIndex: CGFloat {
         switch interacting {
@@ -64,7 +64,7 @@ public struct FlowStack<Content: IterableView, Background: View, Overlay: View, 
         }
     }
     
-    init(_ selection: StateOrBinding<Selection?>, content: Content, background: Background, overlay: @escaping (CGFloat) -> Overlay) {
+    init(_ selection: StateOrBinding<Selection>, content: Content, background: Background, overlay: @escaping (CGFloat) -> Overlay) {
         self.background = background
         self.content = content
         self.overlay = overlay
@@ -126,11 +126,11 @@ public struct FlowStack<Content: IterableView, Background: View, Overlay: View, 
 
 extension FlowStack {
     
-    public init(_ selection: Binding<Selection?>, content: Content, background: Background, overlay: @escaping (CGFloat) -> Overlay) {
+    public init(_ selection: Binding<Selection>, content: Content, background: Background, overlay: @escaping (CGFloat) -> Overlay) {
         self.init(.binding(selection), content: content, background: background, overlay: overlay)
     }
     
-    public init(_ selection: Binding<Selection?>, @IterableViewBuilder _ content: () -> Content, @ViewBuilder background: () -> Background, @ViewBuilder overlay: @escaping (CGFloat) -> Overlay) {
+    public init(_ selection: Binding<Selection>, @IterableViewBuilder _ content: () -> Content, @ViewBuilder background: () -> Background, @ViewBuilder overlay: @escaping (CGFloat) -> Overlay) {
         self.init(selection, content: content(), background: background(), overlay: overlay)
     }
 }
@@ -148,11 +148,11 @@ extension FlowStack where Selection == Int {
 
 extension FlowStack where Background == EmptyView {
     
-    public init(_ selection: Binding<Selection?>, content: Content, overlay: @escaping (CGFloat) -> Overlay) {
+    public init(_ selection: Binding<Selection>, content: Content, overlay: @escaping (CGFloat) -> Overlay) {
         self.init(selection, content: content, background: EmptyView(), overlay: overlay)
     }
     
-    public init(_ selection: Binding<Selection?>, @IterableViewBuilder _ content: () -> Content, @ViewBuilder overlay: @escaping (CGFloat) -> Overlay) {
+    public init(_ selection: Binding<Selection>, @IterableViewBuilder _ content: () -> Content, @ViewBuilder overlay: @escaping (CGFloat) -> Overlay) {
         self.init(selection, content: content(), background: EmptyView(), overlay: overlay)
     }
 }
@@ -170,11 +170,11 @@ extension FlowStack where Selection == Int, Background == EmptyView {
 
 extension FlowStack where Overlay == EmptyView {
     
-    public init(_ selection: Binding<Selection?>, content: Content, background: Background) {
+    public init(_ selection: Binding<Selection>, content: Content, background: Background) {
         self.init(.binding(selection), content: content, background: background, overlay: { _ in EmptyView() })
     }
     
-    public init(_ selection: Binding<Selection?>, @IterableViewBuilder _ content: () -> Content, @ViewBuilder background: () -> Background) {
+    public init(_ selection: Binding<Selection>, @IterableViewBuilder _ content: () -> Content, @ViewBuilder background: () -> Background) {
         self.init(selection, content: content(), background: background())
     }
 }
@@ -182,7 +182,7 @@ extension FlowStack where Overlay == EmptyView {
 extension FlowStack where Selection == Int, Overlay == EmptyView {
     
     public init(content: Content, background: Background) {
-        self.init(.state((content.subrange(at: 0..<1).viewTag?.base as? Selection) ?? 0), content: content, background: background, overlay: { _ in EmptyView() })
+        self.init(.state(0), content: content, background: background, overlay: { _ in EmptyView() })
     }
     
     public init(@IterableViewBuilder _ content: () -> Content, @ViewBuilder background: () -> Background) {
@@ -192,11 +192,11 @@ extension FlowStack where Selection == Int, Overlay == EmptyView {
 
 extension FlowStack where Background == EmptyView, Overlay == EmptyView {
     
-    public init(_ selection: Binding<Selection?>, content: Content) {
+    public init(_ selection: Binding<Selection>, content: Content) {
         self.init(selection, content: content, background: EmptyView(), overlay: { _ in EmptyView() })
     }
     
-    public init(_ selection: Binding<Selection?>, @IterableViewBuilder _ content: () -> Content) {
+    public init(_ selection: Binding<Selection>, @IterableViewBuilder _ content: () -> Content) {
         self.init(selection, content: content())
     }
 }
