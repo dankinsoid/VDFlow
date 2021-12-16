@@ -24,7 +24,7 @@ extension View {
 	}
 	
 	private var _tag: AnyHashable? {
-		print(canTagged(type: Self.self), self)
+//		print(canTagged(type: Self.self), self)
 		guard canTagged(type: Self.self) else { return nil }
 		if let tag = Mirror(reflecting: self).recursive(path: ["modifier", "value", "tagged"]) as? AnyHashable {
 			return tag
@@ -60,7 +60,5 @@ extension Mirror {
 
 private func canTagged(type: Any.Type) -> Bool {
 	let string = String(describing: type).prefix(while: { $0 != "<" })
-	print(string)
-	return true
-	return ["OptionalView", "SingleView", "ModifiedContent", "IfViewIterable", "Optional", "AnyView", "_ConditionalContent", "Storage"].contains(string)
+	return ["OptionalView", "SingleView", "ModifiedContent", "IfViewIterable", "Optional", "AnyView", "_ConditionalContent", "Storage", "TupleView", "Group", "PairView", "IfViewIterable"].contains(string)
 }

@@ -112,11 +112,26 @@ extension Array where Element: NSObject {
 	}
 }
 
+protocol TaggedViewType {
+	var tag: AnyHashable { get }
+	var tags: NavigationTag { get }
+}
+
 protocol HostingController: UIViewController {
 	var rootAnyView: AnyView { get }
 }
 
+protocol TaggedHosting: HostingController {
+	var tag: AnyHashable { get }
+	var tags: NavigationTag { get }
+}
+
 extension UIHostingController: HostingController {
 	var rootAnyView: AnyView { AnyView(rootView) }
+}
+
+extension UIHostingController: TaggedHosting where Content: TaggedViewType {
+	var tag: AnyHashable { rootView.tag }
+	var tags: NavigationTag { rootView.tags }
 }
 #endif

@@ -9,8 +9,11 @@ import Foundation
 import SwiftUI
 
 extension View {
-	public func sheet<T>(step: ) -> some View {
-		sheet(isPresented: <#T##Binding<Bool>#>, onDismiss: <#T##(() -> Void)?##(() -> Void)?##() -> Void#>, content: <#T##() -> View#>)
-		sheet(item: <#T##Binding<Identifiable?>#>, onDismiss: <#T##(() -> Void)?##(() -> Void)?##() -> Void#>, content: <#T##(Identifiable) -> View#>)
+	
+	public func sheet<Content: View, T, D>(step: StateStep<T>.StepBinding<D>, onDismiss: (() -> Void)? = nil, @ViewBuilder content: @escaping () -> Content) -> some View {
+		sheet(isPresented: step.rootBinding[isSelected: step.keyPath], onDismiss: onDismiss) {
+			content()
+				.stepEnvironment(step.binding)
+		}
 	}
 }

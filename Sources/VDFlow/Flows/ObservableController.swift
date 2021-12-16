@@ -15,9 +15,14 @@ public protocol ObservableControllerType: UIViewController {
 	func cancel(observer id: AnyHashable, on type: ControllerObserveType)
 }
 
-open class ObservableHostingController<Root: View>: UIHostingController<Root>, ObservableControllerType {
+protocol FlatVC {
+	var inner: VCKey.Value { get }
+}
+
+open class ObservableHostingController<Root: View>: UIHostingController<Root>, ObservableControllerType, FlatVC {
 	
 	private var observers: [ControllerObserveType: [AnyHashable: (Bool) -> Void]] = [:]
+	var inner = VCKey.defaultValue
 	
 	override open func viewWillAppear(_ animated: Bool) {
 		super.viewWillAppear(animated)

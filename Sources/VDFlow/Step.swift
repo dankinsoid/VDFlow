@@ -53,6 +53,15 @@ public struct Step<Base>: StepProtocol, Identifiable, CustomStringConvertible {
 		}
 	}
 	
+//	public var previousSelected: Key {
+//		let last = children
+//			.filter { $0.mutateID != 0 }
+//			.sorted(by: { $0.mutateID < $1.mutateID })
+//			.last
+//		let id = (last?.mutateID ?? 0) > noneSelectedId ? last?.stepID ?? .none : .none
+//		return Key(id: id, base: value)
+//	}
+	
 	public var description: String {
 		let children = (value as? StepCollection)?.elements.enumerated().map { ($0.element, "\($0.offset)") } ?? Mirror(reflecting: wrappedValue)
 			.children

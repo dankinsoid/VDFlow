@@ -18,16 +18,25 @@ public struct NavigationFlow<Content: IterableView, Selection: Hashable>: View {
 	@Environment(\.navigationFlowEnvironment) private var parentEnvironment
 	@Environment(\.isInsideNavigationFlow) private var isInside
 	@Environment(\.tag) private var tag
+	private var environment: NavigationFlowEnvironment {
+		let result = navigationEnvironment
+		result.update = parentEnvironment.update
+		return result
+	}
 	
 	public var body: some View {
-		Group {
+		if #available(iOS 15.0, *) {
+			Self._printChanges()
+		}
+		print(Content.self, tag, isInside)
+		return Group {
 			if isInside {
 				NavigationStack(selection, content: content, parent: parentEnvironment)
-					.environment(\.navigationFlowEnvironment, navigationEnvironment)
+					.environment(\.navigationFlowEnvironment, environment)
 			} else {
 				NavigationWrapper(selection, content: content)
 					.environment(\.isInsideNavigationFlow, true)
-					.environment(\.navigationFlowEnvironment, navigationEnvironment)
+					.environment(\.navigationFlowEnvironment, environment)
 					.edgesIgnoringSafeArea(.all)
 			}
 		}
@@ -36,7 +45,6 @@ public struct NavigationFlow<Content: IterableView, Selection: Hashable>: View {
 	private init(_ selection: StateOrBinding<Selection>, content: Content) {
 		self.content = content.subviews.enumerated().map { TaggedView($0.element, i: $0.offset) }
 		self.selection = selection
-		print(self.content.map { $0.tag })
 	}
 	
 	public init(_ selection: Binding<Selection>, content: Content) {

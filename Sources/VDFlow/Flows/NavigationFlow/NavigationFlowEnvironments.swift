@@ -11,7 +11,7 @@ import SwiftUI
 
 extension EnvironmentValues {
 	public struct NavigationFlow {
-		public var createController: () -> UINavigationController = UINavigationController.init
+		public var createController: () -> UINavigationFlowController = UINavigationFlowController.init
 		public var barColor = Color.clear
 		public var barShadowColor = Color.clear
 		public var largeTitleFont: UIFont?
@@ -43,7 +43,7 @@ private enum InsideNavigationFlowKey: EnvironmentKey {
 }
 
 private enum TagEnvironmentKey: EnvironmentKey {
-	static let defaultValue: AnyHashable = UUID()
+	static let defaultValue: NavigationTag = NavigationTag()
 }
 
 extension EnvironmentValues {
@@ -62,10 +62,14 @@ extension EnvironmentValues {
 		set { self[NavigationFlowEnvironment.Key.self] = newValue }
 	}
 	
-	var tag: AnyHashable {
+	var tag: NavigationTag {
 		get { self[TagEnvironmentKey.self] }
 		set { self[TagEnvironmentKey.self] = newValue }
 	}
+}
+
+struct NavigationTag: Hashable {
+	var tags: [AnyHashable] = []
 }
 
 extension View {
@@ -83,8 +87,9 @@ extension View {
 
 final class NavigationFlowEnvironment {
 	
-	var children: [AnyHashable: ([UIViewController]) -> [UIViewController]] = [:]
+	var children: [NavigationTag: ([UIViewController]) -> [UIViewController]] = [:]
 	var update: (EnvironmentValues, Transaction) -> Void = { _, _ in }
+	var didShow: [NavigationTag: (AnyHashable) -> Void] = [:]
 	
 	enum Key: EnvironmentKey {
 		static let defaultValue = NavigationFlowEnvironment()

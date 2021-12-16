@@ -23,7 +23,7 @@ struct NavigationWrapper<Content: View, Selection: Hashable>: UIViewControllerRe
 		_selection = selection
 	}
 	
-	func makeUIViewController(context: Context) -> UINavigationController {
+	func makeUIViewController(context: Context) -> UINavigationFlowController {
 		let vc = createController()
 		if let _: (UINavigationController, UIViewControllerAnimatedTransitioning) -> UIViewControllerInteractiveTransitioning? = vc.delegate?.navigationController {
 			vc.strongDelegate = FullDelegate<Selection>($selection, delegate: vc.delegate)
@@ -40,20 +40,19 @@ struct NavigationWrapper<Content: View, Selection: Hashable>: UIViewControllerRe
 		return vc
 	}
 	
-	func updateUIViewController(_ uiViewController: UINavigationController, context: Context) {
+	func updateUIViewController(_ uiViewController: UINavigationFlowController, context: Context) {
 		environment.update = {[weak uiViewController] in
 			guard let vc = uiViewController else { return }
-			updateUIViewController(vc, environment: $0, transaction: $1, ifBinding: false)
+			updateUIViewController(vc, environment: $0, transaction: $1)
 		}
-		updateUIViewController(uiViewController, environment: context.environment, transaction: context.transaction, ifBinding: true)
+		(uiViewController.delegate as? NavigationDelegate<Selection>)?.didShow = environment.didShow
+		updateUIViewController(uiViewController, environment: context.environment, transaction: context.transaction)
 	}
 	
-	private func updateUIViewController(_ uiViewController: UINavigationController, environment: EnvironmentValues, transaction: Transaction, ifBinding: Bool) {
+	private func updateUIViewController(_ uiViewController: UINavigationController, environment: EnvironmentValues, transaction: Transaction) {
 		uiViewController.update(environment: environment.navigationFlow)
 		(uiViewController.strongDelegate as? NavigationDelegate<Selection>)?.environmnet = environment.navigationFlow
-		if ifBinding {
-			guard case .binding = _selection else { return }
-		}
+		guard case .binding = _selection else { return }
 		let visitor = ControllersVisitor(current: uiViewController.viewControllers, upTo: selection)
 		visitor.iterate(content) { array, tag in
 			self.environment.children[tag]?(array) ?? []
@@ -75,6 +74,7 @@ class NavigationDelegate<Selection: Hashable>: NSObject, UINavigationControllerD
 	var isAnimaing = false
 	var environmnet = EnvironmentValues.NavigationFlow()
 	weak var delegate: UINavigationControllerDelegate?
+	var didShow: [NavigationTag: (AnyHashable) -> Void] = [:]
 	
 	init(_ selection: Binding<Selection>, delegate: UINavigationControllerDelegate?) {
 		self._selection = selection
@@ -83,13 +83,12 @@ class NavigationDelegate<Selection: Hashable>: NSObject, UINavigationControllerD
 	
 	func navigationController(_ navigationController: UINavigationController, didShow viewController: UIViewController, animated: Bool) {
 		isAnimaing = false
-		if Selection.self == Int.self, viewController.anyFlowId == nil {
-			viewController.setFlowId(AnyHashable(navigationController.viewControllers.count - 1))
-		}
-		let newSelection = viewController.flowId(of: Selection.self) ?? selection
+		guard let vc = viewController as? TaggedHosting else { return }
+		let newSelection = ((vc.tags.tags.first?.base ?? vc.tag.base) as? Selection) ?? selection
 		if newSelection != selection {
 			selection = newSelection
 		}
+		didShow[NavigationTag(tags: vc.tags.tags + [vc.tag])]?(newSelection)
 	}
 	
 	func navigationController(_ navigationController: UINavigationController, willShow viewController: UIViewController, animated: Bool) {

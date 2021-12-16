@@ -26,7 +26,7 @@ final class ControllersVisitor: IterableViewVisitor {
 		visitTagged(TaggedView(value, i: i)) { _, _ in []}
 	}
 	
-	func iterate<C: Collection, T: View>(_ value: C, inner: ([UIViewController], AnyHashable) -> [UIViewController]) where C.Element == TaggedView<T> {
+	func iterate<C: Collection, T: View>(_ value: C, inner: ([UIViewController], NavigationTag) -> [UIViewController]) where C.Element == TaggedView<T> {
 		for value in value {
 			if !visitTagged(value, inner: inner) {
 				return
@@ -34,9 +34,10 @@ final class ControllersVisitor: IterableViewVisitor {
 		}
 	}
 	
-	private func visitTagged<V: View>(_ value: TaggedView<V>, inner: ([UIViewController], AnyHashable) -> [UIViewController]) -> Bool {
+	private func visitTagged<V: View>(_ value: TaggedView<V>, inner: ([UIViewController], NavigationTag) -> [UIViewController]) -> Bool {
 		if index == nil {
 			let tag = value.tag
+			let tags = NavigationTag(tags: value.tags.tags + [value.tag])
 			let vc: UIViewController
 			if let result = current.first(where: { $0.anyFlowId == tag }) {
 				if let host = result as? UIHostingController<TaggedView<V>> {
@@ -44,11 +45,15 @@ final class ControllersVisitor: IterableViewVisitor {
 				}
 				vc = result
 			} else {
-				vc = ObservableHostingController(rootView: value)
+				let _vc = ObservableHostingController(rootView: value)
+				vc = _vc
+				_vc.rootView.onChange = {[weak _vc] in
+					_vc?.inner = $0
+				}
 				vc.setFlowId(tag)
 			}
 			new.append(vc)
-			new += inner(current, tag)
+			new += inner(current, tags)
 			if tag == id {
 				index = i
 				return false
