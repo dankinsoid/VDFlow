@@ -27,6 +27,7 @@ extension View {
 		if let tag = Mirror(reflecting: self).recursive(path: ["modifier", "value", "tagged"]) as? AnyHashable {
 			return tag
 		}
+		guard Body.self != Never.self else { return nil }
 		return body._tag
 	}
 }
