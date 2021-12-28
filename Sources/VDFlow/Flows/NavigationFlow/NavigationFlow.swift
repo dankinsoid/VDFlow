@@ -64,7 +64,7 @@ public struct NavigationFlow<Content: IterableView, Selection: Hashable>: FullSc
 		(uiViewController.strongDelegate as? Delegate<Selection>)?.updateStyle = {
 			updateStyle($0, context: context)
 		}
-		guard case .binding = _id else { return }
+//		guard case .binding = _id else { return }
 		let visitor = ControllersVisitor(current: uiViewController.viewControllers, upTo: id)
 		_ = content.iterate(with: visitor)
 		var vcs = visitor.new
