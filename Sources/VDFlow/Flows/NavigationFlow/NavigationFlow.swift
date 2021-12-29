@@ -65,17 +65,16 @@ public struct NavigationFlow<Content: IterableView, Selection: Hashable>: FullSc
 		delegate?.updateStyle = {
 			updateStyle($0, context: context)
 		}
-//		guard case .binding = _id else { return }
 		let visitor = ControllersVisitor(current: uiViewController.viewControllers, upTo: id)
 		_ = content.iterate(with: visitor)
 		var vcs = visitor.new
 		if let i = vcs.firstIndex(where: { $0.isDisabledBack }), i > 0 {
 			vcs.removeFirst(i - 1)
 		}
-		guard visitor.index != nil, vcs != uiViewController.viewControllers else { return }
+		guard case .binding = _id, visitor.index != nil, vcs != uiViewController.viewControllers else { return }
 		let currentId = uiViewController.topViewController?.anyFlowId?.base as? Selection
 		let animated = context.transaction.animation != nil && uiViewController.view?.window != nil && currentId != id
-		if delegate?.isAnimaing != true, uiViewController.interactivePopGestureRecognizer?.state != .changed {
+		if delegate?.isAnimaing == false, uiViewController.interactivePopGestureRecognizer?.state != .changed {
 			delegate?.isAnimaing = animated
 			uiViewController.set(viewControllers: vcs, animated: animated)
 		}
@@ -154,14 +153,15 @@ private class Delegate<ID: Hashable>: NSObject, UINavigationControllerDelegate {
 		if newId != id {
 			id = newId
 		}
-		DispatchQueue.main.async {
-		self.isAnimaing = false
-		}
+		isAnimaing = false
 	}
 	
 	func navigationController(_ navigationController: UINavigationController, willShow viewController: UIViewController, animated: Bool) {
 		if animated, navigationController.interactivePopGestureRecognizer?.state == .possible {
 			isAnimaing = true
+		}
+		if viewController.anyFlowId == nil {
+			viewController.setFlowId(navigationController.viewControllers.count)
 		}
 		updateStyle(navigationController)
 		delegate?.navigationController?(navigationController, willShow: viewController, animated: animated)
