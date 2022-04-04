@@ -11,11 +11,10 @@ import UIKit
 import SwiftUI
 import IterableView
 
-public struct NavigationFlow<Content: IterableView, Selection: Hashable>: FullScreenUIViewControllerRepresentable {
+public struct NavigationFlow<Content: IterableView, Selection: Hashable>: View {
 	
 	public let createController: () -> UINavigationController
 	public let content: Content
-	private let observeId = "navigationFlow"
 	@StateOrBinding private var id: Selection
 	
 	fileprivate init(create: @escaping () -> UINavigationController, _ selection: StateOrBinding<Selection>, content: Content) {
@@ -40,7 +39,45 @@ public struct NavigationFlow<Content: IterableView, Selection: Hashable>: FullSc
 		}, selection, content: builder())
 	}
 	
-	public func makeUIViewController(context: Context) -> UINavigationController {
+	public var body: some View {
+		_NavigationFlow(create: createController, _id, content: content)
+			.edgesIgnoringSafeArea(.all)
+	}
+}
+
+extension NavigationFlow where Selection == Int {
+	
+	public init(create: @escaping () -> UINavigationController, content: Content) {
+		self.init(create: create, .state(0), content: content)
+	}
+	
+	public init(create: @escaping @autoclosure () -> UINavigationController = .init(), @IterableViewBuilder _ builder: () -> Content) {
+		self.init(create: create, content: builder())
+	}
+	
+	public init(delegate: UINavigationControllerDelegate, @IterableViewBuilder _ builder: () -> Content) {
+		self.init(create: {
+			let vc = UINavigationController()
+			vc.delegate = delegate
+			return vc
+		}, .state(0), content: builder())
+	}
+}
+
+private struct _NavigationFlow<Content: IterableView, Selection: Hashable>: UIViewControllerRepresentable {
+	
+	let createController: () -> UINavigationController
+	let content: Content
+	private let observeId = "navigationFlow"
+	@StateOrBinding private var id: Selection
+	
+	init(create: @escaping () -> UINavigationController, _ selection: StateOrBinding<Selection>, content: Content) {
+		createController = create
+		self.content = content
+		_id = selection
+	}
+	
+	func makeUIViewController(context: Context) -> UINavigationController {
 		let vc = createController()
 		if let _: (UINavigationController, UIViewControllerAnimatedTransitioning) -> UIViewControllerInteractiveTransitioning? = vc.delegate?.navigationController {
 			vc.strongDelegate = FullDelegate<Selection>($id, delegate: vc.delegate)
@@ -60,7 +97,7 @@ public struct NavigationFlow<Content: IterableView, Selection: Hashable>: FullSc
 		return vc
 	}
 	
-	public func updateUIViewController(_ uiViewController: UINavigationController, context: Context) {
+	func updateUIViewController(_ uiViewController: UINavigationController, context: Context) {
 		let delegate = uiViewController.strongDelegate as? Delegate<Selection>
 		delegate?.updateStyle = {
 			updateStyle($0, context: context)
@@ -112,25 +149,6 @@ public struct NavigationFlow<Content: IterableView, Selection: Hashable>: FullSc
 		if let insets = context.environment.navigationFlowBarPadding {
 			uiViewController.navigationBar.layoutMargins = UIEdgeInsets(top: insets.top, left: insets.leading, bottom: insets.bottom, right: insets.trailing)
 		}
-	}
-}
-
-extension NavigationFlow where Selection == Int {
-	
-	public init(create: @escaping () -> UINavigationController, content: Content) {
-		self.init(create: create, .state(0), content: content)
-	}
-	
-	public init(create: @escaping @autoclosure () -> UINavigationController = .init(), @IterableViewBuilder _ builder: () -> Content) {
-		self.init(create: create, content: builder())
-	}
-	
-	public init(delegate: UINavigationControllerDelegate, @IterableViewBuilder _ builder: () -> Content) {
-		self.init(create: {
-			let vc = UINavigationController()
-			vc.delegate = delegate
-			return vc
-		}, .state(0), content: builder())
 	}
 }
 

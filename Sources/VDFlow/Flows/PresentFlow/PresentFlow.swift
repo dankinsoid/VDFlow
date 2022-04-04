@@ -13,9 +13,9 @@ import IterableView
 
 public typealias PresentClosure = (UIViewController, UIViewController, Bool, @escaping () -> Void) -> Void
 
-public struct PresentFlow<Content: IterableView, Selection: Hashable>: FullScreenUIViewControllerRepresentable {
-	public let style: PresentFlowStyle?
-	public let content: Content
+public struct PresentFlow<Content: IterableView, Selection: Hashable>: View {
+	let style: PresentFlowStyle?
+	let content: Content
 	private let present: PresentClosure
 	@StateOrBinding private var id: Selection
 	
@@ -34,7 +34,37 @@ public struct PresentFlow<Content: IterableView, Selection: Hashable>: FullScree
 		self.init(.binding(selection), present: present, content: builder())
 	}
 	
-	public func makeUIViewController(context: Context) -> PresentViewController {
+	public var body: some View {
+		_PresentFlow(_id, style: style, present: present, content: content)
+			.edgesIgnoringSafeArea(.all)
+	}
+}
+
+extension PresentFlow where Selection == Int {
+	
+	public init(style: PresentFlowStyle? = nil, @IterableViewBuilder _ builder: () -> Content) {
+		self.init(.state(0), style: style, content: builder())
+	}
+	
+	public static func custom(present: @escaping PresentClosure, @IterableViewBuilder _ builder: () -> Content) -> PresentFlow {
+		self.init(.state(0), present: present, content: builder())
+	}
+}
+
+private struct _PresentFlow<Content: IterableView, Selection: Hashable>: UIViewControllerRepresentable {
+	let style: PresentFlowStyle?
+	let content: Content
+	private let present: PresentClosure
+	@StateOrBinding private var id: Selection
+	
+	init(_ selection: StateOrBinding<Selection>, style: PresentFlowStyle? = nil, present: @escaping PresentClosure = { $0.present($1, animated: $2, completion: $3) }, content: Content) {
+		self.style = style
+		self.present = present
+		self.content = content
+		self._id = selection
+	}
+	
+	func makeUIViewController(context: Context) -> PresentViewController {
 		let result = PresentViewController()
 		let visitor = FirstViewControllerVisitor()
 		_ = content.iterate(with: visitor)
@@ -53,22 +83,11 @@ public struct PresentFlow<Content: IterableView, Selection: Hashable>: FullScree
 		return result
 	}
 	
-	public func updateUIViewController(_ uiViewController: PresentViewController, context: Context) {
+	func updateUIViewController(_ uiViewController: PresentViewController, context: Context) {
 		let visitor = ControllersVisitor(current: uiViewController.viewControllers, upTo: id)
 		_ = self.content.iterate(with: visitor)
 		guard visitor.index != nil else { return }
 		uiViewController.set(visitor.new.compactMap { $0 as? ObservableControllerType }, animated: context.transaction.animation != nil)
-	}
-}
-
-extension PresentFlow where Selection == Int {
-	
-	public init(style: PresentFlowStyle? = nil, @IterableViewBuilder _ builder: () -> Content) {
-		self.init(.state(0), style: style, content: builder())
-	}
-	
-	public static func custom(present: @escaping PresentClosure, @IterableViewBuilder _ builder: () -> Content) -> PresentFlow {
-		self.init(.state(0), present: present, content: builder())
 	}
 }
 
