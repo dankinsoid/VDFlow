@@ -2,7 +2,7 @@ import Foundation
 
 protocol StepProtocol {
     
-	var stepID: UUID { get }
+	var stepID: StepID { get }
 	var mutateID: MutateID { get }
 	var noneSelectedId: MutateID { get }
 	var children: [StepProtocol] { get }

@@ -193,4 +193,11 @@ public extension Binding {
             }
         }
     }
+    
+    func stepBinding<Root, T>(_ keyPath: WritableKeyPath<Root, Step<T>>) -> StepBinding<Root, T> where Value == Step<Root> {
+        StepBinding(
+            rootBinding: self,
+            keyPath: keyPath
+        )
+    }
 }

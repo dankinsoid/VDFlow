@@ -19,8 +19,8 @@ public struct Step<Base>: StepProtocol, Identifiable, CustomStringConvertible {
 		set { self = newValue }
 	}
 	
-	public var id = UUID()
-	var stepID: UUID { id }
+  public let id: StepID
+	var stepID: StepID { id }
 	var mutateID = MutateID()
 	var noneSelectedId = MutateID()
 	
@@ -30,7 +30,7 @@ public struct Step<Base>: StepProtocol, Identifiable, CustomStringConvertible {
 				.filter { $0.mutateID != 0 }
 				.sorted(by: { $0.mutateID < $1.mutateID })
 				.last
-			let id = (last?.mutateID ?? 0) > noneSelectedId ? last?.stepID ?? .none : .none
+			let id = (last?.mutateID ?? 0) > noneSelectedId ? (last?.stepID ?? .none) : .none
 			return Key(id: id, base: value)
 		}
 		set {
@@ -89,20 +89,43 @@ public struct Step<Base>: StepProtocol, Identifiable, CustomStringConvertible {
           .compactMap { $0.value as? StepProtocol }
 	}
 	
-	public init<T>(wrappedValue: Base, _ selected: WritableKeyPath<Base, Step<T>>) {
-		self.init(wrappedValue, selected: selected)
+	public init<T>(
+    wrappedValue: Base,
+    _ selected: WritableKeyPath<Base, Step<T>>,
+    file: String = #file,
+    line: UInt = #line,
+    column: UInt = #column
+  ) {
+    self.init(wrappedValue, selected: selected, file: file, line: line, column: column)
 	}
 	
-	public init(wrappedValue: Base) {
-		self.init(wrappedValue)
+	public init(
+    wrappedValue: Base,
+    file: String = #file,
+    line: UInt = #line,
+    column: UInt = #column
+  ) {
+		self.init(wrappedValue, file: file, line: line, column: column)
 	}
 	
-	public init(_ wrappedValue: Base) {
+	public init(
+    _ wrappedValue: Base,
+    file: String = #file,
+    line: UInt = #line,
+    column: UInt = #column
+  ) {
 		value = wrappedValue
+    id = StepID(file: file, line: line, column: column)
 	}
 	
-	public init<T>(_ wrappedValue: Base, selected: WritableKeyPath<Base, Step<T>>) {
-		self.init(wrappedValue)
+	public init<T>(
+    _ wrappedValue: Base,
+    selected: WritableKeyPath<Base, Step<T>>,
+    file: String = #file,
+    line: UInt = #line,
+    column: UInt = #column
+  ) {
+		self.init(wrappedValue, file: file, line: line, column: column)
 		self.wrappedValue[keyPath: selected].mutateID = MutateID()
 		self.wrappedValue[keyPath: selected].mutateID.update()
 	}
@@ -143,9 +166,12 @@ public struct Step<Base>: StepProtocol, Identifiable, CustomStringConvertible {
 	}
 	
 	public struct Key: Hashable, Identifiable {
-		public static var none: Key { Key() }
+      
+		public static var none: Key {
+        Key()
+    }
 		
-		public let id: UUID
+		public let id: StepID
 		public var optional: Key? {
 			get { id == .none ? nil : self }
 			set { self = newValue ?? .none }
@@ -153,12 +179,12 @@ public struct Step<Base>: StepProtocol, Identifiable, CustomStringConvertible {
 		var keyPath: KeyPath<Base, MutateID>?
 		var base: (() -> Base)?
 		
-		init(id: UUID, keyPath: KeyPath<Base, MutateID>) {
+		init(id: StepID, keyPath: KeyPath<Base, MutateID>) {
 			self.id = id
 			self.keyPath = keyPath
 		}
 		
-		init(id: UUID, base: Base) {
+		init(id: StepID, base: Base) {
 			self.id = id
 			self.base = { base }
 		}
@@ -179,8 +205,7 @@ public struct Step<Base>: StepProtocol, Identifiable, CustomStringConvertible {
 			if let kp = self.keyPath {
 				return kp == keyPath.appending(path: \.mutateID)
 			}
-			let idKeyPath = keyPath.appending(path: \.stepID)
-			return base?()[keyPath: idKeyPath] == id
+    	return base?()[keyPath: keyPath].stepID == id
 		}
 	}
 	
@@ -205,8 +230,12 @@ public func ~=<Base, T>(lhs: WritableKeyPath<Base, Step<T>>, rhs: Step<Base>.Key
 
 extension Step where Base == EmptyStep {
     
-	public init() {
-		self.init(wrappedValue: EmptyStep())
+	public init(
+    file: String = #file,
+    line: UInt = #line,
+    column: UInt = #column
+  ) {
+    self.init(EmptyStep(), file: file, line: line, column: column)
 	}
 }
 
