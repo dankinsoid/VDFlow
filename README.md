@@ -168,6 +168,15 @@ stepsSubject
 
 stepsSubject.value.$tab2.select()
 ```
+or use 'didSet':
+```swift
+var steps = Step(TabSteps(), selected: \$tab1) {
+  didSet {
+    guard oldValue.selected != steps.selected else { return }
+    ... 
+  }
+}
+```
 
 ## Installation
 
