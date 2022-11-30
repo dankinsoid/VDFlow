@@ -12,8 +12,14 @@ let package = Package(
 		.library(name: "VDFlow", targets: ["VDFlow"]),
 	],
 	dependencies: [
+    .package(url: "https://github.com/dankinsoid/swift-url-routing.git", branch: "swift-5-7")
 	],
 	targets: [
-		.target(name: "VDFlow", dependencies: [])
+		.target(
+        name: "VDFlow",
+        dependencies: [
+        .product(name: "URLRouting", package: "swift-url-routing")
+    	]
+    )
 	]
 )
