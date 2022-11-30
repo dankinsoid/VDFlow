@@ -9,12 +9,12 @@ Take for example an application with such a hierarchy of screens:
              TabView          
    ┌────────────┼────────────┐
   Tab1         Tab2    NavigationView
-                ┌────────────┴────────────┐
-            RootView                  Push1View
-                                          │
-                                      PickerView
-                                  ┌───────┴───────┐
-                                Text1           Text2
+                    ┌────────┴────────┐
+                 RootView         Push1View
+                                      │
+                                  PickerView
+                              ┌───────┴───────┐
+                            Text1           Text2
 ```
 `PickerView` is here to demonstrate that navigation can mean not only changing screens, but also changing any state of any view.
 
@@ -166,7 +166,7 @@ stepsSubject
     }
   }
 
-stepsSubject.value.$tab1.select()
+stepsSubject.value.$tab2.select()
 ```
 
 ## Installation
