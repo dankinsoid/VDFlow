@@ -113,7 +113,7 @@ import PackageDescription
 let package = Package(
   name: "SomeProject",
   dependencies: [
-    .package(url: "https://github.com/dankinsoid/VDFlow.git", from: "3.0.0")
+    .package(url: "https://github.com/dankinsoid/VDFlow.git", from: "3.0.1")
   ],
   targets: [
     .target(name: "SomeProject", dependencies: ["VDFlow"])
