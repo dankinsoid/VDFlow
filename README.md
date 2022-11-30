@@ -64,7 +64,7 @@ $steps.isSelected(\.$tab2)
 ```
 2. With `selected` property:
 ```swift
-$steps.selected == $steps.key(\.$tab)
+$steps.selected == $steps.key(\.$tab2)
 ```
 3. With `switch`
 ```swift
