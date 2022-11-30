@@ -17,15 +17,7 @@ extension StepProtocol {
 	}
 }
 
-extension UUID { static let none = UUID() }
-
-protocol StepCollection {
+extension UUID {
     
-	var elements: [StepProtocol] { get }
+    static let none = UUID()
 }
-
-extension Array: StepCollection { var elements: [StepProtocol] { compactMap { $0 as? StepProtocol } } }
-extension Dictionary: StepCollection { var elements: [StepProtocol] { values.compactMap { $0 as? StepProtocol } } }
-extension Set: StepCollection { var elements: [StepProtocol] { compactMap { $0 as? StepProtocol } } }
-extension ContiguousArray: StepCollection { var elements: [StepProtocol] { compactMap { $0 as? StepProtocol } } }
-extension Optional: StepCollection where Wrapped: StepCollection { var elements: [StepProtocol] { self?.elements ?? [] } }

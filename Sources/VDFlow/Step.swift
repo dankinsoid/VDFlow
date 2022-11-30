@@ -47,9 +47,13 @@ public struct Step<Base>: StepProtocol, Identifiable, CustomStringConvertible {
 	}
 	
 	public var description: String {
-		let children = (value as? StepCollection)?.elements.enumerated().map { ($0.element, "\($0.offset)") } ?? Mirror(reflecting: wrappedValue)
-			.children
-			.compactMap { ch in (ch.value as? StepProtocol).map { ($0, ch.label ?? "") } }
+		let children = (value as? any Collection)?
+          .compactMap { $0 as? StepProtocol }
+          .enumerated()
+          .map { ($0.element, "\($0.offset)") } ??
+      Mirror(reflecting: wrappedValue)
+					.children
+					.compactMap { ch in (ch.value as? StepProtocol).map { ($0, ch.label ?? "") } }
 		
 		var selected = children
 			.sorted(by: { $0.0.mutateID < $1.0.mutateID })
@@ -78,7 +82,11 @@ public struct Step<Base>: StepProtocol, Identifiable, CustomStringConvertible {
 	}
 	
 	var children: [StepProtocol] {
-		(value as? StepCollection)?.elements ?? Mirror(reflecting: value).children.compactMap { $0.value as? StepProtocol }
+		(value as? any Collection)?
+          .compactMap { $0 as? StepProtocol } ??
+      Mirror(reflecting: value)
+          .children
+          .compactMap { $0.value as? StepProtocol }
 	}
 	
 	public init<T>(wrappedValue: Base, _ selected: WritableKeyPath<Base, Step<T>>) {
