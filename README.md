@@ -168,7 +168,7 @@ stepsSubject
 
 stepsSubject.value.$tab2.select()
 ```
-or use 'didSet':
+or use `didSet`:
 ```swift
 var steps = Step(TabSteps(), selected: \$tab1) {
   didSet {
