@@ -65,6 +65,8 @@ $steps.isSelected(\.$tab2)
 2. With `selected` property:
 ```swift
 $steps.selected == $steps.key(\.$tab2)
+// or
+$steps.selected ~= \.$tab2
 ```
 3. With `switch`
 ```swift
