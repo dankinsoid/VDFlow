@@ -60,11 +60,13 @@ steps.tab2 = SomeTab2Data()
 You can check which property is selected:
 1. With `isSelected` method:
 ```swift
-$steps.isSelected($tab2)
+$steps.isSelected(\.$tab2)
 ```
 2. With `selected` property:
 ```swift
-$steps.selected == $steps.key(\.$tab)
+$steps.selected == $steps.key(\.$tab2)
+// or
+$steps.selected ~= \.$tab2
 ```
 3. With `switch`
 ```swift
@@ -87,7 +89,7 @@ Also you can set default selected property:
  ```
  Now `tab3`, `screen3`, `text2` properties are marked as selected.
 ### Integration with UI
-SwiftUI id state driven framework, so it's easy to implement navigation with `Step`s.
+SwiftUI is a state driven framework, so it's easy to implement navigation with `Step`s.
 #### 1. `StateStep` property wrapper.
 `StateStep` updates view, stores your flow struct or binds it from parent view as an environment value. To bind flow down the view hierarchy you need use `.step(...)` or `.stepEnvironment(...)` view modifiers or initialize `StateStep` with `Binding<Step<...>>`.\
 `stepEnvironment` binds current step down the view hierarchy for embedded `StateStep` properties.
@@ -167,6 +169,15 @@ stepsSubject
   }
 
 stepsSubject.value.$tab2.select()
+```
+or use `didSet`:
+```swift
+var steps = Step(TabSteps(), selected: \$tab1) {
+  didSet {
+    guard oldValue.selected != steps.selected else { return }
+    ... 
+  }
+}
 ```
 ### Tools
 #### `NavigationLink` convenience init
