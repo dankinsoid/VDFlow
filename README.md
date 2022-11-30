@@ -60,7 +60,7 @@ steps.tab2 = SomeTab2Data()
 You can check which property is selected:
 1. With `isSelected` method:
 ```swift
-$steps.isSelected($tab2)
+$steps.isSelected(\.$tab2)
 ```
 2. With `selected` property:
 ```swift
