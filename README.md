@@ -87,7 +87,7 @@ Also you can set default selected property:
  ```
  Now `tab3`, `screen3`, `text2` properties are marked as selected.
 ### Integration with UI
-SwiftUI id state driven framework, so it's easy to implement navigation with `Step`s.
+SwiftUI is a state driven framework, so it's easy to implement navigation with `Step`s.
 #### 1. `StateStep` property wrapper.
 `StateStep` updates view, stores your flow struct or binds it from parent view as an environment value. To bind flow down the view hierarchy you need use `.step(...)` or `.stepEnvironment(...)` view modifiers or initialize `StateStep` with `Binding<Step<...>>`.\
 `stepEnvironment` binds current step down the view hierarchy for embedded `StateStep` properties.
