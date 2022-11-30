@@ -46,7 +46,8 @@ struct RootTabView: View {
       
       EmbededNavigation()
         .step(_step.$tab3)
-    }.tabViewStyle(PageTabViewStyle(indexDisplayMode: .always))
+    }
+    .tabViewStyle(PageTabViewStyle(indexDisplayMode: .always))
   }
 }
 
@@ -99,94 +100,20 @@ case \.tab2: ...
 default: ...
 }
 ```
-but not nested: `case \.tab3.screen1:` doesn't matched 
-## NavigationFlow
-`UINavigationController` wrapper implementing stack like navigation.
-```swift
-@State private var step = NavigationScreen.default
-
-var body: some View {
-  NavigationFlow($step) {
-    Screen1()
-      .tag(.screen1)
-
-    Screen2()
-      .tag(.screen2)
-
-    Screen3()
-      .tag(.screen3)
-
-    ...
-  }
-  .navigationFlow(barColor: .black)
-  .navigationFlow(barShadowColor: .blue)
-  .navigationFlow(largeTitleFont: someUIFont)
-  .navigationFlow(largeTitleColor: .white)
-  .navigationFlow(titleFont: someUIFont)
-  .navigationFlow(titleColor: .white)
-  .navigationFlow(prefersLargeTitle: true)
-  .navigationFlow(largeTitleMode: .always)
-  .navigationFlow(backImage: someUIImage)
-  .navigationFlow(showBackText: false)
-  .navigationFlow(barPadding: EdgeInsets())
-  .navigationFlow(barAccentColor: .red)
-}
-```
-## PresentFlow
-`UIViewController` wrapper implementing stack like present flow.
-```swift
-@State private var step = PresentScreen.default
-
-var body: some View {
-  PresentFlow($step, style: .native(.formSheet, .crossDissolve)) {
-    Screen1()
-      .tag(.screen1)
-
-    Screen2()
-      .tag(.screen2)
-
-    Screen3()
-      .tag(.screen3)
-
-    ...
-  }
-}
-```
-## FlowStack
-`ZStack` wrapper implementing selection of current view and interactive animations
-```swift
-@State private var step = FlowStep.default
-
-var body: some View {
-  FlowStack($step) {
-    Screen1()
-      .tag(.screen1)
-
-    Screen2()
-      .tag(.screen2)
-
-    Screen3()
-      .tag(.screen3)
-
-    ...
-  }
-  .flowStackTransition(front: .move(edge: .top), back: .identity)
-  .flowStackInteractive(hide: .top)
-}
-```
+but not nested: `case \.tab3.screen1:` doesn't matched
 ## Installation
 
 1. [Swift Package Manager](https://github.com/apple/swift-package-manager)
 
 Create a `Package.swift` file.
 ```swift
-// swift-tools-version:5.0
+// swift-tools-version:5.7
 import PackageDescription
 
 let package = Package(
   name: "SomeProject",
   dependencies: [
-    .package(url: "https://github.com/dankinsoid/VDFlow.git", from: "2.49.0")
+    .package(url: "https://github.com/dankinsoid/VDFlow.git", from: "3.0.0")
   ],
   targets: [
     .target(name: "SomeProject", dependencies: ["VDFlow"])

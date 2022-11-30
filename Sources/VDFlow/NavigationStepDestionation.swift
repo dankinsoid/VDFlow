@@ -1,16 +1,13 @@
-//
-//  File.swift
-//  
-//
-//  Created by Данил Войдилов on 16.11.2021.
-//
-
 import SwiftUI
 
 extension NavigationLink {
 	
-	public init<Dest: View, T, D>(step: StateStep<T>.StepBinding<D>, @ViewBuilder destination: () -> Dest, @ViewBuilder label: () -> Label) where Destination == NavigationStepDestionation<Dest, D> {
-		self.init(isActive: step.rootBinding[isSelected: step.keyPath]) {
+	public init<Dest: View, T, D>(
+    step: StepBinding<T, D>,
+    @ViewBuilder destination: () -> Dest,
+    @ViewBuilder label: () -> Label
+  ) where Destination == NavigationStepDestionation<Dest, D> {
+    self.init(isActive: step.rootBinding.isSelected(step.keyPath)) {
 			NavigationStepDestionation(content: destination(), stepBinding: step.binding)
 		} label: {
 			label()

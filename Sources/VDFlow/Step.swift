@@ -1,10 +1,3 @@
-//
-//  File.swift
-//  
-//
-//  Created by Данил Войдилов on 11.11.2021.
-//
-
 import Foundation
 
 @dynamicMemberLookup
@@ -106,7 +99,7 @@ public struct Step<Base>: StepProtocol, Identifiable, CustomStringConvertible {
 		self.wrappedValue[keyPath: selected].mutateID.update()
 	}
 	
-	/// - Warning: Don't pass nested key path and only stored property's key path
+	/// - Warning: Don't pass nested or computed key path
 	public func key<T>(_ keyPath: WritableKeyPath<Base, Step<T>>) -> Key {
 		Key(id: wrappedValue[keyPath: keyPath].stepID, keyPath: keyPath.appending(path: \.mutateID))
 	}
@@ -115,34 +108,30 @@ public struct Step<Base>: StepProtocol, Identifiable, CustomStringConvertible {
 		get { wrappedValue[keyPath: keyPath] }
 		set { wrappedValue[keyPath: keyPath] = newValue }
 	}
-	
-	public subscript<T>(isSelected keyPath: WritableKeyPath<Base, Step<T>>) -> Bool {
-		get { selected == key(keyPath) }
-		set { selected = newValue ? key(keyPath) : .none }
-	}
-	
-	public subscript<T>(isSelected keyPath: WritableKeyPath<Base, Step<T>>, set value: T) -> Bool {
-		get { selected == key(keyPath) }
-		set {
-			if newValue {
-				wrappedValue[keyPath: keyPath].wrappedValue = value
-			} else {
-				selected = .none
-			}
-		}
-	}
+    
+  public func isSelected<T>(_ keyPath: WritableKeyPath<Base, Step<T>>) -> Bool {
+    selected == key(keyPath)
+  }
 	
 	public mutating func select() {
 		mutateID = MutateID()
 		mutateID.update()
 	}
 	
+	public mutating func unselect() {
+    selected = .none
+	}
+    
 	public mutating func select(_ action: StepAction<Base>) {
 		action.set(&self)
 	}
 	
 	public mutating func select<T>(_ keyPath: WritableKeyPath<Base, Step<T>>) {
 		wrappedValue[keyPath: keyPath].select()
+	}
+    
+	public mutating func unselect<T>(_ keyPath: WritableKeyPath<Base, Step<T>>) {
+    wrappedValue[keyPath: keyPath].unselect()
 	}
 	
 	public struct Key: Hashable, Identifiable {

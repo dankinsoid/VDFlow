@@ -1,11 +1,3 @@
-//
-//  File.swift
-//  
-//
-//  Created by Данил Войдилов on 11.11.2021.
-//
-
-import Foundation
 import SwiftUI
 
 /// A property wrapper type that stores or binds a ``VDFlow/Step``  and invalidates a view whenever the step changes.
@@ -64,11 +56,11 @@ public struct StateStep<Value>: DynamicProperty {
 		_defaultValue = binding
 	}
 	
-	public subscript<T>(dynamicMember keyPath: WritableKeyPath<Value, Step<T>>) -> StepBinding<T> {
+	public subscript<T>(dynamicMember keyPath: WritableKeyPath<Value, Step<T>>) -> StepBinding<Value, T> {
 		stepBinding(keyPath)
 	}
 	
-	public func stepBinding<T>(_ keyPath: WritableKeyPath<Value, Step<T>>) -> StepBinding<T> {
+	public func stepBinding<T>(_ keyPath: WritableKeyPath<Value, Step<T>>) -> StepBinding<Value, T> {
 		StepBinding(
 			rootBinding: projectedValue,
 			keyPath: keyPath
@@ -101,39 +93,13 @@ public struct StateStep<Value>: DynamicProperty {
 		unselectClosure[min(unselectClosure.count - 1, max(0, stepsCount - 1))]()
 	}
 	
-	@dynamicMemberLookup
-	public struct StepBinding<T>: Identifiable {
-		public var id: UUID { selected.id }
-		var selected: Step<Value>.Key { rootBinding.wrappedValue.key(keyPath) }
-		var rootBinding: Binding<Step<Value>>
-		var keyPath: WritableKeyPath<Value, Step<T>>
-		var binding: Binding<Step<T>> { rootBinding[dynamicMember: (\Step<Value>.wrappedValue).appending(path: keyPath)] }
-		
-		public subscript<A>(dynamicMember keyPath: WritableKeyPath<T, Step<A>>) -> StateStep<T>.StepBinding<A> {
-			StateStep<T>.StepBinding<A>(
-				rootBinding: binding,
-				keyPath: keyPath
-			)
-		}
-	}
-	
 	struct StepKey: EnvironmentKey, Hashable {
 		static var defaultValue: Binding<Step<Value>>? { nil }
 	}
 }
 
-extension Binding {
-	
-	public subscript<Base, T>(isSelected keyPath: WritableKeyPath<Base, Step<T>>, set value: T) -> Binding<Bool> where Value == Step<Base> {
-		Binding<Bool> {
-			wrappedValue[isSelected: keyPath, set: value]
-		} set: {
-			wrappedValue[isSelected: keyPath, set: value] = $0
-		}
-	}
-}
-
 extension StateStep where Value == EmptyStep {
+    
 	public init() {
 		self.init(wrappedValue: EmptyStep())
 	}
@@ -141,7 +107,7 @@ extension StateStep where Value == EmptyStep {
 
 extension StateStep where Value: MutableCollection, Value.Index: Hashable {
 	
-	public func allStepBindings<T>() -> [StepBinding<T>] where Value.Element == Step<T> {
+	public func allStepBindings<T>() -> [StepBinding<Value, T>] where Value.Element == Step<T> {
 		wrappedValue.indices.map {
 			stepBinding(\.[$0])
 		}
@@ -149,6 +115,7 @@ extension StateStep where Value: MutableCollection, Value.Index: Hashable {
 }
 
 extension EnvironmentValues {
+    
 	subscript<T>(stepKey: StateStep<T>.StepKey) -> StateStep<T>.StepKey.Value {
 		get { self[StateStep<T>.StepKey.self] }
 		set { self[StateStep<T>.StepKey.self] = newValue }
@@ -161,12 +128,13 @@ extension EnvironmentValues {
 }
 
 private enum UnselectKey: EnvironmentKey {
+    
 	static var defaultValue: [() -> Void] { [] }
 }
 
 extension View {
 	
-	public func step<Root, Value>(_ stepBinding: StateStep<Root>.StepBinding<Value>) -> some View {
+	public func step<Root, Value>(_ stepBinding: StepBinding<Root, Value>) -> some View {
 		step(stepBinding.rootBinding, stepBinding.keyPath)
 	}
 	
@@ -203,7 +171,22 @@ extension View {
 	/// - Parameter stepBinding: A `StepBinding` value to create the view's tag.
 	///
 	/// - Returns: A view with the specified tag set.
-	public func tag<Root, Value>(_ stepBinding: StateStep<Root>.StepBinding<Value>) -> some View {
+	public func tag<Root, Value>(_ stepBinding: StepBinding<Root, Value>) -> some View {
 		tag(stepBinding.selected)
 	}
+}
+
+public extension Binding {
+    
+    func isSelected<Root, T>(_ keyPath: WritableKeyPath<Root, Step<T>>) -> Binding<Bool> where Value == Step<Root> {
+        Binding<Bool> {
+            wrappedValue.isSelected(keyPath)
+        } set: {
+            if $0 {
+                wrappedValue.select(keyPath)
+            } else {
+                wrappedValue.unselect(keyPath)
+            }
+        }
+    }
 }

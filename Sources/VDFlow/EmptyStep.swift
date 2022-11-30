@@ -1,10 +1,3 @@
-//
-//  File.swift
-//  
-//
-//  Created by Данил Войдилов on 11.11.2021.
-//
-
 import Foundation
 
 public struct EmptyStep: Hashable, Codable, CustomStringConvertible {

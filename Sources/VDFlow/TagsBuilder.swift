@@ -1,16 +1,9 @@
-//
-//  File.swift
-//  
-//
-//  Created by Данил Войдилов on 12.11.2021.
-//
-
 import Foundation
 
 extension Step {
 	
 	@resultBuilder
-	public struct TagsBuilder {
+	public enum TagsBuilder {
 		
 		@inlinable
 		public static func buildBlock(_ components: [(Step) -> Key]...) -> [(Step) -> Key] {

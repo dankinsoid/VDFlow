@@ -1,3 +1,7 @@
 *.xcuserstate
+<<<<<<< Updated upstream
 .build
 .idea
+=======
+.DS_Store
+>>>>>>> Stashed changes

@@ -1,13 +1,7 @@
-//
-//  File.swift
-//  
-//
-//  Created by Данил Войдилов on 14.11.2021.
-//
-
 import Foundation
 
 protocol StepProtocol {
+    
 	var stepID: UUID { get }
 	var mutateID: MutateID { get }
 	var noneSelectedId: MutateID { get }
@@ -15,6 +9,7 @@ protocol StepProtocol {
 }
 
 extension StepProtocol {
+    
 	var allChildren: [StepProtocol] {
 		children.flatMap {
 			[$0] + $0.children
@@ -25,6 +20,7 @@ extension StepProtocol {
 extension UUID { static let none = UUID() }
 
 protocol StepCollection {
+    
 	var elements: [StepProtocol] { get }
 }
 

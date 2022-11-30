@@ -1,10 +1,3 @@
-//
-//  File.swift
-//  
-//
-//  Created by Данил Войдилов on 22.11.2021.
-//
-
 import Foundation
 
 final class MutateID: Equatable, Hashable, Codable, ExpressibleByIntegerLiteral, Comparable {

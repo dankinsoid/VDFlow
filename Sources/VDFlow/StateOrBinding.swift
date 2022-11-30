@@ -1,17 +1,11 @@
-//
-//  File.swift
-//  
-//
-//  Created by Данил Войдилов on 22.08.2021.
-//
-
 import SwiftUI
 
 @available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
 @propertyWrapper
 enum StateOrBinding<Value>: DynamicProperty {
     
-    case binding(Binding<Value>), state(State<Value>)
+    case binding(Binding<Value>)
+    case state(State<Value>)
     
 		var wrappedValue: Value {
         get {
