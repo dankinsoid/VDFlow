@@ -117,7 +117,7 @@ struct EmbededNavigation: View {
   @StateStep var step = NavigationSteps()
   
   var body: some View {
-    NavigationView($step.selected) {
+    NavigationView {
       RootView {
         NavigationLink(isActive: _step.isSelected(\.$screen3)) {
           EmbededPicker()
