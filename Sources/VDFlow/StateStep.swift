@@ -39,6 +39,10 @@ public struct StateStep<Value>: DynamicProperty {
 		case .state(let state): return stepBinding ?? state.projectedValue
 		}
 	}
+    
+	public var allKeys: [Step<Value>.Key] {
+    step.allKeys
+	}
 	
 	public init<T>(wrappedValue: Value, _ selected: WritableKeyPath<Value, Step<T>>) {
 		self.init(binding: .state(Step(wrappedValue, selected: selected)))

@@ -9,6 +9,10 @@ public struct StepBinding<Root, Value>: Identifiable {
     var keyPath: WritableKeyPath<Root, Step<Value>>
     var binding: Binding<Step<Value>> { rootBinding[dynamicMember: (\Step<Root>.wrappedValue).appending(path: keyPath)] }
     
+    public var isSelected: Binding<Bool> {
+        rootBinding.isSelected(keyPath)
+    }
+    
     public subscript<A>(dynamicMember keyPath: WritableKeyPath<Value, Step<A>>) -> StepBinding<Value, A> {
         StepBinding<Value, A>(
             rootBinding: binding,

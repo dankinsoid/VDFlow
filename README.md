@@ -168,7 +168,41 @@ stepsSubject
 
 stepsSubject.value.$tab2.select()
 ```
-
+### Tools
+#### `NavigationLink` convenience init
+```swift
+@StateStep var steps = Steps()
+...
+NavigationLink(step: _steps.$link) {
+  ...
+} label: {
+  ...
+}
+```
+#### `navigationPath()` extension on `Binding<Step<...>>` and two `navigationDestination` methods
+```swift
+@StateStep var steps = Steps()
+    
+var body: some View {
+    NavigationStack(path: $steps.navigationPath()) {
+        RootView()
+            .navigationDestination(step: _steps.$link) {
+                PushView()
+            }
+            // or
+            .navigationDestination(for: _steps) {
+                switch $0 {
+                case \.$link:
+                    PushView()
+                    	.step(_step.$link)
+                default:
+                    EmptyView()
+                }
+            }
+    }
+    
+}
+```
 ## Installation
 
 1. [Swift Package Manager](https://github.com/apple/swift-package-manager)
@@ -181,7 +215,7 @@ import PackageDescription
 let package = Package(
   name: "SomeProject",
   dependencies: [
-    .package(url: "https://github.com/dankinsoid/VDFlow.git", from: "3.0.3")
+    .package(url: "https://github.com/dankinsoid/VDFlow.git", from: "3.1.0")
   ],
   targets: [
     .target(name: "SomeProject", dependencies: ["VDFlow"])
