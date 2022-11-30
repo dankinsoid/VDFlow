@@ -95,7 +95,7 @@ SwiftUI id state driven framework, so it's easy to implement navigation with `St
 ```swift
 struct RootTabView: View {
   
-  @StateStep(\.tab1) var step = TabSteps()
+  @StateStep(\.$tab1) var step = TabSteps()
   
   var body: some View {
     TabView(selection: $step.selected) {
