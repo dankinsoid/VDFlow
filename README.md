@@ -1,36 +1,97 @@
 # VDFlow
 
 ## Description
-This repository provides a new simple way to describe routers
-## Usage
-Describe your flow as struct with `Step`s
+This repository provides a new simple way to describe routers.\
+I view the application flow as a tree of all possible screen states. From this point of view, navigation is the selection of a node of this tree.
+## Example
+Take for example an application with such a hierarchy of screens:
+```swift
+             TabView          
+   ┌────────────┼────────────┐
+  Tab1         Tab2    NavigationView
+                ┌────────────┴────────────┐
+            RootView                  Push1View
+                                          │
+                                      PickerView
+                                  ┌───────┴───────┐
+                                Text1           Text2
+```
+`PickerView` is here to demonstrate that navigation can mean not only changing screens, but also changing any state of any view.
+
+Describe your flow as a struct with `Step` properties:
 ```swift
 struct TabSteps {
-  var tab1 = Step()
-  @Step var tab2 = SomeData()
+
+  @Step() var tab1
+  @Step var tab2 = SomeTab2Data()
   @Step var tab3 = NavigationSteps()
 }
 
 struct NavigationSteps {
-  var screen1 = Step()
-  var screen2 = Step()
-  @Step(\.view1) var screen3 = PickerSteps()
+
+  @Step() var screen1
+  @Step() var screen2 = PickerSteps()
 }
 
 struct PickerSteps {
-  var view1 = Step()
-  var view2 = Step()
+
+  @Step() var text1
+  @Step() var text2
+
+  var prefixString = "Some string"
 }
 ```
-Just change value of any property or call `select` to update flow
 ```swift
-//step is Step or StateStep 
-step.tab2 = SomeData()
-step.tab1.select()                 
-step.tab3.screen3.view2.select()   
-_step.select(\.tab3.screen3.view2) //or you can use KeyPath to any Step property
+@Step var steps = TabSteps()
 ```
-Use flow structs in a `View` with `StateStep` property wrapper. `StateStep` updates view, stores your flow struct or binds it from parent view. To bind flow down the view hierarchy you need use `.step(...)`, `.stepEnvironment(...)` view modifiers or create `StateStep` with `Binding`. 
+If you want to open `Tab2` you need mark `tab2` as selected. You have several ways to do it:
+1. Call `select` method on the property:
+```swift
+steps.$tab2.select()
+```
+2. Just mutate `.tab2`:
+```swift
+steps.tab2 = SomeTab2Data()
+```
+3. Call `select` method with `KeyPath`:
+ ```swift
+ $steps.select(\.$tab2)
+ ```
+You can check which property is selected:
+1. With `isSelected` method:
+```swift
+$steps.isSelected($tab2)
+```
+2. With `selected` property:
+```swift
+$steps.selected == $steps.key(\.$tab)
+```
+3. With `switch`
+```swift
+switch $steps.selected {
+case \.$tab:
+  ...
+default:
+  break
+}
+```
+but not nested: `case \.tab3.$screen1:` doesn't matched.\
+Also you can set default selected property:
+```swift
+@Step(\.$text1) var screen3 = PickerSteps()
+```
+### Deeplink
+ Then you got a deep link for example and you need to change `Tab2` to third tab with `NavigationView`, push to `Push2View` and select `Text2` in `PickerView`.
+ ```swift
+ steps.tab3.screen2.$text2.select()
+ ```
+ Now `tab3`, `screen3`, `text2` properties are marked as selected.
+### Integration with UI
+SwiftUI id state driven framework, so it's easy to implement navigation with `Step`s.
+#### 1. `StateStep` property wrapper.
+`StateStep` updates view, stores your flow struct or binds it from parent view as an environment value. To bind flow down the view hierarchy you need use `.step(...)` or `.stepEnvironment(...)` view modifiers or initialize `StateStep` with `Binding<Step<...>>`.\
+`stepEnvironment` binds current step down the view hierarchy for embedded `StateStep` properties.
+`step` modifier is just a combination of `tag` and `stepEnvironment` modifiers.
 ```swift
 struct RootTabView: View {
   
@@ -38,11 +99,11 @@ struct RootTabView: View {
   
   var body: some View {
     TabView(selection: $step.selected) {
-      SomeView("0")
+      Tab1()
         .step(_step.tab1)
       
-      Text("1")
-        .tag(_step.$tab2)
+      Tab2()
+        .step(_step.$tab2)
       
       EmbededNavigation()
         .step(_step.$tab3)
@@ -56,51 +117,58 @@ struct EmbededNavigation: View {
   @StateStep var step = NavigationSteps()
   
   var body: some View {
-    NavigationFlow($step.selected) {
-      SomeView("0")
-        .navigationTitle("0")
-        .step(_step.screen1)
-      
-      Text("1")
-        .navigationTitle("1")
-        .tag(_step.screen2)
-      
-      //you can use Binding<Step<...>> and tag(...) instead of .step(...)
-      EmbededPicker(step: $step.$screen3)
-        .navigationTitle("2")
-        .tag(_step.$screen3)
+    NavigationView($step.selected) {
+      RootView {
+        NavigationLink(isActive: _step.isSelected(\.$screen3)) {
+          EmbededPicker()
+            .stepEnvironment($step.$screen2)
+        } label: {
+          Text("push")
+        }
+      }
     }
   }
 }
 
 struct EmbededPicker: View {
   
-  @StateStep var step: PickerSteps
-
-  init(step: Binding<Step<PickerSteps>>) {
-    _step = StateStep(step)
-  }
+  @StateStep var step = PickerSteps()
   
   var body: some View {
     Picker("3", selection: $step.selected) {
-      Text("0")
-        .step(_step.view1)
+      Text("\(step.prefixString) 0")
+        .tag(_step.text1)
       
-      Text("1")
-        .step(_step.view2)
-    }.pickerStyle(WheelPickerStyle())
+      Text("\(step.prefixString) 1")
+        .tag(_step.text2)
+    }
+    .pickerStyle(WheelPickerStyle())
   }
 }
 ```
-You can switch `.selected` with `KeyPath`es
+#### 4. Binding
+You can use `Step` directly without `StateStep` wrapper, in `ObservableObject` view model or as a part of state in [TCA](https://github.com/pointfreeco/swift-composable-architecture) `Store`, etc.
+
+#### 5. UIKit
+There is no any special instrument for UIKit, because UIKit doesn't support state driven navigation, but it's possible to use Combine to subscribe on `Step` changes:
 ```swift
-switch step.selected {
-case \.tab1: ...
-case \.tab2: ...
-default: ...
-}
+let stepsSubject = CurrentValueSubject(
+  Step(TabSteps(), selected: \$tab1)
+)
+
+stepsSubject
+  .map(\.selected)
+  .removeDublicates()
+  .sink { selected in
+    switch selected {
+    case \.$tab1:
+      ... 
+    }
+  }
+
+stepsSubject.value.$tab1.select()
 ```
-but not nested: `case \.tab3.screen1:` doesn't matched
+
 ## Installation
 
 1. [Swift Package Manager](https://github.com/apple/swift-package-manager)
@@ -113,7 +181,7 @@ import PackageDescription
 let package = Package(
   name: "SomeProject",
   dependencies: [
-    .package(url: "https://github.com/dankinsoid/VDFlow.git", from: "3.0.1")
+    .package(url: "https://github.com/dankinsoid/VDFlow.git", from: "3.0.2")
   ],
   targets: [
     .target(name: "SomeProject", dependencies: ["VDFlow"])

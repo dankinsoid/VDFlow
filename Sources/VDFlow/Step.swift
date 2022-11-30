@@ -196,6 +196,7 @@ public func ~=<Base, T>(lhs: WritableKeyPath<Base, Step<T>>, rhs: Step<Base>.Key
 }
 
 extension Step where Base == EmptyStep {
+    
 	public init() {
 		self.init(wrappedValue: EmptyStep())
 	}
