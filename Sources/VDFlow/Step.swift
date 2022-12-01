@@ -198,7 +198,10 @@ public struct Step<Base>: StepProtocol, Identifiable, CustomStringConvertible {
 		}
 		
 		public static func ==(lhs: Key, rhs: Key) -> Bool {
-			lhs.id == rhs.id
+    	if lhs.keyPath != nil && rhs.keyPath != nil {
+        return lhs.keyPath == rhs.keyPath
+    	}
+			return lhs.id == rhs.id
 		}
 		
 		public func match<T>(_ keyPath: WritableKeyPath<Base, Step<T>>) -> Bool {

@@ -1,6 +1,7 @@
 import Foundation
 
 final class MutateID: Equatable, Hashable, Codable, ExpressibleByIntegerLiteral, Comparable {
+    
 	var value: UInt64
 	
 	init() {
