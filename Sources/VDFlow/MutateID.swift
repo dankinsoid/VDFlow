@@ -7,12 +7,12 @@ public struct MutateID: Equatable, Hashable, Codable {
 	init() {
 		value = 0
 	}
-	
-    public init(from decoder: Decoder) throws {
+
+	public init(from decoder: Decoder) throws {
 		value = try UInt64(from: decoder)
 	}
 
-    public func encode(to encoder: Encoder) throws {
+	public func encode(to encoder: Encoder) throws {
 		try value.encode(to: encoder)
 	}
 
@@ -20,7 +20,7 @@ public struct MutateID: Equatable, Hashable, Codable {
 		value = DispatchTime.now().uptimeNanoseconds
 	}
 
-    public static func < (lhs: MutateID, rhs: MutateID) -> Bool {
+	public static func < (lhs: MutateID, rhs: MutateID) -> Bool {
 		lhs.value < rhs.value
 	}
 }
