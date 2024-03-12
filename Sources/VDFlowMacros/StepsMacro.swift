@@ -37,7 +37,15 @@ public struct StepsMacro: MemberAttributeMacro, ExtensionMacro, MemberMacro, Acc
         in context: some MacroExpansionContext
     ) throws -> [AttributeSyntax] {
         guard let name = member.storedVarName else { return [] }
-        return ["@Step(.\(raw: name))", "@StepDidSet"]
+        let stepID: AttributeSyntax = "@StepID(.\(raw: name))"
+        if declaration.memberBlock.members.contains(where: \.decl.hasStepAttribute) {
+            if member.hasStepAttribute {
+                return [stepID]
+            } else {
+                return []
+            }
+        }
+        return [stepID, "@Step"]
     }
 
     public static func expansion(
@@ -55,22 +63,30 @@ public struct StepsMacro: MemberAttributeMacro, ExtensionMacro, MemberMacro, Acc
         providingMembersOf declaration: some DeclGroupSyntax,
         in context: some MacroExpansionContext
     ) throws -> [DeclSyntax] {
-        let names = declaration.memberBlock.members.compactMap(\.decl.storedVarName)
-        let cases = names.map {
-            "\n        case \($0)"
+        let hasSteps = declaration.memberBlock.members.contains(where: \.decl.hasStepAttribute)
+        let cases = declaration.memberBlock.members
+            .filter { $0.decl.hasStepAttribute || !hasSteps }
+            .compactMap(\.decl.storedVarName)
+        
+        let initStr: String
+        if hasSteps {
+            initStr = ""
+        } else {
+            initStr = """
+            
+            public init(_ selected: Steps? = nil) {
+                self.selected = selected
+            }
+            
+            """
         }
-        .joined()
         
         let stepsEnum: DeclSyntax =
       """
       public var selected: Steps?
-
-      public init(_ selected: Steps?) {
-          self.selected = selected
-      }
-      
+      \(raw: initStr)
       public enum Steps: String, CaseIterable, Codable {
-          \(raw: cases)
+          case \(raw: cases.joined(separator: ", "))
       }
       """
         return [stepsEnum]
@@ -78,6 +94,15 @@ public struct StepsMacro: MemberAttributeMacro, ExtensionMacro, MemberMacro, Acc
 }
 
 extension DeclSyntaxProtocol {
+    
+    var hasStepAttribute: Bool {
+        if let variable = self.as(VariableDeclSyntax.self),
+            variable.attributes.contains(where: { $0.as(AttributeSyntax.self)?.attributeName.description == "Step" }) 
+        {
+            return true
+        }
+        return false
+    }
     
     var storedVarName: String? {
         guard

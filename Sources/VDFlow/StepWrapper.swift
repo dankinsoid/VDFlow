@@ -2,7 +2,7 @@ import Foundation
 
 extension StepsCollection {
     
-    public typealias Step<Value> = StepWrapper<Self, Value>
+    public typealias StepID<Value> = VDFlow.StepWrapper<Self, Value>
 }
 
 @propertyWrapper
@@ -10,8 +10,9 @@ public struct StepWrapper<Parent: StepsCollection, Value>: Identifiable {
 
     public let id: Parent.Steps
     public var wrappedValue: Value
-    public var projectedValue: Parent.Steps {
-        id
+    public var projectedValue: StepWrapper {
+        get { self }
+        set { self = newValue }
     }
     
     public init(

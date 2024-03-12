@@ -7,9 +7,12 @@ final class VDFlowTestsCase: XCTestCase {
     
     func testMacros() {
         var value = TabSteps()
-        print(value.selected)
+        XCTAssertEqual(value.selected, nil)
+        value.$tab1.id
         value.tab3.screen2.text2.select()
-        print(value.selected)
+        XCTAssertEqual(value.selected, .tab3)
+        XCTAssertEqual(value.tab3.selected, .screen2)
+        XCTAssertEqual(value.tab3.screen2.selected, .text2)
     }
 }
 
@@ -20,6 +23,7 @@ struct T: View {
     var body: some View {
         Text("Hello, World!")
             .onAppear {
+                
             }
     }
 }
