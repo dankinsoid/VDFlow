@@ -20,67 +20,57 @@ Take for example an application with such a hierarchy of screens:
 
 Describe your flow as a struct with `Step` properties:
 ```swift
+@Steps
 struct TabSteps {
 
-  @Step() var tab1
-  @Step var tab2 = SomeTab2Data()
-  @Step var tab3 = NavigationSteps()
+  var tab1
+  var tab2 = SomeTab2Data()
+  var tab3 = NavigationSteps()
 }
 
+@Steps
 struct NavigationSteps {
 
-  @Step() var screen1
-  @Step() var screen2 = PickerSteps()
+  var screen1
+  var screen2 = PickerSteps()
 }
 
+@Steps
 struct PickerSteps {
 
-  @Step() var text1
-  @Step() var text2
-
-  var prefixString = "Some string"
+  var text1
+  var text2
 }
 ```
 ```swift
-@Step var steps = TabSteps()
+var steps = TabSteps()
 ```
 If you want to open `Tab2` you need mark `tab2` as selected. You have several ways to do it:
-1. Call `select` method on the property:
+1. Set `selected` property:
 ```swift
-steps.$tab2.select()
+steps.selected = .tab2
 ```
 2. Just mutate `.tab2`:
 ```swift
 steps.tab2 = SomeTab2Data()
 ```
-3. Call `select` method with `KeyPath`:
- ```swift
- $steps.select(\.$tab2)
- ```
 You can check which property is selected:
-1. With `isSelected` method:
+1. With `selected` property:
 ```swift
-$steps.isSelected(\.$tab2)
-```
-2. With `selected` property:
-```swift
-$steps.selected == $steps.key(\.$tab2)
-// or
-$steps.selected ~= \.$tab2
+$steps.selected == .tab2
 ```
 3. With `switch`
 ```swift
-switch $steps.selected {
-case \.$tab:
+switch steps.selected {
+case .tab:
   ...
-default:
+case .none:
   break
 }
 ```
-but not nested: `case \.tab3.$screen1:` doesn't matched.\
-Also you can set default selected property:
+Also you can set initial selected property:
 ```swift
-@Step(\.$text1) var screen3 = PickerSteps()
+var screen3 = PickerSteps(.text1)
 ```
 ### Deeplink
  Then you got a deep link for example and you need to change `Tab2` to third tab with `NavigationView`, push to `Push2View` and select `Text2` in `PickerView`.
@@ -96,19 +86,19 @@ SwiftUI is a state driven framework, so it's easy to implement navigation with `
 `step` modifier is just a combination of `tag` and `stepEnvironment` modifiers.
 ```swift
 struct RootTabView: View {
-  
-  @StateStep(\.$tab1) var step = TabSteps()
+
+  @StateStep var step = TabSteps(.tab1)
   
   var body: some View {
     TabView(selection: $step.selected) {
       Tab1()
-        .step(_step.tab1)
+        .step($step, .tab1)
       
       Tab2()
-        .step(_step.$tab2)
+        .step($step, .tab2)
       
       EmbededNavigation()
-        .step(_step.$tab3)
+        .step($step, .tab3)
     }
     .tabViewStyle(PageTabViewStyle(indexDisplayMode: .always))
   }
@@ -121,7 +111,7 @@ struct EmbededNavigation: View {
   var body: some View {
     NavigationView {
       RootView {
-        NavigationLink(isActive: _step.isSelected(\.$screen3)) {
+        NavigationLink(isActive: $step.isSelected(.screen3)) {
           EmbededPicker()
             .stepEnvironment($step.$screen2)
         } label: {
@@ -139,10 +129,10 @@ struct EmbededPicker: View {
   var body: some View {
     Picker("3", selection: $step.selected) {
       Text("\(step.prefixString) 0")
-        .tag(_step.text1)
+        .tag($step, .text1)
       
       Text("\(step.prefixString) 1")
-        .tag(_step.text2)
+        .tag($step, .text2)
     }
     .pickerStyle(WheelPickerStyle())
   }
