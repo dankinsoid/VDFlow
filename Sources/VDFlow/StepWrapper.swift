@@ -14,13 +14,16 @@ public struct StepWrapper<Parent: StepsCollection, Value>: Identifiable {
         get { self }
         set { self = newValue }
     }
-    
+
     public init(
         wrappedValue: Value,
         _ id: Parent.Steps
     ) {
         self.wrappedValue = wrappedValue
         self.id = id
+    }
+
+    public mutating func select() {
     }
 }
 

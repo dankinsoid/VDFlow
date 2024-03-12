@@ -59,15 +59,6 @@ You can check which property is selected:
 ```swift
 $steps.selected == .tab2
 ```
-3. With `switch`
-```swift
-switch steps.selected {
-case .tab:
-  ...
-case .none:
-  break
-}
-```
 Also you can set initial selected property:
 ```swift
 var screen3 = PickerSteps(.text1)
@@ -75,7 +66,7 @@ var screen3 = PickerSteps(.text1)
 ### Deeplink
  Then you got a deep link for example and you need to change `Tab2` to third tab with `NavigationView`, push to `Push2View` and select `Text2` in `PickerView`.
  ```swift
- steps.tab3.screen2.$text2.select()
+ steps.tab3.screen2.text2.select()
  ```
  Now `tab3`, `screen3`, `text2` properties are marked as selected.
 ### Integration with UI
@@ -92,13 +83,13 @@ struct RootTabView: View {
   var body: some View {
     TabView(selection: $step.selected) {
       Tab1()
-        .step($step, .tab1)
+        .step(_step.$tab1)
       
       Tab2()
-        .step($step, .tab2)
+        .step(_step.$tab2)
       
       EmbededNavigation()
-        .step($step, .tab3)
+        .step(_step.$tab3)
     }
     .tabViewStyle(PageTabViewStyle(indexDisplayMode: .always))
   }
@@ -129,10 +120,10 @@ struct EmbededPicker: View {
   var body: some View {
     Picker("3", selection: $step.selected) {
       Text("\(step.prefixString) 0")
-        .tag($step, .text1)
+        .tag(PickerSteps.Steps.text1)
       
       Text("\(step.prefixString) 1")
-        .tag($step, .text2)
+        .tag(PickerSteps.Steps.text2)
     }
     .pickerStyle(WheelPickerStyle())
   }
@@ -144,16 +135,14 @@ You can use `Step` directly without `StateStep` wrapper, in `ObservableObject` v
 #### 5. UIKit
 There is no any special instrument for UIKit, because UIKit doesn't support state driven navigation, but it's possible to use Combine to subscribe on `Step` changes:
 ```swift
-let stepsSubject = CurrentValueSubject(
-  Step(TabSteps(), selected: \$tab1)
-)
+let stepsSubject = CurrentValueSubject(TabSteps(.tab1))
 
 stepsSubject
   .map(\.selected)
   .removeDublicates()
   .sink { selected in
     switch selected {
-    case \.$tab1:
+    case .tab1:
       ... 
     }
   }
@@ -162,7 +151,7 @@ stepsSubject.value.$tab2.select()
 ```
 or use `didSet`:
 ```swift
-var steps = Step(TabSteps(), selected: \$tab1) {
+var steps = TabSteps(.tab1) {
   didSet {
     guard oldValue.selected != steps.selected else { return }
     ... 
@@ -185,7 +174,7 @@ NavigationLink(step: _steps.$link) {
 @StateStep var steps = Steps()
     
 var body: some View {
-    NavigationStack(path: $steps.navigationPath()) {
+    NavigationStack(path: $steps.navigationPath) {
         RootView()
             .navigationDestination(step: _steps.$link) {
                 PushView()
@@ -193,7 +182,7 @@ var body: some View {
             // or
             .navigationDestination(for: _steps) {
                 switch $0 {
-                case \.$link:
+                case .link:
                     PushView()
                     	.step(_step.$link)
                 default:
@@ -210,13 +199,13 @@ var body: some View {
 
 Create a `Package.swift` file.
 ```swift
-// swift-tools-version:5.7
+// swift-tools-version:5.9
 import PackageDescription
 
 let package = Package(
   name: "SomeProject",
   dependencies: [
-    .package(url: "https://github.com/dankinsoid/VDFlow.git", from: "4.0.0")
+    .package(url: "https://github.com/dankinsoid/VDFlow.git", from: "4.1.0")
   ],
   targets: [
     .target(name: "SomeProject", dependencies: ["VDFlow"])
@@ -226,16 +215,9 @@ let package = Package(
 ```ruby
 $ swift build
 ```
-2. [CocoaPods](https://cocoapods.org)
-
-Add the following line to your Podfile:
-```ruby
-pod 'VDFlow'
-```
-and run `pod update` from the podfile directory first.
 ## Author
 
-dankinsoid, voidilov@gmail.com
+Daniil Voidilov, voidilov@gmail.com
 
 ## License
 
