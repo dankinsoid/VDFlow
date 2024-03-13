@@ -25,6 +25,31 @@ public struct StepBinding<Root: StepsCollection, Value> {
 	public var isSelected: Binding<Bool> {
 		$root.isSelected(step)
 	}
+
+    public func isSelected(_ value: Value) -> Binding<Bool> {
+        Binding {
+            $root.isSelected(step).wrappedValue
+        } set: {
+            if $0 {
+                $root.wrappedValue[keyPath: keyPath].wrappedValue = value
+            } else {
+                $root.wrappedValue.selected = nil
+            }
+        }
+    }
+
+    public func callAsFunction(_ value: Value) -> StepBinding {
+        StepBinding(
+            root: Binding {
+                root
+            } set: {
+                var new = $0
+                new[keyPath: keyPath].wrappedValue = value
+                root = new
+            },
+            keyPath: keyPath
+        )
+    }
 }
 
 extension Binding where Value: StepsCollection {

@@ -42,6 +42,6 @@ public struct NavigationSteps {
 
 @Steps
 public struct PickerSteps {
-	public var text1
-	public var text2
+    public var text1
+    public var text2
 }
