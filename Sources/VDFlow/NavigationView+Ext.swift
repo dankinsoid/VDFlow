@@ -29,14 +29,16 @@ public struct NavigationStepDestination<Content: View, Value>: View {
 @available(iOS 16.0, macOS 13.0, watchOS 9.0, *)
 public extension View {
 
-	func navigationDestination<T: StepsCollection>(
-		for step: StateStep<T>,
-		@ViewBuilder destination: @escaping (T.Steps) -> some View
-	) -> some View {
-		navigationDestination(for: T.Steps.self) { key in
-			destination(key)
-		}
-	}
+    func navigationDestination<Root, Value>(
+        _ root: Binding<Root>,
+        for step: WritableKeyPath<Root, StepWrapper<Root, Value>>,
+        @ViewBuilder destination: @escaping () -> some View
+    ) -> some View {
+        navigationDestination(
+            step: StepBinding(root: root, keyPath: step),
+            destination: destination
+        )
+    }
 
 	func navigationDestination<Root, Value>(
 		step: StepBinding<Root, Value>,
