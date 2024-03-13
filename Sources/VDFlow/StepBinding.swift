@@ -27,6 +27,16 @@ public struct StepBinding<Root: StepsCollection, Value> {
 	}
 }
 
+extension Binding where Value: StepsCollection {
+
+    subscript<A>(dynamicMember keyPath: WritableKeyPath<Value, StepWrapper<Value, A>>) -> StepBinding<Value, A> {
+        StepBinding(
+            root: self,
+            keyPath: keyPath
+        )
+    }
+}
+
 public extension StepBinding where Value: StepsCollection {
 
 	subscript<A>(dynamicMember keyPath: WritableKeyPath<Value, StepWrapper<Value, A>>) -> StepBinding<Value, A> {
