@@ -3,10 +3,10 @@ import SwiftUI
 public struct NavigationSteps<Selection: Hashable, Content: View>: View {
     
     let content: Content
-    @StateOrBinding var selection: Selection
+    @StateOrBinding var selection: Selection?
     @State private var ids: [Selection] = []
     
-    public init(selection: Binding<Selection>, @ViewBuilder content: () -> Content) {
+    public init(selection: Binding<Selection?>, @ViewBuilder content: () -> Content) {
         self.content = content()
         self._selection = .binding(selection)
     }
@@ -27,11 +27,25 @@ public struct NavigationSteps<Selection: Hashable, Content: View>: View {
     }
 }
 
+public extension NavigationSteps {
+
+    init(@ViewBuilder content: () -> Content) {
+        self._selection = StateOrBinding(wrappedValue: nil)
+        self.content = content()
+    }
+}
+
 public extension NavigationSteps where Selection == Int {
     
-    init(@ViewBuilder content: () -> Content) {
-        self._selection = StateOrBinding(wrappedValue: 0)
-        self.content = content()
+    init(selection: Binding<Selection>, @ViewBuilder content: () -> Content) {
+        self.init(
+            selection: Binding<Selection?> {
+                selection.wrappedValue
+            } set: {
+                selection.wrappedValue = $0 ?? 0
+            },
+            content: content
+        )
     }
 }
 
@@ -70,7 +84,7 @@ private final class UINavigationStackDelegate: NSObject, UINavigationControllerD
 
 private struct MyNavigationStack<Selection: Hashable>: UIViewControllerRepresentable {
     
-    @Binding var selection: Selection
+    @Binding var selection: Selection?
     let children: _VariadicView.Children
     @State private var delegate = UINavigationStackDelegate()
     
@@ -86,11 +100,13 @@ private struct MyNavigationStack<Selection: Hashable>: UIViewControllerRepresent
     ) {
         guard !delegate.notUpdate else { return }
         delegate.didShow = { [weak delegate, $selection] controller in
+            delegate?.notUpdate = true
             if let tag = controller.stackTag?.id.base as? Selection, tag != $selection.wrappedValue {
-                delegate?.notUpdate = true
                 $selection.wrappedValue = tag
-                delegate?.notUpdate = false
+            } else if controller === stack.viewControllers.first {
+                $selection.wrappedValue = nil
             }
+            delegate?.notUpdate = false
         }
         guard let selectedIndex else { return }
         if stack.view.window != nil {
@@ -121,19 +137,30 @@ private struct MyNavigationStack<Selection: Hashable>: UIViewControllerRepresent
         }
         return controller
     }
-    
+
     func tag(of child: _VariadicView.Children.Element, _ i: Int) -> Selection? {
         (child.stepTag.base as? Selection) ?? (i as? Selection)
     }
-    
+
     func pop(offset: Int) {
         guard let selectedIndex else { return }
         let newIndex = max(0, min(selectedIndex - offset, children.count - 1))
-        guard let tag = tag(of: children[newIndex], newIndex) else { return }
+        guard let tag = tag(of: children[newIndex], newIndex) else {
+            if newIndex == 0 {
+                selection = nil
+            }
+            return
+        }
         selection = tag
     }
 
     var selectedIndex: Int? {
+        guard !children.isEmpty else {
+            return nil
+        }
+        guard let selection else {
+            return 0
+        }
         let tags = children.enumerated().map {
             (tag(of: $0.element, $0.offset), $0.offset)
         }
@@ -210,7 +237,7 @@ enum NavStackPreview: PreviewProvider {
     
     struct Previews: View {
         
-        @State var selection = 0
+        @State var selection: Int = 0
         
         var body: some View {
             NavigationSteps(selection: $selection) {
@@ -221,12 +248,12 @@ enum NavStackPreview: PreviewProvider {
             .previewOverlay()
         }
     }
-    
+
     struct Page: View {
         @Environment(\.pop) var pop
         let i: Int
         @Binding var selection: Int
-        
+
         var body: some View {
             HStack {
                 if selection > 0 {
