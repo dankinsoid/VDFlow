@@ -102,6 +102,7 @@ public extension View {
 			$0.insert({ binding.wrappedValue.selected = nil }, at: 0)
 		}
 		.tag(binding.wrappedValue[keyPath: keyPath].id)
+        .stepTag(binding.wrappedValue[keyPath: keyPath].id)
 	}
 
 	func stepEnvironment<Value>(_ binding: Binding<Value>) -> some View {

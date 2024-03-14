@@ -17,8 +17,8 @@ public extension NavigationLink {
 
 public struct NavigationStepDestination<Content: View, Value>: View {
 
-	public let content: Content
-	public let stepBinding: Binding<Value>
+    let content: Content
+    let stepBinding: Binding<Value>
 
 	public var body: some View {
 		content
@@ -47,31 +47,6 @@ public extension View {
 		navigationDestination(isPresented: step.isSelected) {
 			destination()
 				.stepEnvironment(step.binding)
-		}
-	}
-}
-
-@available(iOS 16.0, macOS 13.0, watchOS 9.0, *)
-public extension StepsCollection {
-
-	var navigationPath: NavigationPath {
-		get {
-			let allValues = Steps.allCases
-			guard let selected, let index = allValues.firstIndex(of: selected) else {
-				return NavigationPath()
-			}
-			return NavigationPath(allValues.prefix(through: index))
-		}
-		set {
-			let allValues = Steps.allCases
-			guard
-				!newValue.isEmpty,
-				!allValues.isEmpty
-			else {
-				selected = nil
-				return
-			}
-			selected = allValues[allValues.index(allValues.startIndex, offsetBy: newValue.count - 1)]
 		}
 	}
 }
