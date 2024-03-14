@@ -3,7 +3,6 @@ import SwiftUI
 /// A property wrapper type that stores or binds a ``VDFlow/Step``  and invalidates a view whenever the step changes.
 ///
 ///     @StateStep var router = StepsStruct()
-///     @StateStep(.defaultStep) var router = StepsStruct()
 ///     let stepState = StateStep(stepBinding)
 @dynamicMemberLookup
 @propertyWrapper
@@ -22,7 +21,10 @@ public struct StateStep<Value>: DynamicProperty {
 	@Environment(\.unselectStep) private var unselectClosure
 
 	public var projectedValue: Binding<Value> {
-		$defaultValue
+        return switch _defaultValue {
+        case let .binding(binding): binding
+        case let .state(state): stepBinding ?? state.projectedValue
+        }
 	}
 
 	public init(wrappedValue: Value) {
