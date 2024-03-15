@@ -1,10 +1,11 @@
 import SwiftUI
 
+@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
 public struct NavigationSteps<Selection: Hashable, Content: View>: View {
     
     let content: Content
     @StateOrBinding var selection: Selection?
-    @State private var ids: [Selection] = []
+    @State private var pop: PopAction = EnvironmentValues.NavigationPopKey.defaultValue
     
     public init(selection: Binding<Selection?>, @ViewBuilder content: () -> Content) {
         self.content = content()
@@ -15,18 +16,24 @@ public struct NavigationSteps<Selection: Hashable, Content: View>: View {
         _VariadicView.Tree(Root(base: self)) {
             content
         }
+        .environment(\.pop, pop)
     }
-    
+
     private struct Root: _VariadicView.UnaryViewRoot {
         
         let base: NavigationSteps
         
         func body(children: _VariadicView.Children) -> some View {
-            MyNavigationStack(selection: base.$selection, children: children)
+            NavigationStackWrapper(
+                selection: base.$selection,
+                popAction: base.$pop,
+                children: children
+            )
         }
     }
 }
 
+@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
 public extension NavigationSteps {
 
     init(@ViewBuilder content: () -> Content) {
@@ -35,6 +42,7 @@ public extension NavigationSteps {
     }
 }
 
+@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
 public extension NavigationSteps where Selection == Int {
     
     init(selection: Binding<Selection>, @ViewBuilder content: () -> Content) {
@@ -65,6 +73,83 @@ public extension View {
 
     func stepTag<Value: Hashable>(_ value: Value) -> some View {
         _trait(StepTag.self, value)
+    }
+}
+
+@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
+private struct NavigationStackWrapper<Selection: Hashable>: View {
+    
+    @Binding var selection: Selection?
+    @Binding var popAction: PopAction
+    let children: _VariadicView.Children
+
+    var body: some View {
+        NavigationStack(
+            path: Binding {
+                guard let selectedIndex else { return NavigationPath() }
+                return NavigationPath(
+                    (0...selectedIndex).compactMap {
+                        tag(of: children[$0], $0)
+                    }
+                )
+            } set: { path in
+                guard path.count < children.count + 1 else { return }
+                let i = path.count - 1
+                if let tag = tag(of: children[i], i) {
+                    selection = tag
+                } else if path.isEmpty {
+                    selection = nil
+                }
+            }
+        ) {
+            if !children.isEmpty {
+                children[0]
+                    .navigationDestination(for: Selection.self) { tag in
+                        if let child = children.enumerated().first(where: { self.tag(of: $0.element, $0.offset) == tag })?.element {
+                            child
+                        }
+                    }
+            }
+        }
+        .onAppear {
+            EnvironmentValues.NavigationPopKey._defaultValue = pop
+            popAction = PopAction(pop)
+        }
+        .onChange(of: selection) { _ in
+            popAction = PopAction(pop)
+        }
+    }
+
+    func tag(of child: _VariadicView.Children.Element, _ i: Int) -> Selection? {
+        (child.stepTag.base as? Selection) ?? (i as? Selection)
+    }
+    
+    func pop(offset: Int) {
+        guard let selectedIndex else { return }
+        let newIndex = max(0, min(selectedIndex - offset, children.count - 1))
+        guard let tag = tag(of: children[newIndex], newIndex) else {
+            if newIndex == 0 {
+                selection = nil
+            }
+            return
+        }
+        selection = tag
+    }
+    
+    var selectedIndex: Int? {
+        guard !children.isEmpty else {
+            return nil
+        }
+        guard let selection else {
+            return 0
+        }
+        let tags = children.enumerated().map {
+            (tag(of: $0.element, $0.offset), $0.offset)
+        }
+        guard let i = tags.first(where: { $0.0 == selection })?.1 else {
+            return nil
+        }
+        return i
     }
 }
 
@@ -179,7 +264,7 @@ private struct MyNavigationStack<Selection: Hashable>: UIViewControllerRepresent
         
         var body: some View {
             content
-                .environment(\.pop, pop)
+                .environment(\.pop, PopAction(pop))
         }
     }
 }
@@ -187,21 +272,47 @@ private struct MyNavigationStack<Selection: Hashable>: UIViewControllerRepresent
 extension EnvironmentValues {
     
     enum NavigationPopKey: EnvironmentKey {
-        static var _defaultValue: (Int) -> Void = { _ in printPreview("hmm") }
-        static let defaultValue: (Int) -> Void = { Self._defaultValue($0) }
+        static var _defaultValue: (Int) -> Void = { _ in
+        }
+        static let defaultValue = PopAction { _defaultValue($0) }
     }
 
-    public var pop: (Int) -> Void {
+    public var pop: PopAction {
         get { self[NavigationPopKey.self] }
         set { self[NavigationPopKey.self] = newValue }
     }
+}
 
-    public var popToRoot: () -> Void {
-        { pop(.max) }
+extension EnvironmentValues {
+    
+    enum NavigationTestKey: EnvironmentKey {
+        static let defaultValue = "None"
     }
+    
+    var testString: String {
+        get { self[NavigationTestKey.self] }
+        set { self[NavigationTestKey.self] = newValue }
+    }
+}
 
-    public var push: (Int) -> Void {
-        { pop(-$0) }
+public struct PopAction {
+    
+    private let pop: (Int) -> Void
+    
+    public init(_ pop: @escaping (Int) -> Void) {
+        self.pop = pop
+    }
+    
+    public func callAsFunction(_ offset: Int) {
+        pop(offset)
+    }
+    
+    public func callAsFunction() {
+        pop(1)
+    }
+    
+    public func toRoot() {
+        pop(.max)
     }
 }
 
@@ -251,24 +362,28 @@ enum NavStackPreview: PreviewProvider {
 
     struct Page: View {
         @Environment(\.pop) var pop
+        @Environment(\.testString) var testString
         let i: Int
         @Binding var selection: Int
 
         var body: some View {
-            HStack {
-                if selection > 0 {
-                    Button("Pop") {
-                        pop(1)
+            VStack {
+                Text(testString)
+                HStack {
+                    if selection > 0 {
+                        Button("Pop") {
+                            pop()
+                        }
                     }
-                }
-                Spacer()
-                Button("\(i) == \(selection)") {
-                    selection = .random(in: 0..<10)
-                }
-                Spacer()
-                if selection < 9 {
-                    Button("Push") {
-                        pop(-1)
+                    Spacer()
+                    Button("\(i) == \(selection)") {
+                        selection = .random(in: 0..<10)
+                    }
+                    Spacer()
+                    if selection < 9 {
+                        Button("Push") {
+                            pop(-1)
+                        }
                     }
                 }
             }
