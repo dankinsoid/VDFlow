@@ -86,9 +86,9 @@ private struct NavigationStackWrapper<Selection: Hashable>: View {
     var body: some View {
         NavigationStack(
             path: Binding {
-                guard let selectedIndex else { return NavigationPath() }
+                guard let selectedIndex, selectedIndex > 0 else { return NavigationPath() }
                 return NavigationPath(
-                    (0...selectedIndex).compactMap {
+                    (1...selectedIndex).compactMap {
                         tag(of: children[$0], $0)
                     }
                 )
