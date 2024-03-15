@@ -2,7 +2,7 @@ import Foundation
 
 public protocol StepsCollection where Steps.RawValue == String {
 
-	associatedtype Steps: RawRepresentable & CaseIterable & Hashable & Codable
+	associatedtype Steps: RawRepresentable & CaseIterable & Hashable & Codable & Sendable
 	var selected: Steps? { get set }
 }
 

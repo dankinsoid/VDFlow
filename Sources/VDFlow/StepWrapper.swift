@@ -38,6 +38,7 @@ public extension StepWrapper {
 	}
 }
 
+extension StepWrapper: Sendable where Value: Sendable {}
 extension StepWrapper: Equatable where Value: Equatable {}
 extension StepWrapper: Hashable where Value: Hashable {}
 extension StepWrapper: Decodable where Value: Decodable {}

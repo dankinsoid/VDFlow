@@ -85,7 +85,7 @@ public struct StepsMacro: MemberAttributeMacro, ExtensionMacro, MemberMacro, Acc
 			"""
 			public var selected: Steps?
 			\(raw: initStr)
-			public enum Steps: String, CaseIterable, Codable {
+			public enum Steps: String, CaseIterable, Codable, Sendable {
 			    case \(raw: cases.joined(separator: ", "))
 			}
 			"""
