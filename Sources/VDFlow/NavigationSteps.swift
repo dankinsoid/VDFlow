@@ -93,8 +93,8 @@ private struct NavigationStackWrapper<Selection: Hashable>: View {
                     }
                 )
             } set: { path in
-                guard path.count < children.count + 1 else { return }
-                let i = path.count - 1
+                guard path.count < children.count else { return }
+                let i = path.count
                 if let tag = tag(of: children[i], i) {
                     selection = tag
                 } else if path.isEmpty {
