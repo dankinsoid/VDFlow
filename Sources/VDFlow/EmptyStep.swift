@@ -6,8 +6,4 @@ public struct EmptyStep: Hashable, Codable, CustomStringConvertible, Sendable {
 	public var description: String { "EmptyStep" }
 
 	public init() {}
-
-	public mutating func select() {
-		updater.toggle()
-	}
 }

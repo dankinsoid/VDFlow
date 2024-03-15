@@ -6,6 +6,7 @@ import SwiftSyntax
 import SwiftSyntaxBuilder
 import SwiftSyntaxMacroExpansion
 import SwiftSyntaxMacros
+import Foundation
 
 @main
 struct VDFlowMacrosPlugin: CompilerPlugin {
@@ -36,16 +37,11 @@ public struct StepsMacro: MemberAttributeMacro, ExtensionMacro, MemberMacro, Acc
 		providingAttributesFor member: some DeclSyntaxProtocol,
 		in context: some MacroExpansionContext
 	) throws -> [AttributeSyntax] {
+        if !declaration.is(StructDeclSyntax.self) {
+            return []
+        }
 		guard let name = member.storedVarName else { return [] }
-		let stepID: AttributeSyntax = "@StepID(.\(raw: name))"
-		if declaration.memberBlock.members.contains(where: \.decl.hasStepAttribute) {
-			if member.hasStepAttribute {
-				return [stepID]
-			} else {
-				return []
-			}
-		}
-		return [stepID, "@Step"]
+		return ["@StepID(.\(raw: name))"]
 	}
 
 	public static func expansion(
@@ -55,42 +51,244 @@ public struct StepsMacro: MemberAttributeMacro, ExtensionMacro, MemberMacro, Acc
 		conformingTo protocols: [TypeSyntax],
 		in context: some MacroExpansionContext
 	) throws -> [ExtensionDeclSyntax] {
-		[stepsCollectionExtension(for: type)]
+		[
+            ExtensionDeclSyntax(
+                extendedType: type,
+                inheritanceClause: InheritanceClauseSyntax(
+                    inheritedTypes: InheritedTypeListSyntax {
+                        InheritedTypeSyntax(
+                            type: TypeSyntax(
+                                stringLiteral: "StepsCollection"
+                            )
+                        )
+                    }
+                ),
+                memberBlock: MemberBlockSyntax(members: MemberBlockItemListSyntax())
+            )
+        ]
 	}
+    
+    public static func expansion(
+        of node: AttributeSyntax,
+        providingMembersOf declaration: some DeclGroupSyntax,
+        in context: some MacroExpansionContext
+    ) throws -> [DeclSyntax] {
+        guard declaration.is(EnumDeclSyntax.self) else {
+            if declaration.is(StructDeclSyntax.self) {
+                return try structExpansion(of: node, providingMembersOf: declaration, in: context)
+            }
+            throw MacroError("Steps macro can only be applied to enums or structs")
+        }
+        let cases = declaration.memberBlock.members.flatMap {
+            $0.decl.as(EnumCaseDeclSyntax.self)?.elements ?? []
+        }
+        guard cases.contains(where: \.hasParameters) else {
+            return ["""
+            public typealias Steps = Self
 
-	public static func expansion(
-		of node: AttributeSyntax,
-		providingMembersOf declaration: some DeclGroupSyntax,
-		in context: some MacroExpansionContext
-	) throws -> [DeclSyntax] {
-		let hasSteps = declaration.memberBlock.members.contains(where: \.decl.hasStepAttribute)
-		let cases = declaration.memberBlock.members
-			.filter { $0.decl.hasStepAttribute || !hasSteps }
-			.compactMap(\.decl.storedVarName)
+            public var selected: Steps {
+                get { self }
+                set { self = newValue }
+            }
+            """]
+        }
+        var isOptional = false
+        var parameters: [String: [(type: String, value: String, name: String?)]] = [:]
+        for caseItem in cases {
+            if caseItem.name.text == "none" {
+                isOptional = true
+            }
+            guard
+                let caseParameters = caseItem.parameterClause?.parameters,
+                !caseParameters.isEmpty
+            else {
+                continue
+            }
+            var params: [(type: String, value: String, name: String?)] = []
+            for parameter in caseParameters {
+                let type = parameter.type.trimmed.description
+                var value = ""
+                if let defaultValue = parameter.defaultValue?.value {
+                    value = defaultValue.description
+                } else {
+                    if type.isOptional {
+                        value = "nil"
+                    } else {
+                        throw MacroError("All parameters of a case must have a default value or be optional")
+                    }
+                }
+                params.append((type, value, parameter.firstName?.text))
+            }
+            if !params.isEmpty {
+                parameters[caseItem.name.text] = params
+            }
+        }
+        let selected: DeclSyntax =
+            """
+            public var selected: Steps {
+                get {
+                    switch self {
+                    \(raw: cases.map { "case .\($0.name.text): return .\($0.name.text)" }.joined(separator: "\n"))
+                    }
+                }
+                set {
+                    switch newValue {
+                    \(raw: cases.map { "case .\($0.name.text): self = .\($0.name.text)\(parameters[$0.name.text] == nil ? "" : "()")" }.joined(separator: "\n"))
+                    }
+                }
+            }
+            """
+        let stepsEnum: DeclSyntax =
+            """
+            public enum Steps: String, CaseIterable, Codable, Sendable\(raw: isOptional ? ", OptionalStep" : "") {
+                case \(raw: cases.map(\.name.text).joined(separator: ", "))
+            }
+            """
+        var result = [selected, stepsEnum]
+        for caseItem in cases {
+            let name = caseItem.name.text
+            let params = parameters[name] ?? []
+            guard !params.isEmpty else {
+                result.append(
+                        """
+                        public var \(raw: name): EmptyStep {
+                            get { EmptyStep() }
+                            set {}
+                        }
+                        """
+                )
+                continue
+            }
+            var type = params.map(\.type).joined(separator: ", ")
+            if params.count > 1 {
+                type = "(\(type))"
+            }
+            let isOptional = params.contains(where: \.value.isEmpty)
+            if isOptional {
+                type += "?"
+            }
+            var value = isOptional ? "nil" : params.map(\.value).joined(separator: ", ")
+            if params.count > 1 {
+                value = "(\(value))"
+            }
+            let args = params.indices.map { "arg\($0)" }.joined(separator: ", ")
+            let newArgs = params.count == 1
+            ? "newValue"
+            : params.indices
+                .map { "\(params[$0].name.map { "\($0): " } ?? "")newValue.\($0)" }
+                .joined(separator: ", ")
+            let caseVar: DeclSyntax =
+                """
+                public var \(raw: name): \(raw: type) {
+                    get {
+                        if case let .\(raw: name)(\(raw: args)) = self {
+                            return \(raw: params.count > 1 ? "(\(args))" : "arg0")
+                        }
+                        return \(raw: value)
+                    }
+                    set {
+                        if case .\(raw: name) = self\(raw: isOptional ? ", let newValue" : "") {
+                            self = .\(raw: name)(\(raw: newArgs))
+                        }
+                    }
+                }
+                """
+            result.append(caseVar)
+        }
+        return result
+    }
 
-		let initStr: String
-		if hasSteps {
-			initStr = ""
-		} else {
-			initStr = """
+    public static func structExpansion(
+        of node: AttributeSyntax,
+        providingMembersOf declaration: some DeclGroupSyntax,
+        in context: some MacroExpansionContext
+    ) throws -> [DeclSyntax] {
+        var isOptional = false
+        var cases: [String] = []
+        var functions: [String: String] = [:]
+        for member in declaration.memberBlock.members {
+            guard
+                let variable = member.decl.as(VariableDeclSyntax.self),
+                let name = variable.storedVarName
+            else { continue }
+            cases.append(name)
+            
+            if let binding = variable.bindings.first {
+                var type = binding.typeAnnotation?.type.description ?? ""
+                if type.isEmpty {
+                    if let value = binding.initializer?.value {
+                        if value.is(StringLiteralExprSyntax.self) {
+                            type = "String"
+                        } else if value.is(BooleanLiteralExprSyntax.self) {
+                            type = "Bool"
+                        } else if value.is(IntegerLiteralExprSyntax.self) {
+                            type = "Int"
+                        } else if value.is(FloatLiteralExprSyntax.self) {
+                            type = "Double"
+                        } else {
+                            throw MacroError("Type of `\(name)` must be provided explicitly with `:`")
+                        }
+                    } else {
+                        functions[name] = ""
+                    }
+                }
+                var defaultValue = binding.initializer?.value.description
+                if defaultValue == nil, type.isOptional {
+                    defaultValue = "nil"
+                }
+                if functions[name] == nil {
+                    functions[name] = "(_ value: \(type)\(defaultValue.map { " = \($0)" } ?? ""))"
+                }
+            }
+            
+            if name == "none" {
+                isOptional = true
+            }
+        }
 
-			public init(_ selected: Steps? = nil) {
-			    self.selected = selected
-			}
+        var result: [DeclSyntax] = []
+        let initDecl: DeclSyntax =
+            """
+            private init(_ selected: Steps\(raw: isOptional ? " = nil" : "")) {
+                self.selected = selected
+            }
+            """
+        result.append(initDecl)
+        result.append("public var selected: Steps")
+        let stepsEnum: DeclSyntax =
+            """
+            public enum Steps: String, CaseIterable, Codable, Sendable\(raw: isOptional ? ", OptionalStep" : "") {
+                case \(raw: cases.joined(separator: ", "))
+            }
+            """
+        result.append(stepsEnum)
+        result += cases.map {
+            let function = functions[$0] ?? ""
+            let isVar = function.isEmpty
+            
+            var funcString = "public static \(isVar ? "var" : "func") \($0)\(function)\(isVar ? ":" : " ->") Self {"
+            if isVar {
+                funcString += "\nSelf.init(.\($0))\n"
+            } else {
+                funcString +=
+                """
+                    var result = Self.init(.\($0))
+                    result.\($0) = value
+                    return result
+                """
+            }
+            funcString += "}"
+            return DeclSyntax(stringLiteral: funcString)
+        }
+        return result
+    }
+}
 
-			"""
-		}
+extension EnumCaseElementSyntax {
 
-		let stepsEnum: DeclSyntax =
-			"""
-			public var selected: Steps?
-			\(raw: initStr)
-			public enum Steps: String, CaseIterable, Codable, Sendable {
-			    case \(raw: cases.joined(separator: ", "))
-			}
-			"""
-		return [stepsEnum]
-	}
+    var hasParameters: Bool {
+        (parameterClause?.parameters.count ?? 0) > 0
+    }
 }
 
 extension DeclSyntaxProtocol {
@@ -103,7 +301,7 @@ extension DeclSyntaxProtocol {
 		}
 		return false
 	}
-
+    
 	var storedVarName: String? {
 		guard
 			let variable = self.as(VariableDeclSyntax.self),
@@ -131,20 +329,6 @@ extension DeclSyntaxProtocol {
 	}
 }
 
-private func stepsCollectionExtension(for type: some TypeSyntaxProtocol) -> ExtensionDeclSyntax {
-	ExtensionDeclSyntax(
-		extendedType: type,
-		inheritanceClause: InheritanceClauseSyntax(
-			inheritedTypes: InheritedTypeListSyntax {
-				InheritedTypeSyntax(
-					type: TypeSyntax(stringLiteral: "StepsCollection")
-				)
-			}
-		),
-		memberBlock: MemberBlockSyntax(members: MemberBlockItemListSyntax())
-	)
-}
-
 extension TokenSyntax {
 
 	var isWillSetOrDidSet: Bool {
@@ -158,5 +342,22 @@ extension TokenSyntax {
 	var isStatic: Bool {
 		tokenKind == .keyword(.static)
 	}
+}
+
+private extension String {
+    
+    var isOptional: Bool {
+        hasSuffix("?") || hasPrefix("Optional<")
+    }
+}
+
+private struct MacroError: LocalizedError, CustomStringConvertible {
+    
+    var errorDescription: String
+    var description: String { errorDescription }
+    
+    init(_ errorDescription: String) {
+        self.errorDescription = errorDescription
+    }
 }
 #endif

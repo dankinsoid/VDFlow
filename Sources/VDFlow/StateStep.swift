@@ -101,7 +101,14 @@ public extension View {
 			binding[dynamicMember: keyPath.appending(path: \.wrappedValue)]
 		)
 		.transformEnvironment(\.unselectStep) {
-			$0.insert({ binding.wrappedValue.selected = nil }, at: 0)
+			$0.insert(
+                {
+                    if let none = (Root.Steps.self as? OptionalStep.Type)?.none as? Root.Steps {
+                        binding.wrappedValue.selected = none
+                    }
+                },
+                at: 0
+            )
 		}
 		.tag(binding.wrappedValue[keyPath: keyPath].id)
         .stepTag(binding.wrappedValue[keyPath: keyPath].id)
@@ -112,7 +119,7 @@ public extension View {
 	}
 }
 
-public extension Binding where Value: StepsCollection {
+public extension Binding where Value: StepsCollection ,Value.Steps: OptionalStep {
 
 	func isSelected(_ step: Value.Steps) -> Binding<Bool> {
 		Binding<Bool> {

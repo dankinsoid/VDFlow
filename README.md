@@ -25,14 +25,15 @@ struct TabSteps {
 
   var tab1
   var tab2 = SomeTab2Data()
-  var tab3 = NavigationSteps()
+  var tab3: NavigationSteps = .screen1
+  var none
 }
 
 @Steps
 struct NavigationSteps {
 
   var screen1
-  var screen2 = PickerSteps()
+  var screen2: PickerSteps = .none
 }
 
 @Steps
@@ -40,19 +41,20 @@ struct PickerSteps {
 
   var text1
   var text2
+  var none
 }
 ```
 ```swift
-var steps = TabSteps()
+var steps: TabSteps = .tab1
 ```
 If you want to open `Tab2` you need mark `tab2` as selected. You have several ways to do it:
 1. Set `selected` property:
 ```swift
 steps.selected = .tab2
 ```
-2. Just mutate `.tab2`:
+2. Use auto-generated static functions:
 ```swift
-steps.tab2 = SomeTab2Data()
+steps = .tab2(SomeTab2Data())
 ```
 You can check which property is selected:
 1. With `selected` property:
@@ -61,12 +63,12 @@ $steps.selected == .tab2
 ```
 Also you can set initial selected property:
 ```swift
-var screen3 = PickerSteps(.text1)
+var screen3: PickerSteps = .text1
 ```
 ### Deeplink
  Then you got a deep link for example and you need to change `Tab2` to third tab with `NavigationView`, push to `Push2View` and select `Text2` in `PickerView`.
  ```swift
- steps.tab3.screen2.text2.select()
+ steps.tab3.screen2 = .text2
  ```
  Now `tab3`, `screen3`, `text2` properties are marked as selected.
 ### Integration with UI
@@ -78,7 +80,7 @@ SwiftUI is a state driven framework, so it's easy to implement navigation with `
 ```swift
 struct RootTabView: View {
 
-  @StateStep var step = TabSteps(.tab1)
+  @StateStep var step: TabSteps = .tab1
   
   var body: some View {
     TabView(selection: $step.selected) {
@@ -205,7 +207,7 @@ import PackageDescription
 let package = Package(
   name: "SomeProject",
   dependencies: [
-    .package(url: "https://github.com/dankinsoid/VDFlow.git", from: "4.14.0")
+    .package(url: "https://github.com/dankinsoid/VDFlow.git", from: "4.15.0")
   ],
   targets: [
     .target(name: "SomeProject", dependencies: ["VDFlow"])
