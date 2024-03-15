@@ -1,5 +1,50 @@
 import SwiftUI
 
+/// ``NavigationStack`` wrapper that push all children in the order they are declared.
+///
+/// Set the selection parameter to a bound property that provides the current top view.
+/// For example, consider an enumeration of authorizations steps and a State variable to hold the selected step.
+///
+/// ```swift
+/// enum AuthStep: String, CaseIterable, Hashable {
+///     case phone, smsCode, emailAndPassword, emailCode
+/// }
+///
+///@State private var currentAuthStep: AuthStep = .phone
+/// ```
+/// Append a tag to each of content views using the `stepTag(_:)` or `step(_:)` view modifiers so that the type of each selection matches the type of the bound state variable.
+/// ```swift
+/// NavigationSteps(selection: $currentPage) {
+///     EnterPhoneView()
+///         .stepTag(AuthStep.currentAuthStep)
+///
+///     EnterSMSMCode()
+///         .stepTag(AuthStep.smsCode)
+///
+///     if viewModel.isNewUser {
+///         EnterEmailAndPassword()
+///             .stepTag(AuthStep.emailAndPassword)
+///
+///         EnterEmailCode()
+///             .stepTag(AuthStep.emailCode)
+///     }
+/// }
+/// ```
+///
+/// - Tip: Use `Environment(\.pop)` environment value to control the pop/push actions:
+/// ```swift
+/// @Environment(\.pop) var pop
+/// //...
+/// Button("Go back") {
+///   pop()
+/// }
+/// Button("Go forward") {
+///   pop(-1)
+/// }
+/// Button("Go to start") {
+///   pop.toRoot()
+/// }
+/// ```
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
 public struct NavigationSteps<Selection: Hashable, Content: View>: View {
     
@@ -153,148 +198,34 @@ private struct NavigationStackWrapper<Selection: Hashable>: View {
     }
 }
 
-private final class UINavigationStackDelegate: NSObject, UINavigationControllerDelegate {
-    
-    var notUpdate = false
-    var didShow: (UIViewController) -> Void = { _ in }
-    
-    func navigationController(
-        _ navigationController: UINavigationController,
-        didShow viewController: UIViewController,
-        animated: Bool
-    ) {
-        didShow(viewController)
-    }
-}
-
-private struct MyNavigationStack<Selection: Hashable>: UIViewControllerRepresentable {
-    
-    @Binding var selection: Selection?
-    let children: _VariadicView.Children
-    @State private var delegate = UINavigationStackDelegate()
-    
-    func makeUIViewController(context: Context) -> UINavigationController {
-        let controller = UINavigationController()
-        controller.delegate = delegate
-        return controller
-    }
-    
-    func updateUIViewController(
-        _ stack: UINavigationController,
-        context: Context
-    ) {
-        guard !delegate.notUpdate else { return }
-        delegate.didShow = { [weak delegate, $selection] controller in
-            delegate?.notUpdate = true
-            if let tag = controller.stackTag?.id.base as? Selection, tag != $selection.wrappedValue {
-                $selection.wrappedValue = tag
-            } else if controller === stack.viewControllers.first {
-                $selection.wrappedValue = nil
-            }
-            delegate?.notUpdate = false
-        }
-        guard let selectedIndex else { return }
-        if stack.view.window != nil {
-            EnvironmentValues.NavigationPopKey._defaultValue = pop
-        }
-        stack.setViewControllers(
-            controllers(for: stack, selectedIndex: selectedIndex),
-            animated: stack.view.window != nil
-        )
-    }
-    
-    func controllers(for stack: UINavigationController, selectedIndex: Int) -> [UIViewController] {
-        Array(0...selectedIndex).map { i in
-            controller(for: i, stack: stack)
-        }
-    }
-    
-    func controller(for i: Int, stack: UINavigationController) -> UIViewController {
-        let view = children[i]
-        if let controller = stack.viewControllers.first(where: { $0.stackID?.id == view.id }) as? Host {
-            controller.rootView = Child(content: view, pop: pop)
-            return controller
-        }
-        let controller = Host(rootView: Child(content: view, pop: pop))
-        controller.stackID = IDWrapper(children[i].id)
-        if let tag = tag(of: view, i) {
-            controller.stackTag = IDWrapper(tag)
-        }
-        return controller
-    }
-
-    func tag(of child: _VariadicView.Children.Element, _ i: Int) -> Selection? {
-        (child.stepTag.base as? Selection) ?? (i as? Selection)
-    }
-
-    func pop(offset: Int) {
-        guard let selectedIndex else { return }
-        let newIndex = max(0, min(selectedIndex - offset, children.count - 1))
-        guard let tag = tag(of: children[newIndex], newIndex) else {
-            if newIndex == 0 {
-                selection = nil
-            }
-            return
-        }
-        selection = tag
-    }
-
-    var selectedIndex: Int? {
-        guard !children.isEmpty else {
-            return nil
-        }
-        guard let selection else {
-            return 0
-        }
-        let tags = children.enumerated().map {
-            (tag(of: $0.element, $0.offset), $0.offset)
-        }
-        guard let i = tags.first(where: { $0.0 == selection })?.1 else {
-            return nil
-        }
-        return i
-    }
-
-    typealias Host = UIHostingController<Child>
-    
-    struct Child: View {
-        
-        let content: _VariadicView.Children.Element
-        let pop: (Int) -> Void
-        
-        var body: some View {
-            content
-                .environment(\.pop, PopAction(pop))
-        }
-    }
-}
-
 extension EnvironmentValues {
     
     enum NavigationPopKey: EnvironmentKey {
-        static var _defaultValue: (Int) -> Void = { _ in
-        }
+        static var _defaultValue: (Int) -> Void = { _ in }
         static let defaultValue = PopAction { _defaultValue($0) }
     }
-
+    
+    /// Use `Environment(\.pop)` environment value to control the pop/push actions:
+    /// ```swift
+    /// @Environment(\.pop) var pop
+    /// //...
+    /// Button("Go back") {
+    ///   pop()
+    /// }
+    /// Button("Go forward") {
+    ///   pop(-1)
+    /// }
+    /// Button("Go to start") {
+    ///   pop.toRoot()
+    /// }
+    /// ```
     public var pop: PopAction {
         get { self[NavigationPopKey.self] }
         set { self[NavigationPopKey.self] = newValue }
     }
 }
 
-extension EnvironmentValues {
-    
-    enum NavigationTestKey: EnvironmentKey {
-        static let defaultValue = "None"
-    }
-    
-    var testString: String {
-        get { self[NavigationTestKey.self] }
-        set { self[NavigationTestKey.self] = newValue }
-    }
-}
-
+/// A type that represents a pop action.
 public struct PopAction {
     
     private let pop: (Int) -> Void
@@ -362,13 +293,11 @@ enum NavStackPreview: PreviewProvider {
 
     struct Page: View {
         @Environment(\.pop) var pop
-        @Environment(\.testString) var testString
         let i: Int
         @Binding var selection: Int
 
         var body: some View {
             VStack {
-                Text(testString)
                 HStack {
                     if selection > 0 {
                         Button("Pop") {
