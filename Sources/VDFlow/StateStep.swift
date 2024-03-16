@@ -46,7 +46,7 @@ public struct StateStep<Value>: DynamicProperty {
 		)
 	}
 
-	public func unselect(stepsCount: Int = 1) {
+	public func deselect(stepsCount: Int = 1) {
 		guard !unselectClosure.isEmpty else {
 			Environment(\.presentationMode).wrappedValue.wrappedValue.dismiss()
 			return
@@ -87,31 +87,36 @@ private enum UnselectKey: EnvironmentKey {
 
 public extension View {
 
-	func step<Root: StepsCollection, Value>(
-		_ binding: StepBinding<Root, Value>
-	) -> some View {
-		step(binding.$root, binding.keyPath)
-	}
+    func step<Root: StepsCollection, Value>(
+        _ binding: StepBinding<Root, Value>
+    ) -> some View {
+        step(
+            Binding {
+                binding.root[keyPath: binding.keyPath]
+            } set: {
+                binding.root[keyPath: binding.keyPath] = $0
+            }
+        )
+    }
 
 	func step<Root: StepsCollection, Value>(
-		_ binding: Binding<Root>,
-		_ keyPath: WritableKeyPath<Root, StepWrapper<Root, Value>>
+        _ binding: Binding<StepWrapper<Root, Value>>
 	) -> some View {
 		stepEnvironment(
-			binding[dynamicMember: keyPath.appending(path: \.wrappedValue)]
+            binding[dynamicMember: \.wrappedValue]
 		)
 		.transformEnvironment(\.unselectStep) {
 			$0.insert(
                 {
                     if let none = (Root.AllSteps.self as? ExpressibleByNilLiteral.Type)?.init(nilLiteral: ()) as? Root.AllSteps {
-                        binding.wrappedValue.selected = none
+                        binding.wrappedValue.deselect()
                     }
                 },
                 at: 0
             )
 		}
-		.tag(binding.wrappedValue[keyPath: keyPath].id)
-        .stepTag(binding.wrappedValue[keyPath: keyPath].id)
+		.tag(binding.wrappedValue.id)
+        .stepTag(binding.wrappedValue.id)
 	}
 
 	func stepEnvironment<Value>(_ binding: Binding<Value>) -> some View {

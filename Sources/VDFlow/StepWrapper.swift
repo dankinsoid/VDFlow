@@ -28,6 +28,10 @@ public struct StepWrapper<Parent: StepsCollection, Value>: Identifiable {
         _mutateID._update()
     }
 
+    public mutating func deselect() {
+        _mutateID.mutationDate = nil
+    }
+
     public mutating func select(with value: Value) {
         wrappedValue = value
         select()

@@ -2,7 +2,7 @@ import Foundation
 
 public struct MutateID: Comparable, Hashable, Codable, Sendable {
 
-	private var mutationDate: UInt64?
+    var mutationDate: UInt64?
 
     init() {
 	}
