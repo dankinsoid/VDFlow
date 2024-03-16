@@ -18,7 +18,6 @@ public struct StateStep<Value>: DynamicProperty {
 	@StateOrBinding private var defaultValue: Value
 
 	@Environment(\.[StepKey()]) private var stepBinding
-	@Environment(\.unselectStep) private var unselectClosure
 
 	public var projectedValue: Binding<Value> {
         return switch _defaultValue {
@@ -39,25 +38,21 @@ public struct StateStep<Value>: DynamicProperty {
 		_defaultValue = binding
 	}
 
-	public subscript<A>(dynamicMember keyPath: WritableKeyPath<Value, StepWrapper<Value, A>>) -> StepBinding<Value, A> {
-		StepBinding<Value, A>(
-			root: projectedValue,
-			keyPath: keyPath
-		)
-	}
-
-	public func deselect(stepsCount: Int = 1) {
-		guard !unselectClosure.isEmpty else {
-			Environment(\.presentationMode).wrappedValue.wrappedValue.dismiss()
-			return
-		}
-		unselectClosure[min(unselectClosure.count - 1, max(0, stepsCount - 1))]()
-	}
-
 	struct StepKey: EnvironmentKey, Hashable {
 
 		static var defaultValue: Binding<Value>? { nil }
 	}
+}
+
+public extension StateStep where Value: StepsCollection {
+    
+    subscript<A>(dynamicMember keyPath: WritableKeyPath<Value, StepWrapper<Value, A>>) -> Binding<StepSelection<Value, A>> {
+        Binding {
+            wrappedValue[keyPath]
+        } set: {
+            wrappedValue[keyPath] = $0
+        }
+    }
 }
 
 public extension StateStep where Value == EmptyStep {
@@ -68,21 +63,11 @@ public extension StateStep where Value == EmptyStep {
 }
 
 extension EnvironmentValues {
-
-	subscript<T>(stepKey: StateStep<T>.StepKey) -> StateStep<T>.StepKey.Value {
-		get { self[StateStep<T>.StepKey.self] }
-		set { self[StateStep<T>.StepKey.self] = newValue }
-	}
-
-	var unselectStep: [() -> Void] {
-		get { self[UnselectKey.self] }
-		set { self[UnselectKey.self] = newValue }
-	}
-}
-
-private enum UnselectKey: EnvironmentKey {
-
-	static var defaultValue: [() -> Void] { [] }
+    
+    subscript<T>(stepKey: StateStep<T>.StepKey) -> StateStep<T>.StepKey.Value {
+        get { self[StateStep<T>.StepKey.self] }
+        set { self[StateStep<T>.StepKey.self] = newValue }
+    }
 }
 
 public extension View {
@@ -90,13 +75,7 @@ public extension View {
     func step<Root: StepsCollection, Value>(
         _ binding: StepBinding<Root, Value>
     ) -> some View {
-        step(
-            Binding {
-                binding.root[keyPath: binding.keyPath]
-            } set: {
-                binding.root[keyPath: binding.keyPath] = $0
-            }
-        )
+        step(binding.wrapper)
     }
 
 	func step<Root: StepsCollection, Value>(
@@ -105,16 +84,6 @@ public extension View {
 		stepEnvironment(
             binding[dynamicMember: \.wrappedValue]
 		)
-		.transformEnvironment(\.unselectStep) {
-			$0.insert(
-                {
-                    if let none = (Root.AllSteps.self as? ExpressibleByNilLiteral.Type)?.init(nilLiteral: ()) as? Root.AllSteps {
-                        binding.wrappedValue.deselect()
-                    }
-                },
-                at: 0
-            )
-		}
 		.tag(binding.wrappedValue.id)
         .stepTag(binding.wrappedValue.id)
 	}

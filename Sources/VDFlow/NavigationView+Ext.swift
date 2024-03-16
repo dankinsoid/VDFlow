@@ -8,7 +8,7 @@ public extension NavigationLink {
 		@ViewBuilder label: () -> Label
     ) where Destination == NavigationStepDestination<Dest, D>, T.AllSteps: ExpressibleByNilLiteral, T: StepsCollection {
 		self.init(isActive: step.isSelected) {
-			NavigationStepDestination(content: destination(), stepBinding: step.binding)
+            NavigationStepDestination(content: destination(), stepBinding: step.value)
 		} label: {
 			label()
 		}
@@ -30,23 +30,12 @@ public struct NavigationStepDestination<Content: View, Value>: View {
 public extension View {
 
     func navigationDestination<Root: StepsCollection, Value>(
-        _ root: Binding<Root>,
-        for step: WritableKeyPath<Root, StepWrapper<Root, Value>>,
-        @ViewBuilder destination: @escaping () -> some View
-    ) -> some View where Root.AllSteps: ExpressibleByNilLiteral {
-        navigationDestination(
-            step: StepBinding(root: root, keyPath: step),
-            destination: destination
-        )
-    }
-
-    func navigationDestination<Root: StepsCollection, Value>(
 		step: StepBinding<Root, Value>,
 		@ViewBuilder destination: @escaping () -> some View
     ) -> some View where Root.AllSteps: ExpressibleByNilLiteral {
 		navigationDestination(isPresented: step.isSelected) {
 			destination()
-				.stepEnvironment(step.binding)
+				.stepEnvironment(step.value)
 		}
 	}
 }

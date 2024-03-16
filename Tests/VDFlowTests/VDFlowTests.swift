@@ -40,12 +40,16 @@ final class VDFlowTestsCase: XCTestCase {
         var value: TabSteps = .tab2
         value.tab3.screen2.$text1.select()
         XCTAssertEqual(value.selected, .tab3)
-        return;
         XCTAssertEqual(value.tab3.selected, .screen2)
 
         value.tab3.$none.select()
         XCTAssertEqual(value.tab3.selected, nil)
 	}
+    
+    func testSelection() {
+        var value: TabSteps = .tab2
+        value.$tab3.$screen2.isSelected = true
+    }
 }
 
 @Steps
@@ -66,4 +70,20 @@ public struct NavigationSteps {
 public struct PickerSteps {
     public var text1
     public var text2
+}
+
+struct SomeView: View {
+    
+    @StateStep var tabs: TabSteps = .tab1
+    
+    var body: some View {
+        Picker(selection: $tabs.selected) {
+            Text("Tab 1").step(_tabs.$tab1)
+            Text("Tab 2").step(_tabs.$tab2)
+            Text("Tab 3").step(_tabs.$tab3)
+        } label: {
+        }
+        .sheet(isPresented: _tabs.$tab3.$screen2.isSelected) {
+        }
+    }
 }

@@ -6,6 +6,7 @@ public extension StepsCollection {
 }
 
 @propertyWrapper
+@dynamicMemberLookup
 public struct StepWrapper<Parent: StepsCollection, Value>: Identifiable {
 
     public let id: Parent.AllSteps
@@ -28,10 +29,6 @@ public struct StepWrapper<Parent: StepsCollection, Value>: Identifiable {
         _mutateID._update()
     }
 
-    public mutating func deselect() {
-        _mutateID.mutationDate = nil
-    }
-
     public mutating func select(with value: Value) {
         wrappedValue = value
         select()
@@ -47,6 +44,14 @@ public extension StepWrapper where Value == EmptyStep {
 	init(_ id: Parent.AllSteps) {
 		self.init(wrappedValue: EmptyStep(), id)
 	}
+}
+
+public extension StepWrapper where Value: StepsCollection {
+    
+    subscript<T>(dynamicMember keyPath: WritableKeyPath<Value, StepWrapper<Value, T>>) -> StepSelection<Value, T> {
+        get { StepSelection(parent: wrappedValue, keyPath: keyPath) }
+        set { wrappedValue = newValue.parent }
+    }
 }
 
 public extension StepWrapper {
