@@ -9,8 +9,26 @@ public extension StepsCollection {
 public struct StepWrapper<Parent: StepsCollection, Value>: Identifiable {
 
     public let id: Parent.AllSteps
-    public var _mutateID = MutateID()
-	public var wrappedValue: Value
+    public var wrappedValue: Value {
+        didSet {
+            print("didSet \(id)")
+            if
+                var newCollection = wrappedValue as? any StepsCollection,
+                newCollection._selectionState.needUpdate
+            {
+                print("didSet \(id) and update \(Parent.self)")
+                _selectionState = newCollection._selectionState
+                newCollection._selectionState.reset()
+                if let value = newCollection as? Value {
+                    wrappedValue = value
+                }
+            }
+        }
+    }
+    @_disfavoredOverload
+    public var isSelected: Bool { _selectionState.isSelected }
+    public var _selectionState = SelectionState()
+
 	public var projectedValue: StepWrapper {
 		get { self }
 		set { self = newValue }
@@ -25,20 +43,30 @@ public struct StepWrapper<Parent: StepsCollection, Value>: Identifiable {
 	}
 
     public mutating func select() {
-        _mutateID._update()
-    }
-
-    public mutating func deselect() {
-        _mutateID.mutationDate = nil
+        _selectionState.select(needUpdate: true)
     }
 
     public mutating func select(with value: Value) {
         wrappedValue = value
         select()
     }
+}
 
-    public var _lastMutateID: (Parent.AllSteps, MutateID)? {
-        ((wrappedValue as? any StepsCollection)?._lastMutateID?.optional ?? _mutateID.optional).map { (id, $0) }
+public extension StepWrapper where Parent.AllSteps: ExpressibleByNilLiteral {
+
+    var isSelected: Bool {
+        get { _selectionState.isSelected }
+        set { 
+            if newValue {
+                select()
+            } else {
+                deselect()
+            }
+        }
+    }
+
+    mutating func deselect() {
+        _selectionState.deselect(needUpdate: true)
     }
 }
 

@@ -18,7 +18,6 @@ public struct StateStep<Value>: DynamicProperty {
 	@StateOrBinding private var defaultValue: Value
 
 	@Environment(\.[StepKey()]) private var stepBinding
-	@Environment(\.unselectStep) private var unselectClosure
 
 	public var projectedValue: Binding<Value> {
         return switch _defaultValue {
@@ -46,14 +45,6 @@ public struct StateStep<Value>: DynamicProperty {
 		)
 	}
 
-	public func deselect(stepsCount: Int = 1) {
-		guard !unselectClosure.isEmpty else {
-			Environment(\.presentationMode).wrappedValue.wrappedValue.dismiss()
-			return
-		}
-		unselectClosure[min(unselectClosure.count - 1, max(0, stepsCount - 1))]()
-	}
-
 	struct StepKey: EnvironmentKey, Hashable {
 
 		static var defaultValue: Binding<Value>? { nil }
@@ -73,16 +64,6 @@ extension EnvironmentValues {
 		get { self[StateStep<T>.StepKey.self] }
 		set { self[StateStep<T>.StepKey.self] = newValue }
 	}
-
-	var unselectStep: [() -> Void] {
-		get { self[UnselectKey.self] }
-		set { self[UnselectKey.self] = newValue }
-	}
-}
-
-private enum UnselectKey: EnvironmentKey {
-
-	static var defaultValue: [() -> Void] { [] }
 }
 
 public extension View {
@@ -105,16 +86,6 @@ public extension View {
 		stepEnvironment(
             binding[dynamicMember: \.wrappedValue]
 		)
-		.transformEnvironment(\.unselectStep) {
-			$0.insert(
-                {
-                    if let none = (Root.AllSteps.self as? ExpressibleByNilLiteral.Type)?.init(nilLiteral: ()) as? Root.AllSteps {
-                        binding.wrappedValue.deselect()
-                    }
-                },
-                at: 0
-            )
-		}
 		.tag(binding.wrappedValue.id)
         .stepTag(binding.wrappedValue.id)
 	}
@@ -124,17 +95,25 @@ public extension View {
 	}
 }
 
+
+public extension Binding where Value: StepsCollection {
+    
+    func isSelected(_ step: Value.AllSteps, ifNotThen defaultStep: Value.AllSteps) -> Binding<Bool> {
+        Binding<Bool> {
+            wrappedValue.selected == step
+        } set: {
+            if $0 {
+                wrappedValue.selected = step
+            } else {
+                wrappedValue.selected = defaultStep
+            }
+        }
+    }
+}
+
 public extension Binding where Value: StepsCollection, Value.AllSteps: ExpressibleByNilLiteral {
 
 	func isSelected(_ step: Value.AllSteps) -> Binding<Bool> {
-		Binding<Bool> {
-			wrappedValue.selected == step
-		} set: {
-			if $0 {
-				wrappedValue.selected = step
-			} else {
-				wrappedValue.selected = nil
-			}
-		}
+        isSelected(step, ifNotThen: Value.AllSteps(nilLiteral: ()))
 	}
 }

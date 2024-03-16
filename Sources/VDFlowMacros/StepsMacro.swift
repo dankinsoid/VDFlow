@@ -26,8 +26,11 @@ public struct StepsMacro: MemberAttributeMacro, ExtensionMacro, MemberMacro, Acc
 		guard let name = declaration.storedVarName else { return [] }
 		return [
 			"""
-			didSet { selected = .\(raw: name) }
-			""",
+            didSet {
+                didSetStep(_\(raw: name))
+                _\(raw: name)._selectionState.reset()
+            }
+            """
 		]
 	}
 
@@ -41,7 +44,7 @@ public struct StepsMacro: MemberAttributeMacro, ExtensionMacro, MemberMacro, Acc
             return []
         }
 		guard let name = member.storedVarName else { return [] }
-		return ["@StepID(.\(raw: name))"]
+		return ["@Step", "@StepID(.\(raw: name))"]
 	}
 
 	public static func expansion(
@@ -67,136 +70,6 @@ public struct StepsMacro: MemberAttributeMacro, ExtensionMacro, MemberMacro, Acc
             )
         ]
 	}
-    
-    public static func enumExpansion(
-        of node: AttributeSyntax,
-        providingMembersOf declaration: some DeclGroupSyntax,
-        in context: some MacroExpansionContext
-    ) throws -> [DeclSyntax] {
-        guard declaration.is(EnumDeclSyntax.self) else {
-            if declaration.is(StructDeclSyntax.self) {
-                return try expansion(of: node, providingMembersOf: declaration, in: context)
-            }
-            throw MacroError("Steps macro can only be applied to enums or structs")
-        }
-        let cases = declaration.memberBlock.members.flatMap {
-            $0.decl.as(EnumCaseDeclSyntax.self)?.elements ?? []
-        }
-        guard cases.contains(where: \.hasParameters) else {
-            return ["""
-            public typealias AllSteps = Self
-
-            public var selected: Self {
-                get { self }
-                set { self = newValue }
-            }
-            """]
-        }
-        var isOptional = false
-        var parameters: [String: [(type: String, value: String, name: String?)]] = [:]
-        for caseItem in cases {
-            if caseItem.name.text == "none" {
-                isOptional = true
-            }
-            guard
-                let caseParameters = caseItem.parameterClause?.parameters,
-                !caseParameters.isEmpty
-            else {
-                continue
-            }
-            var params: [(type: String, value: String, name: String?)] = []
-            for parameter in caseParameters {
-                let type = parameter.type.trimmed.description
-                var value = ""
-                if let defaultValue = parameter.defaultValue?.value {
-                    value = defaultValue.description
-                } else {
-                    if type.isOptional {
-                        value = "nil"
-                    } else {
-                        throw MacroError("All parameters of a case must have a default value or be optional")
-                    }
-                }
-                params.append((type, value, parameter.firstName?.text))
-            }
-            if !params.isEmpty {
-                parameters[caseItem.name.text] = params
-            }
-        }
-        let selected: DeclSyntax =
-            """
-            public var selected: Steps {
-                get {
-                    switch self {
-                    \(raw: cases.map { "case .\($0.name.text): return .\($0.name.text)" }.joined(separator: "\n"))
-                    }
-                }
-                set {
-                    switch newValue {
-                    \(raw: cases.map { "case .\($0.name.text): self = .\($0.name.text)\(parameters[$0.name.text] == nil ? "" : "()")" }.joined(separator: "\n"))
-                    }
-                }
-            }
-            """
-        let stepsEnum: DeclSyntax =
-            """
-            public enum Steps: String, CaseIterable, Codable, Sendable\(raw: isOptional ? ", OptionalStep" : "") {
-                case \(raw: cases.map(\.name.text).joined(separator: ", "))
-            }
-            """
-        var result = [selected, stepsEnum]
-        for caseItem in cases {
-            let name = caseItem.name.text
-            let params = parameters[name] ?? []
-            guard !params.isEmpty else {
-                result.append(
-                        """
-                        public var \(raw: name): EmptyStep {
-                            get { EmptyStep() }
-                            set {}
-                        }
-                        """
-                )
-                continue
-            }
-            var type = params.map(\.type).joined(separator: ", ")
-            if params.count > 1 {
-                type = "(\(type))"
-            }
-            let isOptional = params.contains(where: \.value.isEmpty)
-            if isOptional {
-                type += "?"
-            }
-            var value = isOptional ? "nil" : params.map(\.value).joined(separator: ", ")
-            if params.count > 1 {
-                value = "(\(value))"
-            }
-            let args = params.indices.map { "arg\($0)" }.joined(separator: ", ")
-            let newArgs = params.count == 1
-            ? "newValue"
-            : params.indices
-                .map { "\(params[$0].name.map { "\($0): " } ?? "")newValue.\($0)" }
-                .joined(separator: ", ")
-            let caseVar: DeclSyntax =
-                """
-                public var \(raw: name): \(raw: type) {
-                    get {
-                        if case let .\(raw: name)(\(raw: args)) = self {
-                            return \(raw: params.count > 1 ? "(\(args))" : "arg0")
-                        }
-                        return \(raw: value)
-                    }
-                    set {
-                        if case .\(raw: name) = self\(raw: isOptional ? ", let newValue" : "") {
-                            self = .\(raw: name)(\(raw: newArgs))
-                        }
-                    }
-                }
-                """
-            result.append(caseVar)
-        }
-        return result
-    }
 
     public static func expansion(
         of node: AttributeSyntax,
@@ -259,39 +132,23 @@ public struct StepsMacro: MemberAttributeMacro, ExtensionMacro, MemberMacro, Acc
 
         let stepsType = "Steps" + (isOptional ? "?" : "")
         var result: [DeclSyntax] = []
-        let initialSelected: DeclSyntax =
-            """
-            private let initialSelected: \(raw: stepsType)
-            """
-        result.append(initialSelected)
+        let selectionStates: DeclSyntax = "public var _selectionState = SelectionState()"
+        result.append(selectionStates)
         let initDecl: DeclSyntax =
             """
             private init(_ selected: \(raw: stepsType)) {
-                initialSelected = selected
+                self.selected = selected
+                if let wrapperPath = Self.selectionPaths[selected] {
+                    self[keyPath: wrapperPath].select(needUpdate: false)
+                }
             }
             """
-        let _lastMutateStepID: DeclSyntax =
-            """
-            private var lastMutateStepID: (\(raw: stepsType), MutateID)? {
-                [
-                    \(raw: cases.map { "_\($0)._lastMutateID" }.joined(separator: ",\n"))
-                ]
-                .compactMap { $0 }
-                .sorted(by: { $0.1 > $1.1 })
-                .first
-            }
-            """
-        result.append(_lastMutateStepID)
-        let lastMutateID: DeclSyntax = "public var _lastMutateID: MutateID? { lastMutateStepID?.1 }"
-        result.append(lastMutateID)
         result.append(initDecl)
         let selected: DeclSyntax =
             """
             public var selected: \(raw: stepsType) {
-                get { if let result = lastMutateStepID { return result.0 } else { return initialSelected } }
-                set {
-                    guard let keyPath = Self._mutateIDs[newValue] else { return }
-                    self[keyPath: keyPath]._update()
+                didSet {
+                    didSetSelected(oldValue)
                 }
             }
             """
@@ -307,11 +164,46 @@ public struct StepsMacro: MemberAttributeMacro, ExtensionMacro, MemberMacro, Acc
         result.append(stepsEnum)
         let mutateIDs: DeclSyntax =
             """
-            public static var _mutateIDs: [AllSteps: WritableKeyPath<Self, MutateID>] {
-                [\(raw: cases.map { ".\($0): \\.$\($0)._mutateID" }.joined(separator: ", "))]
-            }
+            private static let selectionPaths: [AllSteps: WritableKeyPath<Self, SelectionState>] = [
+                \(raw: cases.map { ".\($0): \\.$\($0)._selectionState" }.joined(separator: ", "))
+            ]
             """
         result.append(mutateIDs)
+        let didSetStepFunc: DeclSyntax =
+            """
+            private mutating func didSetStep<T>(_ wrapper: StepWrapper<Self, T>) {
+                print("didSetStep \\(wrapper.id), \\(wrapper._selectionState.needUpdate)")
+                guard wrapper._selectionState.needUpdate else { return }
+                print("didSetStep \\(wrapper.id) and update selected")
+                let isSelected = wrapper._selectionState.isSelected
+                if isSelected {
+                    selected = wrapper.id
+                } else {
+                    \(raw: isOptional ? "selected = nil" : "didSetSelected(selected)")
+                }
+            }
+            """
+        result.append(didSetStepFunc)
+        let didSetSelectedFunc: DeclSyntax =
+            """
+            private mutating func didSetSelected(_ oldValue: \(raw: stepsType)) {
+                print("didSetSelected \\(selected)")
+                guard
+                    let oldWrapperPath = Self.selectionPaths[oldValue],
+                    let newWrapperPath = Self.selectionPaths[selected]
+                else { return }
+                if true {
+                print("didSetSelected \\(selected) and update parent")
+                    _selectionState.select(needUpdate: true)
+                }
+                if oldValue != selected {
+                    print("didSetSelected \\(selected) and update wrappers")
+                    self[keyPath: oldWrapperPath].deselect(needUpdate: false)
+                    self[keyPath: newWrapperPath].select(needUpdate: false)
+                }
+            }
+            """
+        result.append(didSetSelectedFunc)
         result += cases.map {
             let function = functions[$0] ?? ""
             let isVar = function.isEmpty
