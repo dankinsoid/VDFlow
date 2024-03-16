@@ -6,7 +6,10 @@ import XCTest
 final class VDFlowTestsCase: XCTestCase {
 
 	func testMacros() {
-        var value = TabSteps.tab1
+        var value: TabSteps = .tab3(.screen2(.text2))
+        dump(value._lastMutateID)
+        XCTAssertEqual(value.selected, .tab3)
+        value = TabSteps.tab1
         XCTAssertEqual(value.selected, .tab1)
         value = .tab3(.screen2(.text2))
 		XCTAssertEqual(value.selected, .tab3)
@@ -16,6 +19,11 @@ final class VDFlowTestsCase: XCTestCase {
 		XCTAssertEqual(value.selected, .tab2)
         value.tab3.screen2 = .text1
         XCTAssertEqual(value.selected, .tab2)
+        value.tab3.screen2.$text1.select()
+        XCTAssertEqual(value.selected, .tab3)
+        XCTAssertEqual(value.tab3.selected, .screen2)
+        value.tab3.$none.select()
+        XCTAssertEqual(value.tab3.selected, nil)
 	}
 }
 
@@ -24,14 +32,6 @@ public struct TabSteps {
     public var tab1
     public var tab2
     public var tab3: NavigationSteps = .screen1
-}
-
-@Steps
-public enum _TabSteps {
-    case tab1
-    case tab2
-    case tab3(NavigationSteps = .none)
-    case none
 }
 
 @Steps

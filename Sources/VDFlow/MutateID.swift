@@ -1,26 +1,30 @@
 import Foundation
 
-public struct MutateID: Equatable, Hashable, Codable {
+public struct MutateID: Comparable, Hashable, Codable, Sendable {
 
-	var value: UInt64
+	private var mutationDate: UInt64?
 
-	init() {
-		value = 0
+    init() {
 	}
+    
+    public init(from decoder: Decoder) throws {
+        let date = try UInt64(from: decoder)
+        mutationDate = date == 0 ? nil : date
+    }
 
-	public init(from decoder: Decoder) throws {
-		value = try UInt64(from: decoder)
-	}
+    public func encode(to encoder: Encoder) throws {
+        try (mutationDate ?? 0).encode(to: encoder)
+    }
 
-	public func encode(to encoder: Encoder) throws {
-		try value.encode(to: encoder)
-	}
-
-	mutating func update() {
-		value = DispatchTime.now().uptimeNanoseconds
+	public mutating func _update() {
+        mutationDate = DispatchTime.now().uptimeNanoseconds
 	}
 
 	public static func < (lhs: MutateID, rhs: MutateID) -> Bool {
-		lhs.value < rhs.value
+		(lhs.mutationDate ?? 0) < (rhs.mutationDate ?? 0)
 	}
+    
+    var optional: MutateID? {
+        mutationDate.map { _ in self }
+    }
 }

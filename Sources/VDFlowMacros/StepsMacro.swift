@@ -68,14 +68,14 @@ public struct StepsMacro: MemberAttributeMacro, ExtensionMacro, MemberMacro, Acc
         ]
 	}
     
-    public static func expansion(
+    public static func enumExpansion(
         of node: AttributeSyntax,
         providingMembersOf declaration: some DeclGroupSyntax,
         in context: some MacroExpansionContext
     ) throws -> [DeclSyntax] {
         guard declaration.is(EnumDeclSyntax.self) else {
             if declaration.is(StructDeclSyntax.self) {
-                return try structExpansion(of: node, providingMembersOf: declaration, in: context)
+                return try expansion(of: node, providingMembersOf: declaration, in: context)
             }
             throw MacroError("Steps macro can only be applied to enums or structs")
         }
@@ -84,9 +84,9 @@ public struct StepsMacro: MemberAttributeMacro, ExtensionMacro, MemberMacro, Acc
         }
         guard cases.contains(where: \.hasParameters) else {
             return ["""
-            public typealias Steps = Self
+            public typealias AllSteps = Self
 
-            public var selected: Steps {
+            public var selected: Self {
                 get { self }
                 set { self = newValue }
             }
@@ -198,11 +198,14 @@ public struct StepsMacro: MemberAttributeMacro, ExtensionMacro, MemberMacro, Acc
         return result
     }
 
-    public static func structExpansion(
+    public static func expansion(
         of node: AttributeSyntax,
         providingMembersOf declaration: some DeclGroupSyntax,
         in context: some MacroExpansionContext
     ) throws -> [DeclSyntax] {
+        guard declaration.is(StructDeclSyntax.self) else {
+            throw MacroError("Steps macro can only be applied to structs")
+        }
         var isOptional = false
         var cases: [String] = []
         var functions: [String: String] = [:]
@@ -233,8 +236,12 @@ public struct StepsMacro: MemberAttributeMacro, ExtensionMacro, MemberMacro, Acc
                     }
                 }
                 var defaultValue = binding.initializer?.value.description
-                if defaultValue == nil, type.isOptional {
-                    defaultValue = "nil"
+                if defaultValue == nil {
+                    if type.isOptional {
+                        defaultValue = "nil"
+                    } else if !type.isEmpty {
+                        throw MacroError("Default value of `\(name)` must be provided")
+                    }
                 }
                 if functions[name] == nil {
                     functions[name] = "(_ value: \(type)\(defaultValue.map { " = \($0)" } ?? ""))"
@@ -245,23 +252,66 @@ public struct StepsMacro: MemberAttributeMacro, ExtensionMacro, MemberMacro, Acc
                 isOptional = true
             }
         }
+        
+        guard !cases.isEmpty, cases != ["none"] else {
+            throw MacroError("Steps must have at least one variable")
+        }
 
+        let stepsType = "Steps" + (isOptional ? "?" : "")
         var result: [DeclSyntax] = []
+        let initialSelected: DeclSyntax =
+            """
+            private let initialSelected: \(raw: stepsType)
+            """
+        result.append(initialSelected)
         let initDecl: DeclSyntax =
             """
-            private init(_ selected: Steps\(raw: isOptional ? " = nil" : "")) {
-                self.selected = selected
+            private init(_ selected: \(raw: stepsType)) {
+                initialSelected = selected
             }
             """
+        let _lastMutateStepID: DeclSyntax =
+            """
+            private var lastMutateStepID: (\(raw: stepsType), MutateID)? {
+                [
+                    \(raw: cases.map { "_\($0)._lastMutateID" }.joined(separator: ",\n"))
+                ]
+                .compactMap { $0 }
+                .sorted(by: { $0.1 > $1.1 })
+                .first
+            }
+            """
+        result.append(_lastMutateStepID)
+        let lastMutateID: DeclSyntax = "public var _lastMutateID: MutateID? { lastMutateStepID?.1 }"
+        result.append(lastMutateID)
         result.append(initDecl)
-        result.append("public var selected: Steps")
+        let selected: DeclSyntax =
+            """
+            public var selected: \(raw: stepsType) {
+                get { if let result = lastMutateStepID { return result.0 } else { return initialSelected } }
+                set {
+                    guard let keyPath = Self._mutateIDs[newValue] else { return }
+                    self[keyPath: keyPath]._update()
+                }
+            }
+            """
+        result.append(selected)
+        let typealiasDecl: DeclSyntax = "public typealias AllSteps = \(raw: stepsType)"
+        result.append(typealiasDecl)
         let stepsEnum: DeclSyntax =
             """
-            public enum Steps: String, CaseIterable, Codable, Sendable\(raw: isOptional ? ", OptionalStep" : "") {
-                case \(raw: cases.joined(separator: ", "))
+            public enum Steps: String, CaseIterable, Codable, Sendable, Hashable {
+                case \(raw: cases.filter({ $0 != "none" }).joined(separator: ", "))
             }
             """
         result.append(stepsEnum)
+        let mutateIDs: DeclSyntax =
+            """
+            public static var _mutateIDs: [AllSteps: WritableKeyPath<Self, MutateID>] {
+                [\(raw: cases.map { ".\($0): \\.$\($0)._mutateID" }.joined(separator: ", "))]
+            }
+            """
+        result.append(mutateIDs)
         result += cases.map {
             let function = functions[$0] ?? ""
             let isVar = function.isEmpty

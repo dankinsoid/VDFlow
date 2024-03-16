@@ -4,7 +4,7 @@ import SwiftUI
 public struct StepBinding<Root: StepsCollection, Value> {
 
 	@Binding var root: Root
-	public var step: Root.Steps {
+	public var step: Root.AllSteps {
 		root[keyPath: keyPath.appending(path: \.id)]
 	}
 
@@ -36,12 +36,12 @@ public struct StepBinding<Root: StepsCollection, Value> {
     }
 }
 
-extension StepBinding where Root.Steps: OptionalStep {
+extension StepBinding where Root.AllSteps: ExpressibleByNilLiteral {
 
     public var isSelected: Binding<Bool> {
         $root.isSelected(step)
     }
-    
+
     public func isSelected(_ value: Value) -> Binding<Bool> {
         Binding {
             $root.isSelected(step).wrappedValue

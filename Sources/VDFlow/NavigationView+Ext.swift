@@ -6,7 +6,7 @@ public extension NavigationLink {
 		step: StepBinding<T, D>,
 		@ViewBuilder destination: () -> Dest,
 		@ViewBuilder label: () -> Label
-    ) where Destination == NavigationStepDestination<Dest, D>, T.Steps: OptionalStep, T: StepsCollection {
+    ) where Destination == NavigationStepDestination<Dest, D>, T.AllSteps: ExpressibleByNilLiteral, T: StepsCollection {
 		self.init(isActive: step.isSelected) {
 			NavigationStepDestination(content: destination(), stepBinding: step.binding)
 		} label: {
@@ -33,7 +33,7 @@ public extension View {
         _ root: Binding<Root>,
         for step: WritableKeyPath<Root, StepWrapper<Root, Value>>,
         @ViewBuilder destination: @escaping () -> some View
-    ) -> some View where Root.Steps: OptionalStep {
+    ) -> some View where Root.AllSteps: ExpressibleByNilLiteral {
         navigationDestination(
             step: StepBinding(root: root, keyPath: step),
             destination: destination
@@ -43,7 +43,7 @@ public extension View {
     func navigationDestination<Root: StepsCollection, Value>(
 		step: StepBinding<Root, Value>,
 		@ViewBuilder destination: @escaping () -> some View
-    ) -> some View where Root.Steps: OptionalStep {
+    ) -> some View where Root.AllSteps: ExpressibleByNilLiteral {
 		navigationDestination(isPresented: step.isSelected) {
 			destination()
 				.stepEnvironment(step.binding)

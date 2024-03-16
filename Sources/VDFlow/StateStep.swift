@@ -103,7 +103,7 @@ public extension View {
 		.transformEnvironment(\.unselectStep) {
 			$0.insert(
                 {
-                    if let none = (Root.Steps.self as? OptionalStep.Type)?.none as? Root.Steps {
+                    if let none = (Root.AllSteps.self as? ExpressibleByNilLiteral.Type)?.init(nilLiteral: ()) as? Root.AllSteps {
                         binding.wrappedValue.selected = none
                     }
                 },
@@ -119,9 +119,9 @@ public extension View {
 	}
 }
 
-public extension Binding where Value: StepsCollection ,Value.Steps: OptionalStep {
+public extension Binding where Value: StepsCollection, Value.AllSteps: ExpressibleByNilLiteral {
 
-	func isSelected(_ step: Value.Steps) -> Binding<Bool> {
+	func isSelected(_ step: Value.AllSteps) -> Binding<Bool> {
 		Binding<Bool> {
 			wrappedValue.selected == step
 		} set: {

@@ -247,18 +247,6 @@ public struct PopAction {
     }
 }
 
-private extension UIViewController {
-    
-    var stackID: IDWrapper? {
-        get { objc_getAssociatedObject(self, &stackIDKey) as? IDWrapper }
-        set { objc_setAssociatedObject(self, &stackIDKey, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC) }
-    }
-    var stackTag: IDWrapper? {
-        get { objc_getAssociatedObject(self, &stackTagKey) as? IDWrapper }
-        set { objc_setAssociatedObject(self, &stackTagKey, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC) }
-    }
-}
-
 private var stackIDKey = 0
 private var stackTagKey = 0
 
