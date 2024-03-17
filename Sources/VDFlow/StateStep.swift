@@ -4,7 +4,6 @@ import SwiftUI
 ///
 ///     @StateStep var router = StepsStruct()
 ///     let stepState = StateStep(stepBinding)
-@dynamicMemberLookup
 @propertyWrapper
 public struct StateStep<Value>: DynamicProperty {
 
@@ -44,16 +43,16 @@ public struct StateStep<Value>: DynamicProperty {
 	}
 }
 
-public extension StateStep where Value: StepsCollection {
-    
-    subscript<A>(dynamicMember keyPath: WritableKeyPath<Value, StepWrapper<Value, A>>) -> Binding<StepSelection<Value, A>> {
-        Binding {
-            wrappedValue[keyPath]
-        } set: {
-            wrappedValue[keyPath] = $0
-        }
-    }
-}
+//public extension StateStep where Value: StepsCollection {
+//    
+//    subscript<A>(dynamicMember keyPath: WritableKeyPath<Value, StepWrapper<Value, A>>) -> Binding<StepSelection<Value, A>> {
+//        Binding {
+//            wrappedValue[keyPath]
+//        } set: {
+//            wrappedValue[keyPath] = $0
+//        }
+//    }
+//}
 
 public extension StateStep where Value == EmptyStep {
 
@@ -71,12 +70,6 @@ extension EnvironmentValues {
 }
 
 public extension View {
-
-    func step<Root: StepsCollection, Value>(
-        _ binding: StepBinding<Root, Value>
-    ) -> some View {
-        step(binding.wrapper)
-    }
 
 	func step<Root: StepsCollection, Value>(
         _ binding: Binding<StepWrapper<Root, Value>>
