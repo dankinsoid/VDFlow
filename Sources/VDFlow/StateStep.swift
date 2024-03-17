@@ -19,10 +19,10 @@ public struct StateStep<Value>: DynamicProperty {
 	@Environment(\.[StepKey()]) private var stepBinding
 
 	public var projectedValue: Binding<Value> {
-        return switch _defaultValue {
-        case let .binding(binding): binding
-        case let .state(state): stepBinding ?? state.projectedValue
-        }
+		switch _defaultValue {
+		case let .binding(binding): binding
+		case let .state(state): stepBinding ?? state.projectedValue
+		}
 	}
 
 	public init(wrappedValue: Value) {
@@ -43,8 +43,8 @@ public struct StateStep<Value>: DynamicProperty {
 	}
 }
 
-//public extension StateStep where Value: StepsCollection {
-//    
+// public extension StateStep where Value: StepsCollection {
+//
 //    subscript<A>(dynamicMember keyPath: WritableKeyPath<Value, StepWrapper<Value, A>>) -> Binding<StepSelection<Value, A>> {
 //        Binding {
 //            wrappedValue[keyPath]
@@ -52,7 +52,7 @@ public struct StateStep<Value>: DynamicProperty {
 //            wrappedValue[keyPath] = $0
 //        }
 //    }
-//}
+// }
 
 public extension StateStep where Value == EmptyStep {
 
@@ -62,23 +62,23 @@ public extension StateStep where Value == EmptyStep {
 }
 
 extension EnvironmentValues {
-    
-    subscript<T>(stepKey: StateStep<T>.StepKey) -> StateStep<T>.StepKey.Value {
-        get { self[StateStep<T>.StepKey.self] }
-        set { self[StateStep<T>.StepKey.self] = newValue }
-    }
+
+	subscript<T>(stepKey: StateStep<T>.StepKey) -> StateStep<T>.StepKey.Value {
+		get { self[StateStep<T>.StepKey.self] }
+		set { self[StateStep<T>.StepKey.self] = newValue }
+	}
 }
 
 public extension View {
 
 	func step<Root: StepsCollection, Value>(
-        _ binding: Binding<StepWrapper<Root, Value>>
+		_ binding: Binding<StepWrapper<Root, Value>>
 	) -> some View {
 		stepEnvironment(
-            binding[dynamicMember: \.wrappedValue]
+			binding[dynamicMember: \.wrappedValue]
 		)
 		.tag(binding.wrappedValue.id)
-        .stepTag(binding.wrappedValue.id)
+		.stepTag(binding.wrappedValue.id)
 	}
 
 	func stepEnvironment<Value>(_ binding: Binding<Value>) -> some View {

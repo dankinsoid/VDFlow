@@ -8,8 +8,8 @@ public extension StepsCollection {
 @propertyWrapper
 public struct StepWrapper<Parent: StepsCollection, Value>: Identifiable {
 
-    public let id: Parent.AllSteps
-    public var _mutateID = MutateID()
+	public let id: Parent.AllSteps
+	public var _mutateID = MutateID()
 	public var wrappedValue: Value
 	public var projectedValue: StepWrapper {
 		get { self }
@@ -24,18 +24,18 @@ public struct StepWrapper<Parent: StepsCollection, Value>: Identifiable {
 		self.id = id
 	}
 
-    public mutating func select() {
-        _mutateID._update()
-    }
+	public mutating func select() {
+		_mutateID._update()
+	}
 
-    public mutating func select(with value: Value) {
-        wrappedValue = value
-        select()
-    }
+	public mutating func select(with value: Value) {
+		wrappedValue = value
+		select()
+	}
 
-    public var _lastMutateID: (Parent.AllSteps, MutateID)? {
-        ((wrappedValue as? any StepsCollection)?._lastMutateID?.optional ?? _mutateID.optional).map { (id, $0) }
-    }
+	public var _lastMutateID: (Parent.AllSteps, MutateID)? {
+		((wrappedValue as? any StepsCollection)?._lastMutateID?.optional ?? _mutateID.optional).map { (id, $0) }
+	}
 }
 
 public extension StepWrapper where Value == EmptyStep {
