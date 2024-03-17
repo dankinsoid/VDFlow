@@ -23,12 +23,13 @@ public struct StepsMacro: MemberAttributeMacro, ExtensionMacro, MemberMacro, Acc
 		providingAccessorsOf declaration: some DeclSyntaxProtocol,
 		in context: some MacroExpansionContext
 	) throws -> [AccessorDeclSyntax] {
-		guard let name = declaration.storedVarName else { return [] }
-		return [
-			"""
-			didSet { selected = .\(raw: name) }
-			""",
-		]
+        guard
+            let variable = declaration.as(VariableDeclSyntax.self),
+            variable.storedVarName != nil
+        else {
+            throw MacroError("@Step can only be applied to stored properties")
+        }
+		return []
 	}
 
 	public static func expansion(
@@ -40,7 +41,18 @@ public struct StepsMacro: MemberAttributeMacro, ExtensionMacro, MemberMacro, Acc
         if !declaration.is(StructDeclSyntax.self) {
             return []
         }
-		guard let name = member.storedVarName else { return [] }
+        guard let variable = member.as(VariableDeclSyntax.self), let name = variable.storedVarName else { return [] }
+        let hasStepVars = declaration.memberBlock.members.contains(where: \.decl.hasStepAttribute)
+        guard hasStepVars ? variable.hasStepAttribute : true else { return [] }
+        if
+            let binding = variable.bindings.first,
+            let type = binding.typeAnnotation?.type.trimmed.description,
+            binding.initializer == nil,
+            type != "EmptyStep",
+            !type.isOptional
+        {
+            throw MacroError("`\(name): \(type)` must have default value or be optional")
+        }
 		return ["@StepID(.\(raw: name))"]
 	}
 
@@ -209,12 +221,36 @@ public struct StepsMacro: MemberAttributeMacro, ExtensionMacro, MemberMacro, Acc
         var isOptional = false
         var cases: [String] = []
         var functions: [String: String] = [:]
+        var hasStepVars = false
+        var hasVarWithoutStep = false
+        for member in declaration.memberBlock.members {
+            if member.decl.hasStepAttribute {
+                hasStepVars = true
+            } else {
+                hasVarWithoutStep = true
+            }
+        }
         for member in declaration.memberBlock.members {
             guard
                 let variable = member.decl.as(VariableDeclSyntax.self),
+                !hasStepVars || variable.hasStepAttribute,
+                !variable.isStatic
+            else {
+                continue
+            }
+            guard
                 let name = variable.storedVarName
-            else { continue }
+            else {
+                throw MacroError("Steps macro can contain only stored properties")
+            }
+            
+            if name == "none" {
+                isOptional = true
+            }
+
             cases.append(name)
+            
+            guard !hasStepVars || !hasVarWithoutStep else { continue }
             
             if let binding = variable.bindings.first {
                 var type = binding.typeAnnotation?.type.description ?? ""
@@ -247,57 +283,49 @@ public struct StepsMacro: MemberAttributeMacro, ExtensionMacro, MemberMacro, Acc
                     functions[name] = "(_ value: \(type)\(defaultValue.map { " = \($0)" } ?? ""))"
                 }
             }
-            
-            if name == "none" {
-                isOptional = true
-            }
         }
         
         guard !cases.isEmpty, cases != ["none"] else {
-            throw MacroError("Steps must have at least one variable")
+            throw MacroError("Steps must have at least one stored variable")
         }
 
-        let stepsType = "Steps" + (isOptional ? "?" : "")
         var result: [DeclSyntax] = []
-        let initialSelected: DeclSyntax =
-            """
-            private let initialSelected: \(raw: stepsType)
-            """
-        result.append(initialSelected)
-        let initDecl: DeclSyntax =
-            """
-            private init(_ selected: \(raw: stepsType)) {
-                initialSelected = selected
-            }
-            """
-        let _lastMutateStepID: DeclSyntax =
-            """
-            private var lastMutateStepID: (\(raw: stepsType), MutateID)? {
-                [
-                    \(raw: cases.map { "_\($0)._lastMutateID" }.joined(separator: ",\n"))
-                ]
-                .compactMap { $0 }
-                .sorted(by: { $0.1 > $1.1 })
-                .first
-            }
-            """
-        result.append(_lastMutateStepID)
+        let canInitWithSelected = !hasStepVars || !hasVarWithoutStep
+
+        var hasDeselected = false
+        if !canInitWithSelected, !isOptional {
+            isOptional = true
+            hasDeselected = true
+            let deselectedVar: DeclSyntax =
+                """
+                var _deselectedMutateID = MutateID()
+                """
+            result.append(deselectedVar)
+        }
+        let stepsType = "Steps" + (isOptional ? "?" : "")
+
         let lastMutateID: DeclSyntax = "public var _lastMutateID: MutateID? { lastMutateStepID?.1 }"
         result.append(lastMutateID)
-        result.append(initDecl)
+        
+        let defaultValue = canInitWithSelected ? "initialSelected" : "nil"
         let selected: DeclSyntax =
             """
             public var selected: \(raw: stepsType) {
-                get { if let result = lastMutateStepID { return result.0 } else { return initialSelected } }
+                get { if let result = lastMutateStepID { return result.0 } else { return \(raw: defaultValue) } }
                 set {
-                    guard let keyPath = Self._mutateIDs[newValue] else { return }
+                    guard let keyPath = Self._mutateIDs[newValue] else {
+                        \(raw: hasDeselected ? "_deselectedMutateID._update()" : "")
+                        return
+                    }
                     self[keyPath: keyPath]._update()
                 }
             }
             """
         result.append(selected)
+    
         let typealiasDecl: DeclSyntax = "public typealias AllSteps = \(raw: stepsType)"
         result.append(typealiasDecl)
+    
         let stepsEnum: DeclSyntax =
             """
             public enum Steps: String, CaseIterable, Codable, Sendable, Hashable {
@@ -305,6 +333,7 @@ public struct StepsMacro: MemberAttributeMacro, ExtensionMacro, MemberMacro, Acc
             }
             """
         result.append(stepsEnum)
+    
         let mutateIDs: DeclSyntax =
             """
             public static var _mutateIDs: [AllSteps: WritableKeyPath<Self, MutateID>] {
@@ -312,6 +341,36 @@ public struct StepsMacro: MemberAttributeMacro, ExtensionMacro, MemberMacro, Acc
             }
             """
         result.append(mutateIDs)
+        
+        let _lastMutateStepID: DeclSyntax =
+            """
+            private var lastMutateStepID: (\(raw: stepsType), MutateID)? {
+                [
+                    \(raw: (cases.map { "_\($0)._lastMutateID" } + (hasDeselected ? ["(nil, _deselectedMutateID)"] : [])).joined(separator: ",\n"))
+                ]
+                .compactMap { $0 }
+                .sorted(by: { $0.1 > $1.1 })
+                .first
+            }
+            """
+        result.append(_lastMutateStepID)
+
+        guard canInitWithSelected else { return result }
+
+        let initialSelected: DeclSyntax =
+            """
+            private let initialSelected: \(raw: stepsType)
+            """
+        result.append(initialSelected)
+
+        let initDecl: DeclSyntax =
+            """
+            private init(_ selected: \(raw: stepsType)) {
+                initialSelected = selected
+            }
+            """
+        result.append(initDecl)
+
         result += cases.map {
             let function = functions[$0] ?? ""
             let isVar = function.isEmpty
@@ -345,23 +404,24 @@ extension DeclSyntaxProtocol {
 
 	var hasStepAttribute: Bool {
 		if let variable = self.as(VariableDeclSyntax.self),
-		   variable.attributes.contains(where: { $0.as(AttributeSyntax.self)?.attributeName.description == "Step" })
+           variable.attributes.contains(where: { $0.as(AttributeSyntax.self)?.attributeName.trimmed.description == "Step" })
 		{
 			return true
 		}
 		return false
 	}
-    
+}
+
+extension VariableDeclSyntax {
+
 	var storedVarName: String? {
 		guard
-			let variable = self.as(VariableDeclSyntax.self),
-			//            includeAttributes || variable.attributes.isEmpty,
-			!variable.modifiers.contains(where: \.name.isStaticOrLazy)
+			!modifiers.contains(where: \.name.isStaticOrLazyOrLet)
 		else {
 			return nil
 		}
 		var name: String?
-		for binding in variable.bindings {
+		for binding in bindings {
 			guard let identifier = binding.pattern.as(IdentifierPatternSyntax.self) else {
 				continue
 			}
@@ -377,6 +437,10 @@ extension DeclSyntaxProtocol {
 		}
 		return name
 	}
+    
+    var isStatic: Bool {
+        modifiers.contains { $0.name.tokenKind == .keyword(.static) }
+    }
 }
 
 extension TokenSyntax {
@@ -385,12 +449,8 @@ extension TokenSyntax {
 		tokenKind == .keyword(.didSet) || tokenKind == .keyword(.willSet)
 	}
 
-	var isStaticOrLazy: Bool {
-		isStatic || tokenKind == .keyword(.lazy)
-	}
-
-	var isStatic: Bool {
-		tokenKind == .keyword(.static)
+	var isStaticOrLazyOrLet: Bool {
+        [.keyword(.static), .keyword(.lazy), .keyword(.let)].contains(tokenKind)
 	}
 }
 

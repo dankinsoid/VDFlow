@@ -46,10 +46,15 @@ final class VDFlowTestsCase: XCTestCase {
         XCTAssertEqual(value.tab3.selected, nil)
 	}
     
-    func testSelection() {
-        var value: TabSteps = .tab2
-        value.$tab3
-        XCTAssertEqual(value.selected, .tab3)
+    func testStepMacro() {
+        var value = OneStepSteps(someString: "SomeString")
+        XCTAssertEqual(value.selected, nil)
+        value.selected = .someStep
+        XCTAssertEqual(value.selected, .someStep)
+        value.selected = nil
+        XCTAssertEqual(value.selected, nil)
+        value.someStep.$text1.select()
+        XCTAssertEqual(value.selected, .someStep)
     }
 }
 
@@ -71,6 +76,14 @@ public struct NavigationSteps {
 public struct PickerSteps {
     public var text1
     public var text2
+}
+
+@Steps
+public struct OneStepSteps {
+
+    public lazy var someLazyInt = 0
+    public var someString: String
+    @Step var someStep: PickerSteps = .text1
 }
 
 struct SomeView: View {

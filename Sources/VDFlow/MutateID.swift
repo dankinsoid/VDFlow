@@ -4,7 +4,7 @@ public struct MutateID: Comparable, Hashable, Codable, Sendable {
 
     var mutationDate: UInt64?
 
-    init() {
+    public init() {
 	}
     
     public init(from decoder: Decoder) throws {
