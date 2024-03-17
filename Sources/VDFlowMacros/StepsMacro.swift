@@ -53,7 +53,7 @@ public struct StepsMacro: MemberAttributeMacro, ExtensionMacro, MemberMacro, Acc
 		{
 			throw MacroError("`\(name): \(type)` must have default value or be optional")
 		}
-		return ["@StepID(.\(raw: name)) // swiftformat:disable:next redundanttype varattributes"]
+		return ["@StepID(.\(raw: name))"]
 	}
 
 	public static func expansion(
