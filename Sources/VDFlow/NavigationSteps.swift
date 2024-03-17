@@ -49,10 +49,10 @@ import SwiftUI
 public struct NavigationSteps<Selection: Hashable, Content: View>: View {
 
 	let content: Content
-	@StateOrBinding var selection: Selection?
+	@StateOrBinding var selection: Selection
 	@State private var pop: PopAction = EnvironmentValues.NavigationPopKey.defaultValue
 
-	public init(selection: Binding<Selection?>, @ViewBuilder content: () -> Content) {
+	public init(selection: Binding<Selection>, @ViewBuilder content: () -> Content) {
 		self.content = content()
 		_selection = .binding(selection)
 	}
@@ -79,26 +79,11 @@ public struct NavigationSteps<Selection: Hashable, Content: View>: View {
 }
 
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-public extension NavigationSteps {
-
-	init(@ViewBuilder content: () -> Content) {
-		_selection = StateOrBinding(wrappedValue: nil)
-		self.content = content()
-	}
-}
-
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
 public extension NavigationSteps where Selection == Int {
 
-	init(selection: Binding<Selection>, @ViewBuilder content: () -> Content) {
-		self.init(
-			selection: Binding<Selection?> {
-				selection.wrappedValue
-			} set: {
-				selection.wrappedValue = $0 ?? 0
-			},
-			content: content
-		)
+	init(@ViewBuilder content: () -> Content) {
+		_selection = StateOrBinding(wrappedValue: 0)
+		self.content = content()
 	}
 }
 
@@ -124,7 +109,7 @@ public extension View {
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
 private struct NavigationStackWrapper<Selection: Hashable>: View {
 
-	@Binding var selection: Selection?
+	@Binding var selection: Selection
 	@Binding var popAction: PopAction
 	let children: _VariadicView.Children
 
@@ -142,8 +127,8 @@ private struct NavigationStackWrapper<Selection: Hashable>: View {
 				let i = path.count
 				if let tag = tag(of: children[i], i) {
 					selection = tag
-				} else if path.isEmpty {
-					selection = nil
+				} else if path.isEmpty, let none {
+					selection = none
 				}
 			}
 		) {
@@ -173,19 +158,29 @@ private struct NavigationStackWrapper<Selection: Hashable>: View {
 		guard let selectedIndex else { return }
 		let newIndex = max(0, min(selectedIndex - offset, children.count - 1))
 		guard let tag = tag(of: children[newIndex], newIndex) else {
-			if newIndex == 0 {
-				selection = nil
+			if newIndex == 0, let none {
+				selection = none
 			}
 			return
 		}
 		selection = tag
 	}
 
+	var none: Selection? {
+		if
+			let ExpressibleByNil = Selection.self as? ExpressibleByNilLiteral.Type,
+			let none = ExpressibleByNil.init(nilLiteral: ()) as? Selection
+		{
+			return none
+		}
+		return nil
+	}
+
 	var selectedIndex: Int? {
 		guard !children.isEmpty else {
 			return nil
 		}
-		guard let selection else {
+		guard selection != none else {
 			return 0
 		}
 		let tags = children.enumerated().map {
