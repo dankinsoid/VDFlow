@@ -83,7 +83,8 @@ public struct OneStepSteps {
 
 	public lazy var someLazyInt = 0
 	public var someString: String
-	@Step var someStep: PickerSteps = .text1
+	@Step 
+    var someStep: PickerSteps = .text1
 }
 
 struct SomeView: View {
