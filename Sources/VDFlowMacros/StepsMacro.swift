@@ -336,7 +336,7 @@ public struct StepsMacro: MemberAttributeMacro, ExtensionMacro, MemberMacro, Acc
     
         let mutateIDs: DeclSyntax =
             """
-            public static var _mutateIDs: [AllSteps: WritableKeyPath<Self, MutateID>] {
+            private static var _mutateIDs: [AllSteps: WritableKeyPath<Self, MutateID>] {
                 [\(raw: cases.map { ".\($0): \\.$\($0)._mutateID" }.joined(separator: ", "))]
             }
             """
