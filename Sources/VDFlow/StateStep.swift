@@ -43,17 +43,6 @@ public struct StateStep<Value>: DynamicProperty {
 	}
 }
 
-// public extension StateStep where Value: StepsCollection {
-//
-//    subscript<A>(dynamicMember keyPath: WritableKeyPath<Value, StepWrapper<Value, A>>) -> Binding<StepSelection<Value, A>> {
-//        Binding {
-//            wrappedValue[keyPath]
-//        } set: {
-//            wrappedValue[keyPath] = $0
-//        }
-//    }
-// }
-
 public extension StateStep where Value == EmptyStep {
 
 	init() {
