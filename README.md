@@ -68,7 +68,7 @@ var screen3: PickerSteps = .text1
 ### Deeplink
  Then you got a deep link for example and you need to change `Tab2` to third tab with `NavigationView`, push to `Push2View` and select `Text2` in `PickerView`.
  ```swift
- steps.tab3.screen2 = .text2
+ steps.tab3.screen2.select(with: .text2)
  ```
  Now `tab3`, `screen3`, `text2` properties are marked as selected.
 ### Integration with UI
