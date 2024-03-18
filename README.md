@@ -24,7 +24,7 @@ Describe your flow as a struct with `Step` properties:
 struct TabSteps {
 
   var tab1
-  var tab2 = SomeTab2Data()
+  var tab2: SomeTab2Data = .init()
   var tab3: NavigationSteps = .screen1
   var none
 }
