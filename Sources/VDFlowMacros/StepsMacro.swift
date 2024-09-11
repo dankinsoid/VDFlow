@@ -264,7 +264,9 @@ public struct StepsMacro: MemberAttributeMacro, ExtensionMacro, MemberMacro, Acc
 							type = "Int"
 						} else if value.is(FloatLiteralExprSyntax.self) {
 							type = "Double"
-						} else {
+                        } else if let typeName = value.baseName, typeName.first?.isLowercase == false {
+                            type = typeName
+                        } else {
 							throw MacroError("Type of `\(name)` must be provided explicitly with `:`")
 						}
 					} else {
@@ -322,6 +324,13 @@ public struct StepsMacro: MemberAttributeMacro, ExtensionMacro, MemberMacro, Acc
 			}
 			"""
 		result.append(selected)
+        
+        let isSelected: DeclSyntax =
+            """
+            public static func isSelected<T>(_ keyPath: WritableKeyPath<Self, StepID<T>>) -> Bool {
+                selected == self[keyPath: keyPath].id
+            }
+            """
 
 		let typealiasDecl: DeclSyntax = "public typealias AllSteps = \(raw: stepsType)"
 		result.append(typealiasDecl)
@@ -459,6 +468,14 @@ private extension String {
 	var isOptional: Bool {
 		hasSuffix("?") || hasPrefix("Optional<")
 	}
+}
+
+private extension ExprSyntax {
+    
+    var baseName: String? {
+        self.as(FunctionCallExprSyntax.self)?.calledExpression.as(DeclReferenceExprSyntax.self)?.baseName.trimmed.text ??
+        self.as(FunctionCallExprSyntax.self)?.calledExpression.as(GenericSpecializationExprSyntax.self)?.trimmed.description
+    }
 }
 
 private struct MacroError: LocalizedError, CustomStringConvertible {

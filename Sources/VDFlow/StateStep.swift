@@ -77,6 +77,22 @@ public extension View {
 
 public extension Binding where Value: StepsCollection, Value.AllSteps: ExpressibleByNilLiteral {
 
+    func isSelected<T>(_ step: WritableKeyPath<Value, Value.StepID<T>>) -> Binding<T?> {
+        Binding<T?> {
+            if wrappedValue.isSelected(step) {
+                return wrappedValue[keyPath: step].wrappedValue
+            } else {
+                return nil
+            }
+        } set: {
+            if let value = $0 {
+                wrappedValue.select(step, with: value)
+            } else {
+                wrappedValue.selected = nil
+            }
+        }
+    }
+
 	func isSelected(_ step: Value.AllSteps) -> Binding<Bool> {
 		Binding<Bool> {
 			wrappedValue.selected == step
