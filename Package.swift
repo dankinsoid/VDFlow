@@ -13,7 +13,7 @@ let package = Package(
 		.library(name: "VDFlow", targets: ["VDFlow"]),
 	],
 	dependencies: [
-		.package(url: "https://github.com/apple/swift-syntax.git", from: "509.0.2"),
+        .package(url: "https://github.com/swiftlang/swift-syntax", "509.0.0"..<"601.0.0-prerelease"),
 	],
 	targets: [
 		.target(name: "VDFlow", dependencies: ["VDFlowMacros"]),
