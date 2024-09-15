@@ -87,7 +87,7 @@ public extension Binding where Value: StepsCollection, Value.AllSteps: Expressib
         } set: {
             if let value = $0 {
                 wrappedValue.select(step, with: value)
-            } else {
+            } else if wrappedValue.isSelected(step) {
                 wrappedValue.selected = nil
             }
         }
@@ -99,7 +99,7 @@ public extension Binding where Value: StepsCollection, Value.AllSteps: Expressib
 		} set: {
 			if $0 {
 				wrappedValue.selected = step
-			} else {
+			} else if wrappedValue.selected == step {
 				wrappedValue.selected = nil
 			}
 		}
