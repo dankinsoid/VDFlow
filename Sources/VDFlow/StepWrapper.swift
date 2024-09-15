@@ -34,7 +34,13 @@ public struct StepWrapper<Parent: StepsCollection, Value>: Identifiable {
 	}
 
 	public var _lastMutateID: (Parent.AllSteps, MutateID)? {
-		((wrappedValue as? any StepsCollection)?._lastMutateID?.optional ?? _mutateID.optional).map { (id, $0) }
+        let lastNested = (wrappedValue as? any StepsCollection)?._lastMutateID?.optional
+        let this = _mutateID.optional
+        return [lastNested, this]
+            .compactMap { $0 }
+            .sorted { $0 > $1 }
+            .map { (id, $0) }
+            .first
 	}
 }
 
