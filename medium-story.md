@@ -228,6 +228,7 @@ VDFlow offers several advantages:
 4. **Natural deep linking** - Tree structure facilitates deep linking
 5. **SwiftUI integration** - Works with native SwiftUI patterns
 6. **Lightweight implementation** - Small binary size (~100KB) with minimal overhead
+7. **UI-agnostic design** - Manages only navigation state, not UI presentation
 
 Unlike some navigation solutions that add significant binary weight or require restructuring an entire app, VDFlow is focused on solving the navigation problem specifically, with minimal overhead.
 
@@ -249,6 +250,51 @@ flow = .home(.feed(.reset)) // Using enum-like static functions
 ```
 
 This preservation of state is crucial for maintaining form data, scroll positions, or other UI state when navigating between screens. When a complete reset is needed, the `@Steps` macro generates enum-like static functions for convenient initialization with new values.
+
+## Beyond Screen Navigation
+
+While many navigation libraries focus specifically on screen presentation, VDFlow is fundamentally UI-agnostic. It manages navigation state only, not UI presentation directly, making it versatile for various scenarios:
+
+```swift
+// Managing a complex form with multiple sections
+@Steps
+struct FormFlow {
+    var personalInfo
+    var address
+    var payment
+    var review
+}
+
+// Controlling UI components within a single screen
+@Steps
+struct MapViewState {
+    var standard
+    var satellite
+    var traffic
+    var locationDetails: LocationInfo?
+}
+
+// Managing design system components
+@Steps
+struct ExpandableCardState {
+    var collapsed
+    var expanded: ExpansionState = .basic
+}
+
+@Steps
+struct ExpansionState {
+    var basic
+    var detailed
+}
+```
+
+This separation of navigation state from UI presentation means VDFlow can be used for:
+- Full-screen navigation
+- Tab and section management
+- Component state within a single screen
+- Wizard and multi-step forms
+- Design system component states
+- Any UI element that has multiple states or configurations
 
 ## Implementation Details
 
