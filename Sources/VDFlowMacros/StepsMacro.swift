@@ -100,7 +100,11 @@ public struct StepsMacro: MemberAttributeMacro, ExtensionMacro, MemberMacro, Acc
 
 			public var selected: Self {
 			    get { self }
-			    set { self = newValue }
+			    set { 
+				   StepSystem.observer.stepWillChange(to: newValue, in: Self.self, with: ())
+			       self = newValue 
+			       StepSystem.observer.stepDidChange(to: newValue, in: Self.self, with: ())
+			    }
 			}
 			"""]
 		}
@@ -315,11 +319,11 @@ public struct StepsMacro: MemberAttributeMacro, ExtensionMacro, MemberMacro, Acc
 			public var selected: \(raw: stepsType) {
 			    get { if let result = lastMutateStepID { return result.0 } else { return \(raw: defaultValue) } }
 			    set {
-			        guard let keyPath = Self._mutateIDs[newValue] else {
+			        guard let selection = Self._selections[newValue] else {
 			            \(raw: hasDeselected ? "_deselectedMutateID._update()" : "")
 			            return
 			        }
-			        self[keyPath: keyPath]._update()
+				    selection(&self)
 			    }
 			}
 			"""
@@ -327,10 +331,11 @@ public struct StepsMacro: MemberAttributeMacro, ExtensionMacro, MemberMacro, Acc
         
         let isSelected: DeclSyntax =
             """
-            public static func isSelected<T>(_ keyPath: WritableKeyPath<Self, StepID<T>>) -> Bool {
+            public func isSelected<T>(_ keyPath: WritableKeyPath<Self, StepID<T>>) -> Bool {
                 selected == self[keyPath: keyPath].id
             }
             """
+		result.append(isSelected)
 
 		let typealiasDecl: DeclSyntax = "public typealias AllSteps = \(raw: stepsType)"
 		result.append(typealiasDecl)
@@ -345,8 +350,8 @@ public struct StepsMacro: MemberAttributeMacro, ExtensionMacro, MemberMacro, Acc
 
 		let mutateIDs: DeclSyntax =
 			"""
-			private static var _mutateIDs: [AllSteps: WritableKeyPath<Self, MutateID>] {
-			    [\(raw: cases.map { ".\($0): \\.$\($0)._mutateID" }.joined(separator: ", "))]
+			private static var _selections: [AllSteps: (inout Self) -> Void] {
+			    [\(raw: cases.map { ".\($0): { $0.$\($0).select() }" }.joined(separator: ", "))]
 			}
 			"""
 		result.append(mutateIDs)

@@ -5,11 +5,16 @@ public extension StepsCollection {
 	typealias StepID<Value> = VDFlow.StepWrapper<Self, Value>
 }
 
+public protocol StepWrapperType {
+
+	mutating func select()
+}
+
 @propertyWrapper
-public struct StepWrapper<Parent: StepsCollection, Value>: Identifiable {
+public struct StepWrapper<Parent: StepsCollection, Value>: Identifiable, StepWrapperType {
 
 	public let id: Parent.AllSteps
-	public var _mutateID = MutateID()
+	private var mutateID = MutateID()
 	public var wrappedValue: Value
 	public var projectedValue: StepWrapper {
 		get { self }
@@ -25,7 +30,9 @@ public struct StepWrapper<Parent: StepsCollection, Value>: Identifiable {
 	}
 
 	public mutating func select() {
-		_mutateID._update()
+        StepSystem.observer.stepWillChange(to: id, in: Parent.self, with: wrappedValue)
+		mutateID.update()
+		StepSystem.observer.stepDidChange(to: id, in: Parent.self, with: wrappedValue)
 	}
 
 	public mutating func select(with value: Value) {
@@ -35,7 +42,7 @@ public struct StepWrapper<Parent: StepsCollection, Value>: Identifiable {
 
 	public var _lastMutateID: (Parent.AllSteps, MutateID)? {
         let lastNested = (wrappedValue as? any StepsCollection)?._lastMutateID?.optional
-        let this = _mutateID.optional
+        let this = mutateID.optional
         return [lastNested, this]
             .compactMap { $0 }
             .sorted { $0 > $1 }

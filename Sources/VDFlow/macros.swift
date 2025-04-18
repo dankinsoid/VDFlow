@@ -9,13 +9,3 @@ public macro Steps() = #externalMacro(module: "VDFlowMacros", type: "StepsMacro"
 @attached(accessor, names: named(didSet))
 public macro Step() = #externalMacro(module: "VDFlowMacros", type: "StepsMacro")
 #endif
-
-@Steps
-public struct StepSteps {
-
-    public var value: Int = SomeInt()
-    public var int = Int()
-    public var none
-}
-
-public func SomeInt() -> Int { 0 }

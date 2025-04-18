@@ -15,7 +15,7 @@ public struct MutateID: Comparable, Hashable, Codable, Sendable {
 		try (mutationDate ?? 0).encode(to: encoder)
 	}
 
-	public mutating func _update() {
+	mutating func update() {
 		mutationDate = DispatchTime.now().uptimeNanoseconds
 	}
 
