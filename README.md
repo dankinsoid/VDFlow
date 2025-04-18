@@ -160,6 +160,42 @@ var steps = TabSteps(.tab1) {
   }
 }
 ```
+
+### Observing Steps
+
+VDFlow provides a built-in observer system to track step changes throughout your application. This is useful for analytics, logging, or triggering side effects when navigation occurs.
+
+```swift
+// Create a custom observer
+class MyStepsObserver: StepsObserver {
+  func stepWillChange<Parent: StepsCollection, Value>(
+    to newValue: Parent.AllSteps, 
+    in type: Parent.Type, 
+    with value: Value
+  ) {
+    print("Will navigate to \(newValue) in \(Parent.self)")
+  }
+  
+  func stepDidChange<Parent: StepsCollection, Value>(
+    to newValue: Parent.AllSteps, 
+    in type: Parent.Type, 
+    with value: Value
+  ) {
+    print("Did navigate to \(newValue) in \(Parent.self)")
+    
+    // Perform heavy work in background queue to avoid blocking the UI
+    DispatchQueue.global().async {
+      // Analytics tracking, logging, etc.
+    }
+  }
+}
+
+// Register the observer globally
+StepSystem.observer = MyStepsObserver()
+```
+
+The observer will be called whenever any step changes in the application, allowing for centralized navigation tracking.
+
 ### Tools
 #### `NavigationLink` convenience init
 ```swift
