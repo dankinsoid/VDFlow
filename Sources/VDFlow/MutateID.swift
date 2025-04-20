@@ -7,7 +7,7 @@ import Foundation
 public struct MutateID: Comparable, Hashable, Codable, Sendable {
 
 	/// The timestamp of the mutation, represented as uptime nanoseconds.
-	/// 
+	///
 	/// A `nil` value indicates that no mutation has occurred yet.
 	var mutationDate: UInt64?
 
@@ -15,7 +15,7 @@ public struct MutateID: Comparable, Hashable, Codable, Sendable {
 	public init() {}
 
 	/// Creates a mutation ID by decoding it from a decoder.
-	/// 
+	///
 	/// - Parameter decoder: The decoder to read data from.
 	/// - Throws: An error if decoding fails.
 	public init(from decoder: Decoder) throws {
@@ -24,7 +24,7 @@ public struct MutateID: Comparable, Hashable, Codable, Sendable {
 	}
 
 	/// Encodes the mutation ID to an encoder.
-	/// 
+	///
 	/// - Parameter encoder: The encoder to write data to.
 	/// - Throws: An error if encoding fails.
 	public func encode(to encoder: Encoder) throws {
@@ -32,14 +32,14 @@ public struct MutateID: Comparable, Hashable, Codable, Sendable {
 	}
 
 	/// Updates the mutation ID with the current timestamp.
-	/// 
+	///
 	/// This method sets the `mutationDate` to the current system uptime in nanoseconds.
-	mutating func update() {
+	public mutating func update() {
 		mutationDate = DispatchTime.now().uptimeNanoseconds
 	}
 
 	/// Compares two mutation IDs chronologically.
-	/// 
+	///
 	/// - Parameters:
 	///   - lhs: The left-hand side mutation ID.
 	///   - rhs: The right-hand side mutation ID.
@@ -49,7 +49,7 @@ public struct MutateID: Comparable, Hashable, Codable, Sendable {
 	}
 
 	/// Converts this mutation ID to an optional, returning `nil` if no mutation has occurred.
-	/// 
+	///
 	/// - Returns: This mutation ID if it has a timestamp, otherwise `nil`.
 	var optional: MutateID? {
 		mutationDate.map { _ in self }

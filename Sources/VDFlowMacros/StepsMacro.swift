@@ -268,9 +268,9 @@ public struct StepsMacro: MemberAttributeMacro, ExtensionMacro, MemberMacro, Acc
 							type = "Int"
 						} else if value.is(FloatLiteralExprSyntax.self) {
 							type = "Double"
-                        } else if let typeName = value.baseName, typeName.first?.isLowercase == false {
-                            type = typeName
-                        } else {
+						} else if let typeName = value.baseName, typeName.first?.isLowercase == false {
+							type = typeName
+						} else {
 							throw MacroError("Type of `\(name)` must be provided explicitly with `:`")
 						}
 					} else {
@@ -320,7 +320,7 @@ public struct StepsMacro: MemberAttributeMacro, ExtensionMacro, MemberMacro, Acc
 			    get { if let result = lastMutateStepID { return result.0 } else { return \(raw: defaultValue) } }
 			    set {
 			        guard let selection = Self._selections[newValue] else {
-			            \(raw: hasDeselected ? "_deselectedMutateID._update()" : "")
+			            \(raw: hasDeselected ? "_deselectedMutateID.update()" : "")
 			            return
 			        }
 				    selection(&self)
@@ -328,13 +328,13 @@ public struct StepsMacro: MemberAttributeMacro, ExtensionMacro, MemberMacro, Acc
 			}
 			"""
 		result.append(selected)
-        
-        let isSelected: DeclSyntax =
-            """
-            public func isSelected<T>(_ keyPath: WritableKeyPath<Self, StepID<T>>) -> Bool {
-                selected == self[keyPath: keyPath].id
-            }
-            """
+
+		let isSelected: DeclSyntax =
+			"""
+			public func isSelected<T>(_ keyPath: WritableKeyPath<Self, StepID<T>>) -> Bool {
+			    selected == self[keyPath: keyPath].id
+			}
+			"""
 		result.append(isSelected)
 
 		let typealiasDecl: DeclSyntax = "public typealias AllSteps = \(raw: stepsType)"
@@ -476,11 +476,11 @@ private extension String {
 }
 
 private extension ExprSyntax {
-    
-    var baseName: String? {
-        self.as(FunctionCallExprSyntax.self)?.calledExpression.as(DeclReferenceExprSyntax.self)?.baseName.trimmed.text ??
-        self.as(FunctionCallExprSyntax.self)?.calledExpression.as(GenericSpecializationExprSyntax.self)?.trimmed.description
-    }
+
+	var baseName: String? {
+		self.as(FunctionCallExprSyntax.self)?.calledExpression.as(DeclReferenceExprSyntax.self)?.baseName.trimmed.text ??
+			self.as(FunctionCallExprSyntax.self)?.calledExpression.as(GenericSpecializationExprSyntax.self)?.trimmed.description
+	}
 }
 
 private struct MacroError: LocalizedError, CustomStringConvertible {
