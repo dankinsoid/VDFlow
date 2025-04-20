@@ -6,6 +6,20 @@ SwiftUI developers are familiar with the challenge: your UI design is complete, 
 
 Consider a fairly standard app structure:
 
+```swift
+                   TabView          
+       ┌──────────────┼──────────────┐
+      Home          Search        Profile
+       │              │              │
+NavigationView NavigationView NavigationView
+       │              │              │
+   FeedView      ResultsView     ProfileView
+       │                             │
+   DetailView                   SettingsView
+                                     │
+                                  EditView
+```
+
 - A main tab view (Home, Search, Profile)
 - A navigation stack in each tab
 - Detail screens with their own state
@@ -133,6 +147,15 @@ This enables:
 
 Here's how the same navigation approach applies to an onboarding flow:
 
+```swift
+         OnboardingFlow          
+   ┌─────────┼───────────┬─────────┐
+Welcome  Permissions  Profile  Complete
+             │
+          ┌──┴──┐
+        Info  Request
+```
+
 **Traditional Approach:**
 ```swift
 struct OnboardingCoordinator: View {
@@ -249,6 +272,20 @@ flow.selected = .home
 flow = .home(.feed(.reset)) // Using enum-like static functions
 ```
 
+This structure can be visualized as:
+
+```swift
+        AppFlow          
+   ┌───────┼───────┐
+ Home    Search  Profile
+   │                │
+ Feed             Main
+   │                │
+Detail          Settings
+                    │
+                   Edit
+```
+
 This preservation of state is crucial for maintaining form data, scroll positions, or other UI state when navigating between screens. When a complete reset is needed, the `@Steps` macro generates enum-like static functions for convenient initialization with new values.
 
 ## Beyond Screen Navigation
@@ -265,6 +302,11 @@ struct FormFlow {
     var review
 }
 
+// Visualized as:
+//          FormFlow          
+//   ┌─────────┼───────┬──────┐
+// Personal Address Payment Review
+
 // Controlling UI components within a single screen
 @Steps
 struct MapViewState {
@@ -273,6 +315,11 @@ struct MapViewState {
     var traffic
     var locationDetails: LocationInfo?
 }
+
+// Visualized as:
+//           MapViewState          
+//   ┌────────────┼────────┬────────────┐
+// Standard   Satellite Traffic  LocationDetails
 
 // Managing design system components
 @Steps
@@ -286,6 +333,14 @@ struct ExpansionState {
     var basic
     var detailed
 }
+
+// Visualized as:
+//   ExpandableCardState
+//        ┌────┴────┐
+//    Collapsed  Expanded
+//                  │
+//              ┌───┴────┐
+//            Basic   Detailed
 ```
 
 This separation of navigation state from UI presentation means VDFlow can be used for:
@@ -309,7 +364,7 @@ dependencies: [
 ## Performance Considerations
 
 VDFlow adds minimal overhead to an application:
-- Small binary footprint (~100KB)
+- Small binary footprint
 - No background processing
 - No additional memory pressure
 - No impact on app startup time

@@ -3,159 +3,169 @@
 ## Description
 This repository provides a new simple way to describe routers.\
 I view the application flow as a tree of all possible screen states. From this point of view, navigation is the selection of a node of this tree.
+
 ## Example
 Take for example an application with such a hierarchy of screens:
 ```swift
              TabView          
    ┌────────────┼────────────┐
-  Tab1         Tab2    NavigationView
+  Home        Explore    NavigationView
                     ┌────────┴────────┐
-                 RootView         Push1View
+                ProfileView       DetailView
                                       │
-                                  PickerView
+                                  ThemeSelector
                               ┌───────┴───────┐
-                            Text1           Text2
+                            Light           Dark
 ```
-`PickerView` is here to demonstrate that navigation can mean not only changing screens, but also changing any state of any view.
+`ThemeSelector` is here to demonstrate that navigation can mean not only changing screens, but also changing any state of any view.
 
 Describe your flow as a struct with `Step` properties:
 ```swift
 @Steps
-struct TabSteps {
+struct AppSteps {
 
-  var tab1
-  var tab2: SomeTab2Data = .init()
-  var tab3: NavigationSteps = .screen1
+  var home
+  var explore = ExploreData()
+  var profile: ProfileSteps = .main
   var none
 }
 
 @Steps
-struct NavigationSteps {
+struct ProfileSteps {
 
-  var screen1
-  var screen2: PickerSteps = .none
+  var main
+  var detail: ThemeSteps = .none
 }
 
 @Steps
-struct PickerSteps {
+struct ThemeSteps {
 
-  var text1
-  var text2
+  var light
+  var dark
   var none
 }
 ```
 ```swift
-var steps: TabSteps = .tab1
+var steps: AppSteps = .home
 ```
-If you want to open `Tab2` you need mark `tab2` as selected. You have several ways to do it:
+If you want to open `Explore` you need mark `explore` as selected. You have several ways to do it:
 1. Set `selected` property:
 ```swift
-steps.selected = .tab2
+steps.selected = .explore
 ```
 2. Use auto-generated static functions:
 ```swift
-steps = .tab2(SomeTab2Data())
+steps = .explore(ExploreData())
 ```
 You can check which property is selected:
 1. With `selected` property:
 ```swift
-$steps.selected == .tab2
+$steps.selected == .explore
 ```
 Also you can set initial selected property:
 ```swift
-var screen3: PickerSteps = .text1
+var profileFlow: ProfileSteps = .main
 ```
 ### Deeplink
- Then you got a deep link for example and you need to change `Tab2` to third tab with `NavigationView`, push to `Push2View` and select `Text2` in `PickerView`.
+ Then you got a deep link for example and you need to navigate to the `Profile` tab, push to `DetailView` and select `Dark` theme in `ThemeSelector`.
  ```swift
- steps.tab3.$screen2.select(with: .text2)
+ steps.profile.$detail.select(with: .dark)
  ```
- Now `tab3`, `screen3`, `text2` properties are marked as selected.
+ Now `profile`, `detail`, `dark` properties are marked as selected.
+
 ### Integration with UI
 SwiftUI is a state driven framework, so it's easy to implement navigation with `Step`s.
+
 #### 1. `StateStep` property wrapper.
 `StateStep` updates view, stores your flow struct or binds it from parent view as an environment value. To bind flow down the view hierarchy you need use `.step(...)` or `.stepEnvironment(...)` view modifiers or initialize `StateStep` with `Binding<Step<...>>`.\
 `stepEnvironment` binds current step down the view hierarchy for embedded `StateStep` properties.
 `step` modifier is just a combination of `tag` and `stepEnvironment` modifiers.
 ```swift
-struct RootTabView: View {
+struct MainTabView: View {
 
-  @StateStep var step: TabSteps = .tab1
+  @StateStep var step: AppSteps = .home
   
   var body: some View {
     TabView(selection: $step.selected) {
-      Tab1()
-        .step(_step.$tab1)
+      HomeView()
+        .step(_step.$home)
       
-      Tab2()
-        .step(_step.$tab2)
+      ExploreView()
+        .step(_step.$explore)
       
-      EmbededNavigation()
-        .step(_step.$tab3)
+      ProfileNavigation()
+        .step(_step.$profile)
     }
     .tabViewStyle(PageTabViewStyle(indexDisplayMode: .always))
   }
 }
 
-struct EmbededNavigation: View {
+struct ProfileNavigation: View {
   
-  @StateStep var step = NavigationSteps()
+  @StateStep var step = ProfileSteps()
   
   var body: some View {
     NavigationView {
-      RootView {
-        NavigationLink(isActive: $step.isSelected(.screen3)) {
-          EmbededPicker()
-            .stepEnvironment($step.$screen2)
+      ProfileView {
+        NavigationLink(isActive: $step.isSelected(.detail)) {
+          ThemeSelectorView()
+            .stepEnvironment($step.$detail)
         } label: {
-          Text("push")
+          Text("Change Theme")
         }
       }
     }
   }
 }
 
-struct EmbededPicker: View {
+struct ThemeSelectorView: View {
   
-  @StateStep var step = PickerSteps()
+  @StateStep var step = ThemeSteps()
   
   var body: some View {
-    Picker("3", selection: $step.selected) {
-      Text("\(step.prefixString) 0")
-        .tag(PickerSteps.Steps.text1)
+    Picker("Theme", selection: $step.selected) {
+      Text("Light Mode")
+        .tag(ThemeSteps.Steps.light)
       
-      Text("\(step.prefixString) 1")
-        .tag(PickerSteps.Steps.text2)
+      Text("Dark Mode")
+        .tag(ThemeSteps.Steps.dark)
     }
     .pickerStyle(WheelPickerStyle())
   }
 }
 ```
-#### 4. Binding
+#### 2. Binding
 You can use `Step` directly without `StateStep` wrapper, in `ObservableObject` view model or as a part of state in [TCA](https://github.com/pointfreeco/swift-composable-architecture) `Store`, etc.
 
-#### 5. UIKit
+#### 3. UIKit
 There is no any special instrument for UIKit, because UIKit doesn't support state driven navigation, but it's possible to use Combine to subscribe on `Step` changes:
 ```swift
-let stepsSubject = CurrentValueSubject(TabSteps(.tab1))
+let stepsSubject = CurrentValueSubject(AppSteps(.home))
 
 stepsSubject
   .map(\.selected)
   .removeDublicates()
   .sink { selected in
     switch selected {
-    case .tab1:
-      ... 
+    case .home:
+      // Handle home tab selection
+    case .explore:
+      // Handle explore tab selection
+    case .profile:
+      // Handle profile tab selection
+    default:
+      break
     }
   }
 
-stepsSubject.value.$tab2.select()
+stepsSubject.value.$explore.select()
 ```
 or use `didSet`:
 ```swift
-var steps = TabSteps(.tab1) {
+var steps = AppSteps(.home) {
   didSet {
     guard oldValue.selected != steps.selected else { return }
+    // Handle selection change
     ... 
   }
 }
@@ -197,32 +207,34 @@ StepSystem.observer = MyStepsObserver()
 The observer will be called whenever any step changes in the application, allowing for centralized navigation tracking.
 
 ### Tools
+
 #### `NavigationLink` convenience init
 ```swift
-@StateStep var steps = Steps()
+@StateStep var steps = ProfileSteps()
 ...
-NavigationLink(step: _steps.$link) {
-  ...
+NavigationLink(step: _steps.$detail) {
+  ThemeSelectorView()
 } label: {
-  ...
+  Text("Change Theme")
 }
 ```
+
 #### `navigationPath()` extension on `Binding<Step<...>>` and two `navigationDestination` methods
 ```swift
-@StateStep var steps = Steps()
+@StateStep var steps = ProfileSteps()
     
 var body: some View {
     NavigationStack(path: $steps.navigationPath) {
-        RootView()
-            .navigationDestination(step: _steps.$link) {
-                PushView()
+        ProfileView()
+            .navigationDestination(step: _steps.$detail) {
+                ThemeSelectorView()
             }
             // or
             .navigationDestination(for: _steps) {
                 switch $0 {
-                case .link:
-                    PushView()
-                    	.step(_step.$link)
+                case .detail:
+                    ThemeSelectorView()
+                    	.step(_steps.$detail)
                 default:
                     EmptyView()
                 }
