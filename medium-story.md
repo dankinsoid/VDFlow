@@ -214,11 +214,7 @@ dependencies: [
 
 ## Performance Considerations
 
-VDFlow adds minimal overhead to an application:
-- Small binary footprint
-- No background processing
-- No additional memory pressure
-- No impact on app startup time
+VDFlow is a tiny library with no dependencies and adds minimal overhead to an application
 
 ## Conclusion
 
