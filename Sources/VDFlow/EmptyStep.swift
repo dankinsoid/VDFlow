@@ -34,18 +34,13 @@ public struct EmptyStepsCollection: StepsCollection {
 	public var _lastMutateID: MutateID? { nil }
 }
 
+@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
 extension Never: StepsCollection {
 
-	public typealias AllSteps = EmptyStepsCollection.AllSteps
-
-	public var selected: AllSteps {
-		get { .none }
+	public var _lastMutateID: MutateID? { nil }
+	public var selected: Never {
+		get { fatalError() }
 		set {}
 	}
-
-	public static func step<T>(for keyPath: WritableKeyPath<Self, StepID<T>>) -> AllSteps? {
-		AllSteps.none
-	}
-
-	public var _lastMutateID: MutateID? { nil }
+	public static func step<T>(for keyPath: WritableKeyPath<Self, StepID<T>>) -> AllSteps? { nil }
 }
