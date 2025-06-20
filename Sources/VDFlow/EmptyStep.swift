@@ -13,20 +13,38 @@ public struct EmptyStep: Hashable, Codable, CustomStringConvertible, Sendable {
 	public init() {}
 }
 
-extension EmptyStep: StepsCollection {
+public struct EmptyStepsCollection: StepsCollection {
 
 	public var selected: AllSteps {
 		get { .none }
 		set {}
 	}
+	
+	public init() {}
 
-	public static func step<T>(for keyPath: WritableKeyPath<EmptyStep, StepID<T>>) -> AllSteps? {
+	public static func step<T>(for keyPath: WritableKeyPath<Self, StepID<T>>) -> AllSteps? {
 		AllSteps.none
 	}
 
 	public enum AllSteps: Codable, Hashable, Sendable, CaseIterable {
 
 		case none
+	}
+
+	public var _lastMutateID: MutateID? { nil }
+}
+
+extension Never: StepsCollection {
+
+	public typealias AllSteps = EmptyStepsCollection.AllSteps
+
+	public var selected: AllSteps {
+		get { .none }
+		set {}
+	}
+
+	public static func step<T>(for keyPath: WritableKeyPath<Self, StepID<T>>) -> AllSteps? {
+		AllSteps.none
 	}
 
 	public var _lastMutateID: MutateID? { nil }
