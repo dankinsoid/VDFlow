@@ -403,6 +403,17 @@ public struct StepsMacro: MemberAttributeMacro, ExtensionMacro, MemberMacro, Acc
 			funcString += "}"
 			return DeclSyntax(stringLiteral: funcString)
 		}
+		let stepFunc: DeclSyntax =
+			   """
+			   public static func step<T>(for keyPath: WritableKeyPath<Self, StepID<T>>) -> AllSteps? {
+			     switch keyPath {
+			     \(raw: cases.map { "case \\.$\($0), \\._\($0): return .\($0)" }.joined(separator: "\n"))
+			     default:
+			      return nil
+			     }
+			   }
+			   """
+		result.append(stepFunc)
 		return result
 	}
 }
