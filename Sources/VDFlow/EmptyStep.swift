@@ -12,3 +12,22 @@ public struct EmptyStep: Hashable, Codable, CustomStringConvertible, Sendable {
 	/// Creates a new empty step instance.
 	public init() {}
 }
+
+extension EmptyStep: StepsCollection {
+
+	public var selected: AllSteps {
+		get { .none }
+		set {}
+	}
+
+	public static func step<T>(for keyPath: WritableKeyPath<EmptyStep, StepID<T>>) -> AllSteps? {
+		AllSteps.none
+	}
+
+	public enum AllSteps: Codable, Hashable, Sendable, CaseIterable {
+
+		case none
+	}
+
+	public var _lastMutateID: MutateID? { nil }
+}
