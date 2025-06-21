@@ -96,6 +96,11 @@ public struct StepWrapper<Parent: StepsCollection, Value>: Identifiable, StepWra
             .map { (id, $0) }
             .first
 	}
+
+	/// The key path for this step within the parent collection.
+	public var keyPath: WritableKeyPath<Parent, Value> {
+		Parent.keyPath(for: id)! as! WritableKeyPath<Parent, Value>
+	}
 }
 
 public extension StepWrapper where Value == EmptyStep {

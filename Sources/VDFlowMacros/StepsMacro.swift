@@ -369,6 +369,30 @@ public struct StepsMacro: MemberAttributeMacro, ExtensionMacro, MemberMacro, Acc
 			"""
 		result.append(_lastMutateStepID)
 
+		let stepFunc: DeclSyntax =
+			   """
+			   public static func step<T>(for keyPath: WritableKeyPath<Self, StepID<T>>) -> AllSteps? {
+			      switch keyPath {
+			      \(raw: cases.map { "case \\.$\($0), \\._\($0): return .\($0)" }.joined(separator: "\n"))
+			      default:
+			       return nil
+			      }
+			   }
+			   """
+		result.append(stepFunc)
+
+		let needDefaultNil = !cases.contains("none") && isOptional
+		let keyPathFunc: DeclSyntax =
+			   """
+			   public static func keyPath(for step: AllSteps) -> PartialKeyPath<Self>? {
+			       switch step {
+			       \(raw: cases.map { "case .\($0): return \\.\($0)" }.joined(separator: "\n"))
+			       \(raw: needDefaultNil ? "default: return nil" : "")
+			       }
+			   }
+			   """
+		result.append(keyPathFunc)
+
 		guard canInitWithSelected else { return result }
 
 		let initialSelected: DeclSyntax =
@@ -403,27 +427,6 @@ public struct StepsMacro: MemberAttributeMacro, ExtensionMacro, MemberMacro, Acc
 			funcString += "}"
 			return DeclSyntax(stringLiteral: funcString)
 		}
-		let stepFunc: DeclSyntax =
-			   """
-			   public static func step<T>(for keyPath: WritableKeyPath<Self, StepID<T>>) -> AllSteps? {
-			     switch keyPath {
-			     \(raw: cases.map { "case \\.$\($0), \\._\($0): return .\($0)" }.joined(separator: "\n"))
-			     default:
-			      return nil
-			     }
-			   }
-			   """
-		result.append(stepFunc)
-
-		let keyPathFunc: DeclSyntax =
-			   """
-			   public static func keyPath(for step: AllSteps) -> PartialKeyPath<Self> {
-			       switch step {
-			       \(raw: cases.map { "case .\($0): return \\.\($0)" }.joined(separator: "\n"))
-			       }
-			   }
-			   """
-		result.append(keyPathFunc)
 		return result
 	}
 }

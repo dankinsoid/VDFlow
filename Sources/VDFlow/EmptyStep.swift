@@ -19,16 +19,15 @@ public struct EmptyStepsCollection: StepsCollection {
 		get { .none }
 		set {}
 	}
-	
-	public let none = EmptyStep()
+
 	public init() {}
 
 	public static func step<T>(for keyPath: WritableKeyPath<Self, StepID<T>>) -> AllSteps? {
 		AllSteps.none
 	}
 
-	public static func keyPath(for step: AllSteps) -> PartialKeyPath<EmptyStepsCollection> {
-		\.none
+	public static func keyPath(for step: AllSteps) -> PartialKeyPath<EmptyStepsCollection>? {
+		nil
 	}
 	
 	public enum AllSteps: Codable, Hashable, Sendable, CaseIterable {
@@ -47,5 +46,5 @@ extension Never: StepsCollection {
 		set {}
 	}
 	public static func step<T>(for keyPath: WritableKeyPath<Self, StepID<T>>) -> AllSteps? { nil }
-	public static func keyPath(for step: Never) -> PartialKeyPath<Never> { }
+	public static func keyPath(for step: Never) -> PartialKeyPath<Never>? { }
 }
