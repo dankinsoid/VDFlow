@@ -414,6 +414,16 @@ public struct StepsMacro: MemberAttributeMacro, ExtensionMacro, MemberMacro, Acc
 			   }
 			   """
 		result.append(stepFunc)
+
+		let keyPathFunc: DeclSyntax =
+			   """
+			   public static func keyPath(for step: AllSteps) -> PartialKeyPath<Self> {
+			       switch step {
+			       \(raw: cases.map { "case .\($0): return \\.\($0)" }.joined(separator: "\n"))
+			       }
+			   }
+			   """
+		result.append(keyPathFunc)
 		return result
 	}
 }

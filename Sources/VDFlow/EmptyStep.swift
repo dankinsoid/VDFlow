@@ -20,12 +20,17 @@ public struct EmptyStepsCollection: StepsCollection {
 		set {}
 	}
 	
+	public let none = EmptyStep()
 	public init() {}
 
 	public static func step<T>(for keyPath: WritableKeyPath<Self, StepID<T>>) -> AllSteps? {
 		AllSteps.none
 	}
 
+	public static func keyPath(for step: AllSteps) -> PartialKeyPath<EmptyStepsCollection> {
+		\.none
+	}
+	
 	public enum AllSteps: Codable, Hashable, Sendable, CaseIterable {
 
 		case none
@@ -36,11 +41,11 @@ public struct EmptyStepsCollection: StepsCollection {
 
 @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
 extension Never: StepsCollection {
-
 	public var _lastMutateID: MutateID? { nil }
 	public var selected: Never {
 		get { fatalError() }
 		set {}
 	}
 	public static func step<T>(for keyPath: WritableKeyPath<Self, StepID<T>>) -> AllSteps? { nil }
+	public static func keyPath(for step: Never) -> PartialKeyPath<Never> { }
 }

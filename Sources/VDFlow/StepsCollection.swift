@@ -35,6 +35,9 @@ public protocol StepsCollection {
 
 	/// Retrieves the step ID for a specific step key path.
 	static func step<T>(for keyPath: WritableKeyPath<Self, StepID<T>>) -> AllSteps?
+
+	/// Retrieves the key path for a specific step in the collection.
+	static func keyPath(for step: AllSteps) -> PartialKeyPath<Self>
 }
 
 extension StepsCollection {
