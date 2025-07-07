@@ -56,6 +56,19 @@ final class VDFlowTestsCase: XCTestCase {
 		value.someStep.$text1.select()
 		XCTAssertEqual(value.selected, .someStep)
 	}
+	
+	func testIDByKeyPath() {
+		let steps = TabSteps.tab2
+		let id = TabSteps.step(for: \.$tab2)
+		XCTAssertEqual(id, .tab2)
+	}
+	
+	func testKeyPathByID() {
+		let steps = TabSteps.tab2
+		let keyPath = TabSteps.keyPath(for: .tab2)
+		XCTAssertEqual(keyPath, \TabSteps.tab2)
+		XCTAssertEqual(steps.$tab2.keyPath, \TabSteps.tab2)
+	}
 }
 
 @Steps
