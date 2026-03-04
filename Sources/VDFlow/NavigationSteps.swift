@@ -49,12 +49,12 @@ import SwiftUI
 public struct NavigationSteps<Selection: Hashable, Content: View>: View {
 
 	let content: Content
-	let selection: Binding<Selection>?
+	@Binding var selection: Selection
 	@State private var pop = PopActionWrapper()
 
 	public init(selection: Binding<Selection>, @ViewBuilder content: () -> Content) {
 		self.content = content()
-        self.selection = selection
+		_selection = selection
 	}
 
 	public var body: some View {
@@ -70,20 +70,11 @@ public struct NavigationSteps<Selection: Hashable, Content: View>: View {
 
 		func body(children: _VariadicView.Children) -> some View {
 			NavigationStackWrapper(
-				selection: base.selection,
+				selection: base.$selection,
 				popAction: base.pop,
 				children: children
 			)
 		}
-	}
-}
-
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-public extension NavigationSteps where Selection == Int {
-
-	init(@ViewBuilder content: () -> Content) {
-		selection = nil
-		self.content = content()
 	}
 }
 
@@ -112,7 +103,7 @@ public extension View {
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
 private struct NavigationStackWrapper<Selection: Hashable>: View {
 
-    let selection: Binding<Selection>?
+	@Binding var selection: Selection
 	let popAction: PopActionWrapper
 	let children: _VariadicView.Children
 
@@ -122,23 +113,23 @@ private struct NavigationStackWrapper<Selection: Hashable>: View {
 				guard let selectedIndex, selectedIndex > 0 else { return NavigationPath() }
 				return NavigationPath(
 					(1 ... selectedIndex).compactMap {
-						tag(of: children[$0])
+						tag(of: children[$0], $0)
 					}
 				)
 			} set: { path in
 				guard path.count < children.count else { return }
 				let i = path.count
-				if let tag = tag(of: children[i]) {
-                    selection?.wrappedValue = tag
+				if let tag = tag(of: children[i], i) {
+					selection = tag
 				} else if path.isEmpty, let none {
-                    selection?.wrappedValue = none
+					selection = none
 				}
 			}
 		) {
 			if !children.isEmpty {
 				children[0]
 					.navigationDestination(for: Selection.self) { tag in
-						if let child = children.first(where: { self.tag(of: $0) == tag }) {
+						if let child = children.enumerated().first(where: { self.tag(of: $0.element, $0.offset) == tag })?.element {
 							child
 						}
 					}
@@ -147,25 +138,25 @@ private struct NavigationStackWrapper<Selection: Hashable>: View {
 		.onAppear {
 			popAction.pop = pop
 		}
-        .onChange(of: selection?.wrappedValue) { _ in
+		.onChange(of: selection) { _ in
 			popAction.pop = pop
 		}
 	}
 
-	func tag(of child: _VariadicView.Children.Element) -> Selection? {
-		child.stepTag.base as? Selection
+	func tag(of child: _VariadicView.Children.Element, _ i: Int) -> Selection? {
+		(child.stepTag.base as? Selection) ?? (i as? Selection)
 	}
 
 	func pop(offset: Int) {
 		guard let selectedIndex else { return }
 		let newIndex = max(0, min(selectedIndex - offset, children.count - 1))
-		guard let tag = tag(of: children[newIndex]) else {
+		guard let tag = tag(of: children[newIndex], newIndex) else {
 			if newIndex == 0, let none {
-                selection?.wrappedValue = none
+				selection = none
 			}
 			return
 		}
-        selection?.wrappedValue = tag
+		selection = tag
 	}
 
 	var none: Selection? {
@@ -182,16 +173,13 @@ private struct NavigationStackWrapper<Selection: Hashable>: View {
 		guard !children.isEmpty else {
 			return nil
 		}
-        guard let selection else {
-            return children.count - 1
-        }
-        guard selection.wrappedValue != none else {
+		guard selection != none else {
 			return 0
 		}
 		let tags = children.enumerated().map {
-			(tag(of: $0.element), $0.offset)
+			(tag(of: $0.element, $0.offset), $0.offset)
 		}
-        guard let i = tags.first(where: { $0.0 == selection.wrappedValue })?.1 else {
+		guard let i = tags.first(where: { $0.0 == selection })?.1 else {
 			return nil
 		}
 		return i
