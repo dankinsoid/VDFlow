@@ -1,8 +1,4 @@
 *.xcuserstate
-<<<<<<< Updated upstream
-.build
-.idea
-=======
 .DS_Store
->>>>>>> Stashed changes
-.swiftpm/**/*
+.swiftpm/
+.build/

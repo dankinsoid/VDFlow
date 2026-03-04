@@ -49,19 +49,19 @@ import SwiftUI
 public struct NavigationSteps<Selection: Hashable, Content: View>: View {
 
 	let content: Content
-	@StateOrBinding var selection: Selection
-	@State private var pop: PopAction = EnvironmentValues.NavigationPopKey.defaultValue
+	let selection: Binding<Selection>?
+	@State private var pop = PopActionWrapper()
 
 	public init(selection: Binding<Selection>, @ViewBuilder content: () -> Content) {
 		self.content = content()
-		_selection = .binding(selection)
+        self.selection = selection
 	}
 
 	public var body: some View {
 		_VariadicView.Tree(Root(base: self)) {
 			content
 		}
-		.environment(\.pop, pop)
+		.environment(\.pop, PopAction { offset in pop.pop(offset) })
 	}
 
 	private struct Root: _VariadicView.UnaryViewRoot {
@@ -70,8 +70,8 @@ public struct NavigationSteps<Selection: Hashable, Content: View>: View {
 
 		func body(children: _VariadicView.Children) -> some View {
 			NavigationStackWrapper(
-				selection: base.$selection,
-				popAction: base.$pop,
+				selection: base.selection,
+				popAction: base.pop,
 				children: children
 			)
 		}
@@ -82,14 +82,17 @@ public struct NavigationSteps<Selection: Hashable, Content: View>: View {
 public extension NavigationSteps where Selection == Int {
 
 	init(@ViewBuilder content: () -> Content) {
-		_selection = StateOrBinding(wrappedValue: 0)
+		selection = nil
 		self.content = content()
 	}
 }
 
 private struct StepTag: _ViewTraitKey {
 
-	static var defaultValue: AnyHashable = Optional<Int>.none
+	static var defaultValue: AnyHashable = Default()
+
+	private struct Default: Hashable {
+	}
 }
 
 public extension _VariadicView.Children.Element {
@@ -109,8 +112,8 @@ public extension View {
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
 private struct NavigationStackWrapper<Selection: Hashable>: View {
 
-	@Binding var selection: Selection
-	@Binding var popAction: PopAction
+    let selection: Binding<Selection>?
+	let popAction: PopActionWrapper
 	let children: _VariadicView.Children
 
 	var body: some View {
@@ -119,51 +122,50 @@ private struct NavigationStackWrapper<Selection: Hashable>: View {
 				guard let selectedIndex, selectedIndex > 0 else { return NavigationPath() }
 				return NavigationPath(
 					(1 ... selectedIndex).compactMap {
-						tag(of: children[$0], $0)
+						tag(of: children[$0])
 					}
 				)
 			} set: { path in
 				guard path.count < children.count else { return }
 				let i = path.count
-				if let tag = tag(of: children[i], i) {
-					selection = tag
+				if let tag = tag(of: children[i]) {
+                    selection?.wrappedValue = tag
 				} else if path.isEmpty, let none {
-					selection = none
+                    selection?.wrappedValue = none
 				}
 			}
 		) {
 			if !children.isEmpty {
 				children[0]
 					.navigationDestination(for: Selection.self) { tag in
-						if let child = children.enumerated().first(where: { self.tag(of: $0.element, $0.offset) == tag })?.element {
+						if let child = children.first(where: { self.tag(of: $0) == tag }) {
 							child
 						}
 					}
 			}
 		}
 		.onAppear {
-			EnvironmentValues.NavigationPopKey._defaultValue = pop
-			popAction = PopAction(pop)
+			popAction.pop = pop
 		}
-		.onChange(of: selection) { _ in
-			popAction = PopAction(pop)
+        .onChange(of: selection?.wrappedValue) { _ in
+			popAction.pop = pop
 		}
 	}
 
-	func tag(of child: _VariadicView.Children.Element, _ i: Int) -> Selection? {
-		(child.stepTag.base as? Selection) ?? (i as? Selection)
+	func tag(of child: _VariadicView.Children.Element) -> Selection? {
+		child.stepTag.base as? Selection
 	}
 
 	func pop(offset: Int) {
 		guard let selectedIndex else { return }
 		let newIndex = max(0, min(selectedIndex - offset, children.count - 1))
-		guard let tag = tag(of: children[newIndex], newIndex) else {
+		guard let tag = tag(of: children[newIndex]) else {
 			if newIndex == 0, let none {
-				selection = none
+                selection?.wrappedValue = none
 			}
 			return
 		}
-		selection = tag
+        selection?.wrappedValue = tag
 	}
 
 	var none: Selection? {
@@ -180,13 +182,16 @@ private struct NavigationStackWrapper<Selection: Hashable>: View {
 		guard !children.isEmpty else {
 			return nil
 		}
-		guard selection != none else {
+        guard let selection else {
+            return children.count - 1
+        }
+        guard selection.wrappedValue != none else {
 			return 0
 		}
 		let tags = children.enumerated().map {
-			(tag(of: $0.element, $0.offset), $0.offset)
+			(tag(of: $0.element), $0.offset)
 		}
-		guard let i = tags.first(where: { $0.0 == selection })?.1 else {
+        guard let i = tags.first(where: { $0.0 == selection.wrappedValue })?.1 else {
 			return nil
 		}
 		return i
@@ -196,8 +201,8 @@ private struct NavigationStackWrapper<Selection: Hashable>: View {
 extension EnvironmentValues {
 
 	enum NavigationPopKey: EnvironmentKey {
-		static var _defaultValue: (Int) -> Void = { _ in }
-		static let defaultValue = PopAction { _defaultValue($0) }
+	
+		static let defaultValue = PopAction { _ in }
 	}
 
 	/// Use `Environment(\.pop)` environment value to control the pop/push actions:
@@ -239,6 +244,15 @@ public struct PopAction {
 
 	public func toRoot() {
 		pop(.max)
+	}
+}
+
+private final class PopActionWrapper {
+
+	var pop: (Int) -> Void
+
+	init(_ pop: @escaping (Int) -> Void = { _ in }) {
+		self.pop = pop
 	}
 }
 
