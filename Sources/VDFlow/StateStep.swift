@@ -15,9 +15,9 @@ import SwiftUI
 ///     var body: some View {
 ///         TabView(selection: $steps.selected) {
 ///             HomeView()
-///                 .step(_steps.$home)
+///                 .step($steps.$home)
 ///             ProfileView()
-///                 .step(_steps.$profile)
+///                 .step($steps.$profile)
 ///         }
 ///     }
 /// }
@@ -134,16 +134,16 @@ public extension View {
 	/// This modifier combines `.tag()` and `.stepEnvironment()` to fully configure a view for a specific step.
 	/// Use this with tab views, lists, or any other view where selection state is needed.
 	///
-	/// - Parameter binding: A binding to a step wrapper, typically accessed through `_steps.$stepName`.
+	/// - Parameter binding: A binding to a step wrapper, typically accessed through `$steps.$stepName`.
 	/// - Returns: A view modified with the appropriate tag and environment for this step.
 	///
 	/// ```swift
 	/// TabView(selection: $steps.selected) {
 	///     HomeView()
-	///         .step(_steps.$home)
+	///         .step($steps.$home)
 	///
 	///     ProfileView()
-	///         .step(_steps.$profile)
+	///         .step($steps.$profile)
 	/// }
 	/// ```
 	func step<Root: StepsCollection, Value>(

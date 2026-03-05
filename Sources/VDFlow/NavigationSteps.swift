@@ -485,12 +485,13 @@ enum NestableNavPreview: PreviewProvider {
 
     struct InnerFlow: View {
 
-        @State var selection: InnerStep = .a
+        @StateStep var selection: InnerStep = .a
 
         var body: some View {
             NavigationSteps(selection: $selection, nestable: true) {
                 InnerPage(title: "A", step: .a, selection: $selection)
                     .stepTag(InnerStep.a)
+                
                 InnerPage(title: "B", step: .b, selection: $selection)
                     .stepTag(InnerStep.b)
                 InnerPage(title: "C", step: .c, selection: $selection)

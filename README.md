@@ -88,13 +88,13 @@ struct MainTabView: View {
   var body: some View {
     TabView(selection: $step.selected) {
       HomeView()
-        .step(_step.$home)
+        .step($step.$home)
       
       ExploreView()
-        .step(_step.$explore)
+        .step($step.$explore)
       
       ProfileNavigation()
-        .step(_step.$profile)
+        .step($step.$profile)
     }
     .tabViewStyle(PageTabViewStyle(indexDisplayMode: .always))
   }
@@ -206,43 +206,6 @@ StepSystem.observer = MyStepsObserver()
 
 The observer will be called whenever any step changes in the application, allowing for centralized navigation tracking.
 
-### Tools
-
-#### `NavigationLink` convenience init
-```swift
-@StateStep var steps = ProfileSteps()
-...
-NavigationLink(step: _steps.$detail) {
-  ThemeSelectorView()
-} label: {
-  Text("Change Theme")
-}
-```
-
-#### `navigationPath()` extension on `Binding<Step<...>>` and two `navigationDestination` methods
-```swift
-@StateStep var steps = ProfileSteps()
-    
-var body: some View {
-    NavigationStack(path: $steps.navigationPath) {
-        ProfileView()
-            .navigationDestination(step: _steps.$detail) {
-                ThemeSelectorView()
-            }
-            // or
-            .navigationDestination(for: _steps) {
-                switch $0 {
-                case .detail:
-                    ThemeSelectorView()
-                    	.step(_steps.$detail)
-                default:
-                    EmptyView()
-                }
-            }
-    }
-    
-}
-```
 ## Installation
 
 1. [Swift Package Manager](https://github.com/apple/swift-package-manager)
