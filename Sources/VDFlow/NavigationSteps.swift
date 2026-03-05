@@ -56,6 +56,13 @@ import SwiftUI
 /// }
 /// ```
 ///
+/// - Important: `nestable` relies on the **SwiftUI structural hierarchy** (environment propagation),
+///   not the actual UIKit view hierarchy. This means any ancestor `NavigationSteps` in the view tree
+///   is detected — even across `sheet` or `fullScreenCover` boundaries. If you present a `nestable`
+///   `NavigationSteps` via sheet from within another `NavigationSteps`, it will incorrectly treat
+///   the presenting one as its parent and break. Only use `nestable: true` for `NavigationSteps`
+///   that are **direct structural descendants** within the same navigation stack.
+///
 /// - Tip: Use `Environment(\.pop)` environment value to control the pop/push actions:
 /// ```swift
 /// @Environment(\.pop) var pop
