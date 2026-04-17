@@ -69,6 +69,32 @@ final class VDFlowTestsCase: XCTestCase {
 		XCTAssertEqual(keyPath, \TabSteps.tab2)
 		XCTAssertEqual(steps.$tab2.keyPath, \TabSteps.tab2)
 	}
+
+	// @ai-generated(solo)
+	func testSelectedPath() {
+		let value: TabSteps = .tab3(.screen2(.text2))
+		XCTAssertEqual(
+			value.selectedPath,
+			[
+				AnyHashable(TabSteps.Steps.tab3),
+				AnyHashable(NavigationSteps.Steps.screen2),
+				AnyHashable(PickerSteps.Steps.text2),
+			]
+		)
+	}
+
+	// @ai-generated(solo)
+	func testDeepSelected() {
+		let value: TabSteps = .tab3(.screen2(.text2))
+		XCTAssertEqual(value.deepSelected, AnyHashable(PickerSteps.Steps.text2))
+	}
+
+	// @ai-generated(solo)
+	func testSelectedPathLeaf() {
+		let value: TabSteps = .tab1
+		XCTAssertEqual(value.selectedPath, [AnyHashable(TabSteps.Steps.tab1)])
+		XCTAssertEqual(value.deepSelected, AnyHashable(TabSteps.Steps.tab1))
+	}
 }
 
 @Steps

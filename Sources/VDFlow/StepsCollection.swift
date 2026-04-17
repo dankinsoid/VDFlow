@@ -79,4 +79,61 @@ extension StepsCollection {
     public mutating func select<T>(_ step: WritableKeyPath<Self, StepID<T>>, with value: T) {
         self[keyPath: step].select(with: value)
     }
+
+    /// The full path of selected steps from this collection down to the deepest nested selection.
+    ///
+    /// Each element is the `selected` value at that nesting level, type-erased to `AnyHashable`.
+    /// Always contains at least one element.
+    ///
+    /// ```swift
+    /// var steps: TabSteps = .tab3(.screen2(.text2))
+    /// steps.selectedPath // [AnyHashable(.tab3), AnyHashable(.screen2), AnyHashable(.text2)]
+    /// ```
+    public var selectedPath: [AnyHashable] {
+        var path: [AnyHashable] = []
+        _collectSelectedPath(into: &path)
+        return path
+    }
+
+    /// The deepest selected step in the nested hierarchy, type-erased to `AnyHashable`.
+    ///
+    /// ```swift
+    /// var steps: TabSteps = .tab3(.screen2(.text2))
+    /// steps.deepSelected // AnyHashable(.text2)
+    /// ```
+    public var deepSelected: AnyHashable {
+        selectedPath.last!
+    }
+
+    internal func _collectSelectedPath(into path: inout [AnyHashable]) {
+        let sel = selected
+        path.append(_unwrapOptionalHashable(sel))
+        guard let keyPath = Self.keyPath(for: sel) else { return }
+        let value = self[keyPath: keyPath]
+        guard let nested = value as? any StepsCollection else { return }
+        _collectNestedPath(nested, into: &path)
+    }
+}
+
+/// Unwraps an optional `Hashable` before converting to `AnyHashable`,
+/// so that `Optional<Steps>.some(.screen2)` becomes `AnyHashable(.screen2)` instead of `AnyHashable(Optional.some(.screen2))`.
+private func _unwrapOptionalHashable<H: Hashable>(_ value: H) -> AnyHashable {
+    if let optional = value as? any _OptionalProtocol {
+        return optional._unwrappedAnyHashable ?? value as AnyHashable
+    }
+    return value as AnyHashable
+}
+
+private protocol _OptionalProtocol {
+    var _unwrappedAnyHashable: AnyHashable? { get }
+}
+
+extension Optional: _OptionalProtocol where Wrapped: Hashable {
+    var _unwrappedAnyHashable: AnyHashable? {
+        self.map { $0 as AnyHashable }
+    }
+}
+
+private func _collectNestedPath(_ collection: any StepsCollection, into path: inout [AnyHashable]) {
+    collection._collectSelectedPath(into: &path)
 }
